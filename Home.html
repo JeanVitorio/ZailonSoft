@@ -100,7 +100,7 @@
 
         .banner h1, .banner p, .banner .demo-btn {
             position: relative;
-            z-index: 3;
+            z-index: 2;
         }
 
         .banner h1 {
@@ -131,6 +131,9 @@
             font-size: 1.1rem;
             transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
             animation: fadeInUp 1.4s ease-out;
+            white-space: nowrap; /* Prevents text from breaking into multiple lines */
+            display: inline-block; /* Ensures the button behaves as an inline element */
+            min-width: 200px; /* Optional: Ensures a minimum width to avoid shrinking */
         }
 
         .banner .demo-btn:hover {
@@ -203,7 +206,7 @@
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 2rem;
             max-width: 1200px;
-            margin: 0 autoexplaining to the user why this is necessary;
+            margin: 0 auto;
             margin-bottom: 1rem;
         }
 
@@ -262,7 +265,7 @@
         .faq-item {
             background: white;
             padding: 1.5rem;
- margin-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             cursor: pointer;
@@ -368,6 +371,11 @@
 
             .banner p {
                 font-size: 0.9rem;
+            }
+
+            .banner .demo-btn {
+                padding: 0.7rem 1.5rem; /* Adjust padding for smaller screens */
+                font-size: 1rem; /* Adjust font size for smaller screens */
             }
         }
 
