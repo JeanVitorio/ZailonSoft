@@ -203,7 +203,8 @@
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 2rem;
             max-width: 1200px;
-            margin: 0 auto;
+            margin: 0 autoexplaining to the user why this is necessary;
+            margin-bottom: 1rem;
         }
 
         .benefit-card {
@@ -261,7 +262,7 @@
         .faq-item {
             background: white;
             padding: 1.5rem;
-            margin-bottom: 1.5rem;
+ margin-bottom: 1.5rem;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             cursor: pointer;
@@ -341,49 +342,18 @@
         /* Responsive Design */
         @media (max-width: 768px) {
             header {
-                flex-direction: column;
-                gap: 1.5rem;
+                flex-direction: row;
+                justify-content: space-between;
                 padding: 1rem;
             }
 
             header nav {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
+                display: none; /* Hide navigation on mobile */
             }
 
-            header nav a {
-                margin: 0.5rem 0;
+            header .whatsapp-btn {
+                padding: 0.5rem 1rem;
                 font-size: 0.9rem;
-            }
-
-            .banner {
-                padding: 5rem 1rem;
-            }
-
-            .banner h1 {
-                font-size: 2rem;
-            }
-
-            .banner p {
-                font-size: 1.1rem;
-            }
-
-            .banner .demo-btn {
-                padding: 0.7rem 1.5rem;
-                font-size: 1rem;
-            }
-
-            #about, #benefits, #faq {
-                padding: 3rem 1rem;
-            }
-
-            #about h2, #benefits h2, #faq h2 {
-                font-size: 2rem;
-            }
-
-            .benefit-card {
-                padding: 1.5rem;
             }
         }
 
@@ -398,6 +368,18 @@
 
             .banner p {
                 font-size: 0.9rem;
+            }
+        }
+
+        @media (min-width: 769px) {
+            /* Ensure full layout on desktop */
+            header {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+
+            header nav {
+                display: flex;
             }
         }
     </style>
@@ -417,7 +399,7 @@
     <section class="banner">
         <h1>Automatize o Atendimento da Sua Loja de Veículos</h1>
         <p>ZailonSoft: Seu vendedor virtual no WhatsApp, 24 horas por dia, pronto para transformar leads em vendas.</p>
-        <a href="#demo" class="demo-btn">Assista à Demonstração</a>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSd9VHww8MwlMWFpH4LLHRe5iTP2S40gTOau-QHYEmBI1wQ5RA/viewform?usp=header" class="demo-btn" target="_blank">Agendar Demonstração Gratuita</a>
     </section>
 
     <section id="about">
