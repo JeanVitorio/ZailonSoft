@@ -3,9 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZailonSoft - Automação Inteligente para Lojas de Veículos</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>ZailonSoft - Automação de Luxo para Concessionárias</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/feather-icons"></script>
+
     <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-card: #1E1E1E;
+            --text-primary: #E0E0E0;
+            --text-secondary: #A0A0A0;
+            --gold-accent: #D4AF37;
+            --gold-hover: #EAC65F;
+            --border-color: rgba(212, 175, 55, 0.2);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,18 +29,23 @@
             font-family: 'Poppins', sans-serif;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            background-color: #f5f7fa;
-            color: #2d3436;
-            line-height: 1.6;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.7;
             overflow-x: hidden;
         }
 
         /* Header */
         header {
-            background: linear-gradient(135deg, #1a5d1a, #2d862d);
-            color: white;
-            padding: 1.5rem 2rem;
+            background: rgba(18, 18, 18, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1rem 5%;
             position: fixed;
             width: 100%;
             top: 0;
@@ -32,82 +53,65 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.3s ease;
         }
 
         header .logo {
             font-size: 1.8rem;
             font-weight: 700;
-            color: #ffeaa7;
+            color: var(--text-primary);
             letter-spacing: 1px;
-            transition: transform 0.3s ease;
         }
 
-        header .logo:hover {
-            transform: scale(1.05);
+        header .logo span {
+            color: var(--gold-accent);
         }
 
         header nav a {
-            color: white;
+            color: var(--text-secondary);
             text-decoration: none;
             margin-left: 2.5rem;
             font-weight: 500;
             font-size: 1rem;
-            transition: color 0.3s ease, transform 0.3s ease;
+            transition: color 0.3s ease;
         }
 
         header nav a:hover {
-            color: #ffeaa7;
-            transform: translateY(-2px);
+            color: var(--gold-accent);
         }
 
-        header .whatsapp-btn {
-            background: linear-gradient(135deg, #ffd700, #f1c40f);
-            color: #1a5d1a;
-            padding: 0.6rem 1.2rem;
-            border-radius: 25px;
+        .cta-button {
+            background-color: var(--gold-accent);
+            color: var(--bg-dark);
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
-            transition: background 0.3s ease, transform 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            display: inline-block;
+            border: 1px solid var(--gold-accent);
         }
 
-        header .whatsapp-btn:hover {
-            background: linear-gradient(135deg, #f1c40f, #d4ac0d);
-            transform: translateY(-2px);
+        .cta-button:hover {
+            background-color: var(--gold-hover);
+            transform: translateY(-3px);
         }
 
         /* Banner */
         .banner {
-            background: linear-gradient(135deg, #1a5d1a 0%, #2d862d 100%), url('https://source.unsplash.com/1600x900/?car,vehicle') no-repeat center center/cover;
+            background: linear-gradient(rgba(18, 18, 18, 0.8), rgba(18, 18, 18, 1)), url('https://source.unsplash.com/1920x1080/?luxury-car-dashboard') no-repeat center center/cover;
             color: white;
             text-align: center;
-            padding: 8rem 2rem;
-            margin-top: 80px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 1;
-        }
-
-        .banner h1, .banner p, .banner .demo-btn {
-            position: relative;
-            z-index: 2;
+            padding: 12rem 2rem 8rem 2rem;
+            margin-top: 60px;
         }
 
         .banner h1 {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             animation: fadeInUp 1s ease-out;
         }
 
@@ -118,176 +122,137 @@
             margin-left: auto;
             margin-right: auto;
             font-weight: 300;
+            color: var(--text-secondary);
             animation: fadeInUp 1.2s ease-out;
         }
 
-        .banner .demo-btn {
-            background: linear-gradient(135deg, #ffd700, #f1c40f);
-            color: #1a5d1a;
-            padding: 0.9rem 2rem;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+        .banner .cta-button {
+            font-size: 1.2rem;
+            padding: 1rem 2.5rem;
             animation: fadeInUp 1.4s ease-out;
-            white-space: nowrap; /* Prevents text from breaking into multiple lines */
-            display: inline-block; /* Ensures the button behaves as an inline element */
-            min-width: 200px; /* Optional: Ensures a minimum width to avoid shrinking */
         }
 
-        .banner .demo-btn:hover {
-            background: linear-gradient(135deg, #f1c40f, #d4ac0d);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        /* About Section */
-        #about {
-            padding: 5rem 2rem;
+        /* Estilos de Seção Padrão */
+        .section-container {
+            padding: 6rem 5%;
             max-width: 1200px;
             margin: 0 auto;
             text-align: center;
         }
 
-        #about h2 {
-            font-size: 2.5rem;
-            color: #1a5d1a;
+        .section-title {
+            font-size: 2.8rem;
+            color: var(--text-primary);
             font-weight: 600;
             margin-bottom: 1.5rem;
             position: relative;
         }
 
-        #about h2::after {
+        .section-title::after {
             content: '';
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(135deg, #1a5d1a, #2d862d);
+            width: 70px;
+            height: 3px;
+            background: var(--gold-accent);
             display: block;
-            margin: 0.5rem auto;
+            margin: 1rem auto;
             border-radius: 2px;
         }
 
-        #about p {
+        .section-subtitle {
             font-size: 1.2rem;
-            color: #636e72;
-            max-width: 900px;
-            margin: 0 auto 2rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto 4rem auto;
             font-weight: 300;
         }
 
-        /* Benefits */
+        /* Benefícios */
         #benefits {
-            padding: 5rem 2rem;
-            background: linear-gradient(135deg, #dfe6e9, #f5f7fa);
-            text-align: center;
-        }
-
-        #benefits h2 {
-            font-size: 2.5rem;
-            color: #1a5d1a;
-            font-weight: 600;
-            margin-bottom: 2.5rem;
-            position: relative;
-        }
-
-        #benefits h2::after {
-            content: '';
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(135deg, #1a5d1a, #2d862d);
-            display: block;
-            margin: 0.5rem auto;
-            border-radius: 2px;
+            background-color: var(--bg-dark);
         }
 
         .benefits-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            margin-bottom: 1rem;
         }
 
         .benefit-card {
-            background: white;
+            background: var(--bg-card);
             padding: 2.5rem;
-            border-radius: 15px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
             text-align: center;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-
+        
         .benefit-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
+        }
+
+        .benefit-card .icon {
+            color: var(--gold-accent);
+            margin-bottom: 1.5rem;
         }
 
         .benefit-card h3 {
-            font-size: 1.5rem;
-            color: #1a5d1a;
+            font-size: 1.4rem;
+            color: var(--text-primary);
             font-weight: 600;
             margin-bottom: 0.75rem;
         }
 
         .benefit-card p {
-            color: #636e72;
+            color: var(--text-secondary);
             font-size: 1rem;
+            line-height: 1.6;
         }
 
         /* FAQ */
-        #faq {
-            padding: 5rem 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        #faq h2 {
-            font-size: 2.5rem;
-            color: #1a5d1a;
-            font-weight: 600;
-            margin-bottom: 2.5rem;
-            position: relative;
-        }
-
-        #faq h2::after {
-            content: '';
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(135deg, #1a5d1a, #2d862d);
-            display: block;
-            margin: 0.5rem auto;
-            border-radius: 2px;
-        }
-
         .faq-item {
-            background: white;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            background: var(--bg-card);
+            padding: 1.5rem 2rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: border-color 0.3s ease;
+            text-align: left;
         }
 
         .faq-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-color: var(--border-color);
+        }
+
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .faq-item h3 {
-            font-size: 1.3rem;
-            color: #1a5d1a;
-            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .faq-question .icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .faq-item.active .faq-question .icon {
+            transform: rotate(45deg);
+            color: var(--gold-accent);
         }
 
         .faq-item p {
             display: none;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
             font-size: 1rem;
-            color: #636e72;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1.5rem;
         }
 
         .faq-item.active p {
@@ -297,186 +262,170 @@
 
         /* Footer */
         footer {
-            background: linear-gradient(135deg, #1a5d1a, #2d862d);
-            color: white;
+            background: var(--bg-card);
+            color: var(--text-secondary);
             text-align: center;
-            padding: 3rem 2rem;
+            padding: 4rem 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+        
+        .footer-logo span {
+            color: var(--gold-accent);
         }
 
         footer p {
-            margin-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
             font-size: 1rem;
             font-weight: 300;
         }
-
-        footer a {
-            color: #ffeaa7;
-            text-decoration: none;
-            font-weight: 500;
+        
+        .social-links a {
+            color: var(--text-secondary);
+            margin: 0 1rem;
             transition: color 0.3s ease;
         }
 
-        footer a:hover {
-            color: #f1c40f;
-            text-decoration: underline;
+        .social-links a:hover {
+            color: var(--gold-accent);
+        }
+
+        .footer-bottom {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9rem;
         }
 
         /* Animations */
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         /* Responsive Design */
+        @media (max-width: 992px) {
+            .banner h1 { font-size: 2.8rem; }
+            .banner p { font-size: 1.1rem; }
+        }
+
         @media (max-width: 768px) {
-            header {
-                flex-direction: row;
-                justify-content: space-between;
-                padding: 1rem;
-            }
-
-            header nav {
-                display: none; /* Hide navigation on mobile */
-            }
-
-            header .whatsapp-btn {
-                padding: 0.5rem 1rem;
-                font-size: 0.9rem;
-            }
+            header { padding: 1rem 5%; }
+            header nav { display: none; /* Considerar um menu hambúrguer para mobile */ }
+            
+            .banner h1 { font-size: 2.2rem; }
+            .section-title { font-size: 2.2rem; }
         }
 
-        @media (max-width: 480px) {
-            header .logo {
-                font-size: 1.5rem;
-            }
-
-            .banner h1 {
-                font-size: 1.8rem;
-            }
-
-            .banner p {
-                font-size: 0.9rem;
-            }
-
-            .banner .demo-btn {
-                padding: 0.7rem 1.5rem; /* Adjust padding for smaller screens */
-                font-size: 1rem; /* Adjust font size for smaller screens */
-            }
-        }
-
-        @media (min-width: 769px) {
-            /* Ensure full layout on desktop */
-            header {
-                flex-direction: row;
-                justify-content: space-between;
-            }
-
-            header nav {
-                display: flex;
-            }
-        }
     </style>
 </head>
 <body>
     <header>
-        <div class="logo">ZailonSoft</div>
+        <div class="logo">Zailon<span>Soft</span></div>
         <nav>
             <a href="#about">Sobre</a>
             <a href="#benefits">Benefícios</a>
             <a href="#faq">FAQ</a>
-            <a href="#contact">Contato</a>
         </nav>
-        <a href="https://wa.me/5546991370461" class="whatsapp-btn" target="_blank">Fale no WhatsApp</a>
+        <a href="https://wa.me/5546991370461" class="cta-button" target="_blank">Fale Conosco</a>
     </header>
 
-    <section class="banner">
-        <h1>Automatize o Atendimento da Sua Loja de Veículos</h1>
-        <p>ZailonSoft: Seu vendedor virtual no WhatsApp, 24 horas por dia, pronto para transformar leads em vendas.</p>
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSd9VHww8MwlMWFpH4LLHRe5iTP2S40gTOau-QHYEmBI1wQ5RA/viewform?usp=header" class="demo-btn" target="_blank">Agendar Demonstração Gratuita</a>
-    </section>
+    <main>
+        <section class="banner">
+            <h1>O Futuro do Atendimento Automotivo Chegou</h1>
+            <p>Transforme seu WhatsApp em um vendedor de elite. O ZailonSoft qualifica leads, agenda test-drives e acelera vendas, 24/7.</p>
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSd9VHww8MwlMWFpH4LLHRe5iTP2S40gTOau-QHYEmBI1wQ5RA/viewform?usp=header" class="cta-button" target="_blank">Agendar Demonstração</a>
+        </section>
 
-    <section id="about">
-        <h2>O que é o ZailonSoft?</h2>
-        <p>ZailonSoft é um sistema inteligente que revoluciona o atendimento de lojas de veículos no WhatsApp. Ele age como um vendedor real, respondendo dúvidas, mostrando carros e coletando dados para financiamento, tudo de forma automática e disponível 24/7.</p>
-    </section>
+        <section id="about" class="section-container">
+            <h2 class="section-title">A Revolução para sua Concessionária</h2>
+            <p class="section-subtitle">ZailonSoft não é apenas um chatbot. É uma plataforma de automação inteligente projetada para o mercado automotivo. Ele entende, interage e converte clientes no WhatsApp como um membro sênior da sua equipe de vendas, liberando seu time para focar no fechamento de negócios.</p>
+        </section>
 
-    <section id="benefits">
-        <h2>Benefícios do ZailonSoft</h2>
-        <div class="benefits-grid">
-            <div class="benefit-card">
-                <h3>Atende como um Vendedor Real</h3>
-                <p>Interage com clientes de forma natural, como se fosse um vendedor da sua equipe.</p>
+        <section id="benefits" class="section-container">
+            <h2 class="section-title">Inteligência que Gera Resultados</h2>
+            <p class="section-subtitle">Descubra como nossa automação pode otimizar suas operações e aumentar sua receita.</p>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <i data-feather="users" class="icon" width="48" height="48"></i>
+                    <h3>Atendimento Premium 24/7</h3>
+                    <p>Seu showroom nunca fecha. Atenda clientes instantaneamente, a qualquer hora do dia, com a mesma qualidade de um vendedor experiente.</p>
+                </div>
+                <div class="benefit-card">
+                    <i data-feather="filter" class="icon" width="48" height="48"></i>
+                    <h3>Qualificação de Leads</h3>
+                    <p>Nosso sistema filtra e identifica os clientes com maior potencial de compra, entregando leads quentes diretamente para seus vendedores.</p>
+                </div>
+                <div class="benefit-card">
+                    <i data-feather="file-text" class="icon" width="48" height="48"></i>
+                    <h3>Otimização de Processos</h3>
+                    <p>Automatize a coleta de dados para financiamento e a resposta a dúvidas frequentes, economizando tempo e reduzindo a carga operacional.</p>
+                </div>
             </div>
-            <div class="benefit-card">
-                <h3>Responde Dúvidas Automáticas</h3>
-                <p>Responde perguntas frequentes em tempo real, economizando tempo da sua equipe.</p>
-            </div>
-            <div class="benefit-card">
-                <h3>Filtra Clientes Interessados</h3>
-                <p>Identifica clientes com real interesse e prioriza o atendimento.</p>
-            </div>
-            <div class="benefit-card">
-                <h3>Coleta Dados para Financiamento</h3>
-                <p>Reúne informações importantes dos clientes para agilizar o processo de compra.</p>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="faq">
-        <h2>Perguntas Frequentes</h2>
-        <div class="faq-item">
-            <h3>Como o ZailonSoft funciona?</h3>
-            <p>O ZailonSoft usa inteligência artificial para responder mensagens no WhatsApp, simulando um vendedor humano. Ele pode mostrar veículos, esclarecer dúvidas e coletar dados.</p>
-        </div>
-        <div class="faq-item">
-            <h3>É fácil integrar com minha loja?</h3>
-            <p>Sim! A integração é simples e nossa equipe oferece suporte completo para configurar o sistema.</p>
-        </div>
-        <div class="faq-item">
-            <h3>Funciona 24 horas por dia?</h3>
-            <p>Sim, o ZailonSoft trabalha 24/7, garantindo que nenhum cliente fique sem resposta.</p>
-        </div>
-    </section>
+        <section id="faq" class="section-container">
+            <h2 class="section-title">Dúvidas Frequentes</h2>
+             <div class="faq-item">
+                <div class="faq-question">
+                    <h3>Como o ZailonSoft funciona?</h3>
+                    <i data-feather="plus" class="icon"></i>
+                </div>
+                <p>O ZailonSoft usa inteligência artificial avançada para entender as perguntas dos clientes e fornecer respostas precisas. Ele se integra ao seu WhatsApp e acessa seu estoque para mostrar veículos, esclarecer dúvidas e coletar dados de forma autônoma.</p>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>A integração com minha loja é complexa?</h3>
+                    <i data-feather="plus" class="icon"></i>
+                </div>
+                <p>Não. Nossa equipe de especialistas cuida de todo o processo de setup (onboarding). A integração é projetada para ser rápida e fluida, garantindo que você esteja operando com o sistema no menor tempo possível e sem dor de cabeça.</p>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <h3>O sistema pode ser personalizado para minha marca?</h3>
+                    <i data-feather="plus" class="icon"></i>
+                </div>
+                <p>Com certeza. O ZailonSoft é totalmente personalizável para refletir a voz e a identidade da sua marca, garantindo uma experiência consistente e profissional para seus clientes.</p>
+            </div>
+        </section>
+    </main>
 
     <footer id="contact">
-        <p>WhatsApp: <a href="https://wa.me/5546991370461" target="_blank">+55 46 99137-0461</a></p>
-        <p>Instagram: <a href="https://www.instagram.com/zailon_software?utm_source=ig_web_button_share_sheet&igsh=dDYwaTRyc2gzMmZ2" target="_blank">@zailon_software</a></p>
-        <p>© 2025 ZailonSoft. Todos os direitos reservados.</p>
+        <div class="footer-logo">Zailon<span>Soft</span></div>
+        <p>Pronto para levar sua concessionária para o próximo nível?</p>
+        <div class="social-links">
+             <a href="https://wa.me/5546991370461" target="_blank" title="WhatsApp"><i data-feather="message-circle" width="28" height="28"></i></a>
+             <a href="https://www.instagram.com/zailon_software?utm_source=ig_web_button_share_sheet&igsh=dDYwaTRyc2gzMmZ2" target="_blank" title="Instagram"><i data-feather="instagram" width="28" height="28"></i></a>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 ZailonSoft. Todos os direitos reservados. Uma solução inovadora para o mercado automotivo.</p>
+        </div>
     </footer>
 
     <script>
-        // Smooth Scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                window.scrollTo({
-                    top: target.offsetTop - 80,
-                    behavior: 'smooth'
-                });
-            });
-        });
+        // Inicializa os ícones da biblioteca Feather Icons
+        feather.replace();
 
-        // FAQ Toggle
+        // Lógica do Acordeão (FAQ)
         document.querySelectorAll('.faq-item').forEach(item => {
-            item.addEventListener('click', () => {
+            const question = item.querySelector('.faq-question');
+            question.addEventListener('click', () => {
                 const isActive = item.classList.contains('active');
+                
+                // Opcional: Fechar todos os outros antes de abrir o novo
                 document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+
                 if (!isActive) {
                     item.classList.add('active');
                 }
