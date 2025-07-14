@@ -3,14 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZailonSoft - Automação de Luxo para Concessionárias</title>
-    
+    <meta name="description" content="Automatize o WhatsApp da sua concessionária com a ZailonSoft. Qualifique leads, aumente as vendas de veículos e otimize o tempo com uma plataforma inteligente.">
+    <meta name="facebook-domain-verification" content="SEU_FACEBOOK_DOMAIN_VERIFICATION_ID">
+    <meta property="og:title" content="ZailonSoft - Automação para Concessionárias" />
+    <meta property="og:description" content="Automatize o WhatsApp da sua concessionária com a ZailonSoft. Qualifique leads, aumente as vendas de veículos e otimize o tempo com uma plataforma inteligente." />
+    <meta property="og:url" content="https://zailonsoft.com.br" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:title" content="ZailonSoft - Automação para Concessionárias" />
+    <meta name="twitter:description" content="Automatize o WhatsApp da sua concessionária com a ZailonSoft. Qualifique leads, aumente as vendas de veículos e otimize o tempo com uma plataforma inteligente." />
+    <script>
+        !(function (f, b, e, v, n, t, s) {
+            if (f.fbq) return;
+            n = f.fbq = function () {
+                n.callMethod
+                    ? n.callMethod.apply(n, arguments)
+                    : n.queue.push(arguments);
+            };
+            if (!f._fbq) f._fbq = n;
+            n.push = n;
+            n.loaded = !0;
+            n.version = "2.0";
+            n.queue = [];
+            t = b.createElement(e);
+            t.async = !0;
+            t.src = v;
+            s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s);
+        })(
+            window,
+            document,
+            "script",
+            "https://connect.facebook.net/en_US/fbevents.js"
+        );
+        fbq("init", "SEU_PIXEL_ID");
+        fbq("track", "PageView");
+    </script>
+    <noscript
+        ><img
+            height="1"
+            width="1"
+            style="display: none"
+            src="https://www.facebook.com/tr?id=SEU_PIXEL_ID&ev=PageView&noscript=1"
+    /></noscript>
+    <link rel="icon" type="image/png" href="assets/favicon/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="assets/favicon/favicon-16x16.png" sizes="16x16" />
+    <link rel="icon" type="image/x-icon" href="assets/favicon/favicon.ico" />
+    <title>ZailonSoft - Automação para Concessionárias</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
     <script src="https://unpkg.com/feather-icons"></script>
-
     <style>
         :root {
             --bg-dark: #121212;
@@ -21,26 +63,21 @@
             --gold-hover: #EAC65F;
             --border-color: rgba(212, 175, 55, 0.2);
         }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
         }
-
         html {
             scroll-behavior: smooth;
         }
-
         body {
             background-color: var(--bg-dark);
             color: var(--text-primary);
             line-height: 1.7;
             overflow-x: hidden;
         }
-
-        /* Header */
         header {
             background: rgba(18, 18, 18, 0.7);
             backdrop-filter: blur(10px);
@@ -56,18 +93,16 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             transition: background 0.3s ease;
         }
-
         header .logo {
             font-size: 1.8rem;
             font-weight: 700;
             color: var(--text-primary);
             letter-spacing: 1px;
+            text-decoration: none;
         }
-
         header .logo span {
             color: var(--gold-accent);
         }
-
         header nav a {
             color: var(--text-secondary);
             text-decoration: none;
@@ -76,11 +111,47 @@
             font-size: 1rem;
             transition: color 0.3s ease;
         }
-
         header nav a:hover {
             color: var(--gold-accent);
         }
-
+        #menuMobile {
+            background: none;
+            border: none;
+            color: var(--gold-accent);
+            font-size: 2rem;
+            cursor: pointer;
+            display: none;
+            z-index: 1001;
+        }
+        #menuMobile svg {
+            width: 32px;
+            height: 32px;
+        }
+        header nav#menu ul {
+            list-style: none;
+            display: flex;
+            align-items: center;
+        }
+        header nav#menu.active {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(18, 18, 18, 0.95);
+            justify-content: center;
+            align-items: center;
+        }
+        header nav#menu.active ul {
+            flex-direction: column;
+            gap: 2rem;
+        }
+        header nav#menu.active a {
+            font-size: 1.5rem;
+            margin: 0;
+        }
         .cta-button {
             background-color: var(--gold-accent);
             color: var(--bg-dark);
@@ -91,67 +162,186 @@
             transition: background-color 0.3s ease, transform 0.3s ease;
             display: inline-block;
             border: 1px solid var(--gold-accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-
         .cta-button:hover {
             background-color: var(--gold-hover);
             transform: translateY(-3px);
         }
-
-        /* Banner com imagem de fundo */
-        .banner {
+        .cta-button .iconBt svg {
+            width: 20px;
+            height: 20px;
+        }
+        #section01 {
             color: white;
             text-align: center;
             padding: 12rem 2rem 8rem 2rem;
             margin-top: 60px;
-
-            /* Fundo com imagem e sobreposição escura para legibilidade */
-            background: linear-gradient(rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 0.9)), url('http://googleusercontent.com/image_generation_content/0');
-            background-size: cover;
-            background-position: center center;
+            position: relative;
+            overflow: hidden;
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 0.9)), url('assets/images/concessionaria-bg.jpg') no-repeat center center/cover;
         }
-
-        .banner h1 {
+        #bg01 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        #section01 .ContainerCols {
+            display: flex;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 4rem;
+            text-align: left;
+            position: relative;
+            z-index: 10;
+        }
+        #section01 .col01 {
+            flex: 1;
+            background: rgba(18, 18, 18, 0.8);
+            padding: 2rem;
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+        }
+        #section01 .col01 .subTitle {
+            font-size: 1.5rem;
+            color: var(--gold-accent);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            animation: fadeInUp 1s ease-out 0.2s;
+            animation-fill-mode: backwards;
+        }
+        #section01 .col01 .subTitleExtra {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-weight: 400;
+            animation: fadeInUp 1s ease-out 0.4s;
+            animation-fill-mode: backwards;
+        }
+        #section01 .col01 .title {
             font-size: 3.5rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
             text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            animation: fadeInUp 1s ease-out;
+            animation: fadeInUp 1.2s ease-out 0.6s;
+            animation-fill-mode: backwards;
+            line-height: 1.2;
         }
-
-        .banner p {
-            font-size: 1.3rem;
-            margin-bottom: 2.5rem;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            font-weight: 300;
+        #section01 .col01 .title span {
+            color: var(--gold-accent);
+        }
+        #section01 .col01 .titleStrong {
+            color: var(--text-primary);
+            font-weight: 800;
+        }
+        #section01 .col01 .benefits-list {
+            list-style: none;
+            margin-bottom: 2rem;
+            text-align: left;
             color: var(--text-secondary);
-            animation: fadeInUp 1.2s ease-out;
+            animation: fadeInUp 1.4s ease-out 0.8s;
+            animation-fill-mode: backwards;
         }
-
-        .banner .cta-button {
-            font-size: 1.2rem;
-            padding: 1rem 2.5rem;
-            animation: fadeInUp 1.4s ease-out;
+        #section01 .col01 .benefits-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
         }
-
-        /* Estilos de Seção Padrão */
+        #section01 .col01 .benefits-list li svg {
+            width: 20px;
+            height: 20px;
+            color: var(--gold-accent);
+        }
+        #section01 .col01 .cta-button {
+            font-size: 1.3rem;
+            padding: 1.2rem 3rem;
+            animation: fadeInUp 1.6s ease-out 1s;
+            animation-fill-mode: backwards;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+        }
+        #section01 .col01 .cta-button:hover {
+            background-color: var(--gold-hover);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6);
+        }
+        #section01 .col01 .cta-button span {
+            color: var(--bg-dark);
+        }
+        #section01 .col02 {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 500px;
+        }
+        #section01 .col02 .paralaxMsg {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            padding: 0.8rem 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.5s ease-out;
+        }
+        #section01 .col02 .msg01 { top: 10%; left: 10%; }
+        #section01 .col02 .msg02 { top: 40%; right: 5%; }
+        #section01 .col02 .msg03 { bottom: 15%; left: 5%; }
+        #section01 .col02 .cell {
+            position: relative;
+            z-index: 5;
+        }
+        #section01 .col02 .circle,
+        #section01 .col02 .x,
+        #section01 .col02 .chip {
+            position: absolute;
+            opacity: 0.3;
+            z-index: 1;
+            display: none;
+        }
+        #section01 .col02 .circle { top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 80%; }
+        #section01 .col02 .x01 { top: 20%; left: 0%; max-width: 15%; }
+        #section01 .col02 .x02 { bottom: 10%; right: 0%; max-width: 15%; }
+        #section01 .col02 .chip { bottom: 5%; left: 30%; max-width: 10%; }
         .section-container {
             padding: 6rem 5%;
             max-width: 1200px;
             margin: 0 auto;
             text-align: center;
+            position: relative;
         }
-
+        .subTitle {
+            font-size: 1.5rem;
+            color: var(--gold-accent);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            text-align: center;
+        }
         .section-title {
             font-size: 2.8rem;
             color: var(--text-primary);
             font-weight: 600;
             margin-bottom: 1.5rem;
             position: relative;
+            text-align: center;
         }
-
         .section-title::after {
             content: '';
             width: 70px;
@@ -161,7 +351,6 @@
             margin: 1rem auto;
             border-radius: 2px;
         }
-
         .section-subtitle {
             font-size: 1.2rem;
             color: var(--text-secondary);
@@ -169,52 +358,394 @@
             margin: 0 auto 4rem auto;
             font-weight: 300;
         }
-
-        /* Benefícios */
-        #benefits {
-            background-color: var(--bg-dark);
+        #section02 {
+            padding: 6rem 5%;
+            text-align: center;
         }
-
-        .benefits-grid {
+        #section02 #listaDesafios {
+            list-style: none;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
+            margin-top: 3rem;
+            margin-bottom: 4rem;
         }
-
-        .benefit-card {
+        #section02 #listaDesafios li {
             background: var(--bg-card);
             padding: 2.5rem;
             border-radius: 12px;
             border: 1px solid var(--border-color);
-            text-align: center;
+            text-align: left;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            padding-top: 5rem;
         }
-        
-        .benefit-card:hover {
+        #section02 #listaDesafios li:hover {
             transform: translateY(-10px);
             box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
         }
-
-        .benefit-card .icon {
+        #section02 #listaDesafios li .num {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            font-size: 2.5rem;
+            font-weight: 700;
             color: var(--gold-accent);
-            margin-bottom: 1.5rem;
         }
-
-        .benefit-card h3 {
+        #section02 #listaDesafios li h3 {
             font-size: 1.4rem;
             color: var(--text-primary);
             font-weight: 600;
             margin-bottom: 0.75rem;
         }
-
-        .benefit-card p {
+        #section02 #listaDesafios li p {
             color: var(--text-secondary);
             font-size: 1rem;
             line-height: 1.6;
         }
-
-        /* FAQ */
-        .faq-item {
+        #section02 .btnCta {
+            font-size: 1.2rem;
+            padding: 1rem 2.5rem;
+        }
+        #section02 .btnCta svg {
+            width: 24px;
+            height: 24px;
+        }
+        #section03 {
+            padding: 6rem 5%;
+            text-align: center;
+        }
+        #section03 h2 {
+            font-size: 2.8rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            position: relative;
+            text-align: center;
+        }
+        #section03 h2::after {
+            content: '';
+            width: 70px;
+            height: 3px;
+            background: var(--gold-accent);
+            display: block;
+            margin: 1rem auto;
+            border-radius: 2px;
+        }
+        #section03 #listaFerramentas {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 3rem;
+            margin-bottom: 4rem;
+        }
+        #section03 #listaFerramentas li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            padding: 0.8rem 1.5rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: border-color 0.3s ease;
+        }
+        #section03 #listaFerramentas li:hover {
+            border-color: var(--gold-accent);
+        }
+        #section03 #listaFerramentas li div {
+            background: var(--gold-accent);
+            border-radius: 50%;
+            width: 10px;
+            height: 10px;
+            flex-shrink: 0;
+        }
+        #section03 .boxImgPc {
+            display: flex;
+            align-items: center;
+            gap: 4rem;
+            margin-top: 5rem;
+            text-align: left;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        #section03 .boxImgPc .image-wrapper {
+            flex: 1;
+            max-width: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 300px;
+        }
+        #section03 .boxImgPc .image-wrapper img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        #section03 .boxText {
+            flex: 1;
+            min-width: 300px;
+        }
+        #section03 .boxText h3 {
+            font-size: 2.2rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+        #section03 .boxText h3 span {
+            color: var(--gold-accent);
+        }
+        #section03 .boxText p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        #section03 .ctaQuero {
+            background: none;
+            border: 1px solid var(--gold-accent);
+            color: var(--gold-accent);
+            font-weight: 600;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        #section03 .ctaQuero:hover {
+            background-color: var(--gold-accent);
+            color: var(--bg-dark);
+        }
+        #section03 .ctaQuero svg {
+            width: 20px;
+            height: 20px;
+        }
+        #section03 .ctaQuero:hover svg {
+            color: var(--bg-dark);
+        }
+        #section04 {
+            padding: 6rem 5%;
+            background-color: var(--bg-card);
+            position: relative;
+            overflow: hidden;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #section04 .iconTR, #section04 .iconBL {
+            position: absolute;
+            opacity: 0.05;
+            display: none;
+        }
+        #section04 .iconTR { top: 5%; right: 5%; }
+        #section04 .iconBL { bottom: 5%; left: 5%; transform: rotate(180deg); }
+        #section04 .boxListWhite {
+            background: var(--bg-dark);
+            padding: 4rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        #section04 .boxListWhite h2 {
+            font-size: 2.5rem;
+            color: var(--text-primary);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        #section04 .boxListWhite h3 {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-bottom: 3rem;
+        }
+        #section04 .boxListWhite .list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        #section04 .boxListWhite .list li {
+            text-align: center;
+        }
+        #section04 .boxListWhite .list li .boxIcon {
+            background: var(--gold-accent);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 1.5rem auto;
+            color: var(--bg-dark);
+        }
+        #section04 .boxListWhite .list li .boxIcon svg {
+            width: 30px;
+            height: 30px;
+        }
+        #section04 .boxListWhite .list li h4 {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        #section04 .boxListWhite .list li p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        #section05 {
+            padding: 6rem 5%;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        #section05 #bg02 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        #section05 .containImgs {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin-bottom: 4rem;
+            position: relative;
+            z-index: 1;
+            display: none;
+        }
+        #section05 .boxText {
+            max-width: 800px;
+            margin: 0 auto 4rem auto;
+            text-align: center;
+        }
+        #section05 .boxText h3 {
+            font-size: 2.5rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+        #section05 .boxText h3 span {
+            color: var(--gold-accent);
+        }
+        #section05 .boxText p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        #section05 .miniSection {
+            background: var(--gold-accent);
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+            margin-top: 5rem;
+        }
+        #section05 .miniSection h3 {
+            font-size: 2rem;
+            color: var(--bg-dark);
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        #section05 .miniSection h3 span {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+        #section06 {
+            padding: 8rem 5%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 0.9));
+            background-size: cover;
+            background-position: center;
+        }
+        #section06 #bg03 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        #section06 .boxText {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        #section06 .boxText h3 {
+            font-size: 3rem;
+            color: var(--text-primary);
+            font-weight: 700;
+            margin-bottom: 3rem;
+            line-height: 1.3;
+        }
+        #section06 .boxText h3 span {
+            color: var(--gold-accent);
+        }
+        #section06 .cta-button {
+            font-size: 1.4rem;
+            padding: 1.2rem 3rem;
+        }
+        #section07 {
+            padding: 6rem 5%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 600px;
+        }
+        #section07 #bg04, #section07 #bg05 {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        #section07 .containerCols {
+            display: flex;
+            align-items: flex-start;
+            gap: 4rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        #section07 .col-50 {
+            flex: 1;
+            text-align: left;
+        }
+        #section07 .colLogo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            display: none;
+        }
+        #section07 h3 {
+            font-size: 2.2rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        #section07 .accordion-item {
             background: var(--bg-card);
             padding: 1.5rem 2rem;
             margin-bottom: 1rem;
@@ -224,33 +755,32 @@
             transition: border-color 0.3s ease;
             text-align: left;
         }
-
-        .faq-item:hover {
+        .accordion-item:hover {
             border-color: var(--border-color);
         }
-
-        .faq-question {
+        .accordion-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .faq-item h3 {
+            background: none;
+            border: none;
+            width: 100%;
             font-size: 1.2rem;
             color: var(--text-primary);
             font-weight: 500;
+            cursor: pointer;
+            padding: 0;
         }
-
-        .faq-question .icon {
+        .accordion-header .containIcon svg {
+            width: 24px;
+            height: 24px;
             transition: transform 0.3s ease;
         }
-        
-        .faq-item.active .faq-question .icon {
-            transform: rotate(45deg);
+        .accordion-item.active .accordion-header .containIcon svg {
+            transform: rotate(90deg);
             color: var(--gold-accent);
         }
-
-        .faq-item p {
+        .accordion-content {
             display: none;
             margin-top: 1.5rem;
             font-size: 1rem;
@@ -258,13 +788,10 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding-top: 1.5rem;
         }
-
-        .faq-item.active p {
+        .accordion-item.active .accordion-content {
             display: block;
             animation: fadeIn 0.5s ease-out;
         }
-
-        /* Footer */
         footer {
             background: var(--bg-card);
             color: var(--text-secondary);
@@ -272,170 +799,469 @@
             padding: 4rem 2rem;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-
         .footer-logo {
             font-size: 2rem;
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 1rem;
+            text-decoration: none;
+            display: inline-block;
         }
-        
         .footer-logo span {
             color: var(--gold-accent);
         }
-
         footer p {
             margin-bottom: 1.5rem;
             font-size: 1rem;
             font-weight: 300;
         }
-        
+        .social-links {
+            margin-bottom: 2rem;
+        }
         .social-links a {
             color: var(--text-secondary);
             margin: 0 1rem;
             transition: color 0.3s ease;
+            font-size: 1.8rem;
         }
-
         .social-links a:hover {
             color: var(--gold-accent);
         }
-
+        .social-links a svg {
+            width: 28px;
+            height: 28px;
+        }
         .footer-bottom {
             margin-top: 2rem;
             padding-top: 2rem;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
             font-size: 0.9rem;
         }
-
-        /* Animações */
+        .cta-button-fixed {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--gold-accent);
+            color: var(--bg-dark);
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
-
-        /* Responsive Design */
         @media (max-width: 992px) {
-            .banner h1 { font-size: 2.8rem; }
-            .banner p { font-size: 1.1rem; }
+            header nav { display: none; }
+            #menuMobile { display: block; }
+            header nav#menu.active { display: flex; }
+            #section01 .ContainerCols {
+                flex-direction: column;
+                text-align: center;
+                gap: 2rem;
+            }
+            #section01 .col01, #section01 .col02 {
+                flex: none;
+                width: 100%;
+            }
+            #section01 .col01 .title {
+                font-size: 2.5rem;
+            }
+            #section01 .col01 p {
+                font-size: 1.1rem;
+            }
+            #section01 .col02 {
+                min-height: 200px;
+            }
+            #section01 .col02 .paralaxMsg {
+                font-size: 0.8rem;
+                padding: 0.6rem 1rem;
+                display: none;
+            }
+            .section-title {
+                font-size: 2.2rem;
+            }
+            .section-subtitle {
+                font-size: 1rem;
+                margin-bottom: 2rem;
+            }
+            #section02 #listaDesafios {
+                grid-template-columns: 1fr;
+            }
+            #section03 .boxImgPc {
+                flex-direction: column;
+                text-align: center;
+                gap: 2rem;
+            }
+            #section03 .boxImgPc .image-wrapper {
+                max-width: 100%;
+            }
+            #section03 .boxText h3 {
+                font-size: 2rem;
+            }
+            #section04 .boxListWhite {
+                padding: 2rem;
+            }
+            #section04 .boxListWhite h2 {
+                font-size: 2rem;
+            }
+            #section04 .boxListWhite h3 {
+                font-size: 1.2rem;
+            }
+            #section04 .boxListWhite .list {
+                grid-template-columns: 1fr;
+            }
+            #section04 .iconTR, #section04 .iconBL {
+                display: none;
+            }
+            #section05 .containImgs {
+                display: none;
+            }
+            #section05 .boxText h3 {
+                font-size: 2rem;
+            }
+            #section05 .miniSection {
+                padding: 2rem 1.5rem;
+            }
+            #section05 .miniSection h3 {
+                font-size: 1.5rem;
+            }
+            #section06 .boxText h3 {
+                font-size: 2.2rem;
+            }
+            #section06 .cta-button {
+                font-size: 1.2rem;
+                padding: 1rem 2.5rem;
+            }
+            #section07 .containerCols {
+                flex-direction: column;
+                gap: 2rem;
+            }
+            #section07 .colLogo {
+                display: none;
+            }
+            #section07 h3 {
+                font-size: 1.8rem;
+            }
+            .accordion-header {
+                font-size: 1rem;
+            }
+            .cta-button-fixed {
+                display: block;
+            }
         }
-
-        @media (max-width: 768px) {
-            header { padding: 1rem 5%; }
-            header nav { display: none; /* Considerar um menu hambúrguer para mobile */ }
-            
-            .banner h1 { font-size: 2.2rem; }
-            .section-title { font-size: 2.2rem; }
+        @media (max-width: 576px) {
+            header { padding: 0.8rem 3%; }
         }
-
     </style>
 </head>
 <body>
     <header>
-        <div class="logo">Zailon<span>Soft</span></div>
-        <nav>
-            <a href="#about">Sobre</a>
-            <a href="#benefits">Benefícios</a>
-            <a href="#faq">FAQ</a>
+        <a href="#" class="logo">Zailon<span>Soft</span></a>
+        <nav id="menu">
+            <ul>
+                <li><a href="#section01">Início</a></li>
+                <li><a href="#section02">Desafios</a></li>
+                <li><a href="#section03">Solução</a></li>
+                <li><a href="#section04">Vantagens</a></li>
+                <li><a href="#section07">FAQ</a></li>
+                <li>
+                    <a href="https://api.whatsapp.com/send?phone=SEU_NUMERO_WHATSAPP" target="_blank" class="cta-button">
+                        Fale Conosco
+                        <span class="iconBt"><i data-feather="message-circle"></i></span>
+                    </a>
+                </li>
+            </ul>
         </nav>
-        <a href="https://wa.me/5546991370461" class="cta-button" target="_blank">Fale Conosco</a>
+        <button id="menuMobile" aria-label="Abrir Menu">
+            <i data-feather="menu"></i>
+        </button>
     </header>
-
     <main>
-        <section class="banner">
-            <h1>O Futuro do Atendimento Automotivo Chegou</h1>
-            <p>Transforme seu WhatsApp em um vendedor de elite. O ZailonSoft qualifica leads, agenda test-drives e acelera vendas, 24/7.</p>
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLSd9VHww8MwlMWFpH4LLHRe5iTP2S40gTOau-QHYEmBI1wQ5RA/viewform?usp=header" class="cta-button" target="_blank">Agendar Demonstração</a>
-        </section>
-
-        <section id="about" class="section-container">
-            <h2 class="section-title">A Revolução para sua Concessionária</h2>
-            <p class="section-subtitle">ZailonSoft não é apenas um chatbot. É uma plataforma de automação inteligente projetada para o mercado automotivo. Ele entende, interage e converte clientes no WhatsApp como um membro sênior da sua equipe de vendas, liberando seu time para focar no fechamento de negócios.</p>
-        </section>
-
-        <section id="benefits" class="section-container">
-            <h2 class="section-title">Inteligência que Gera Resultados</h2>
-            <p class="section-subtitle">Descubra como nossa automação pode otimizar suas operações e aumentar sua receita.</p>
-            <div class="benefits-grid">
-                <div class="benefit-card">
-                    <i data-feather="users" class="icon" width="48" height="48"></i>
-                    <h3>Atendimento Premium 24/7</h3>
-                    <p>Seu showroom nunca fecha. Atenda clientes instantaneamente, a qualquer hora do dia, com a mesma qualidade de um vendedor experiente.</p>
+        <section id="section01">
+            <div id="bg01"></div>
+            <div class="ContainerCols">
+                <div class="col01">
+                    <p class="subTitle">Automatize o seu Atendimento</p>
+                    <h1 class="title">Potencialize sua <span class="titleStrong">Concessionária</span> com a Zailon<span>Soft</span></h1>
+                    <p class="subTitleExtra">A revolução do atendimento começa aqui!</p>
+                    <ul class="benefits-list">
+                        <li><i data-feather="check-circle"></i> Qualificação de leads em tempo real</li>
+                        <li><i data-feather="clock"></i> Atendimento automatizado 24/7</li>
+                        <li><i data-feather="zap"></i> Otimização do tempo da sua equipe</li>
+                    </ul>
+                    <a href="https://api.whatsapp.com/send?phone=SEU_NUMERO_WHATSAPP" target="_blank" class="cta-button">
+                        Quero Uma Demonstração
+                        <span class="iconBt"><i data-feather="arrow-right-circle"></i></span>
+                    </a>
                 </div>
-                <div class="benefit-card">
-                    <i data-feather="filter" class="icon" width="48" height="48"></i>
-                    <h3>Qualificação de Leads</h3>
-                    <p>Nosso sistema filtra e identifica os clientes com maior potencial de compra, entregando leads quentes diretamente para seus vendedores.</p>
-                </div>
-                <div class="benefit-card">
-                    <i data-feather="file-text" class="icon" width="48" height="48"></i>
-                    <h3>Otimização de Processos</h3>
-                    <p>Automatize a coleta de dados para financiamento e a resposta a dúvidas frequentes, economizando tempo e reduzindo a carga operacional.</p>
+                <div class="col02">
+                    <p class="paralaxMsg msg01">Respostas Rápidas!</p>
+                    <p class="paralaxMsg msg02">Atendimento 24/7</p>
+                    <p class="paralaxMsg msg03">Leads Qualificados</p>
                 </div>
             </div>
         </section>
-
-        <section id="faq" class="section-container">
-            <h2 class="section-title">Dúvidas Frequentes</h2>
-             <div class="faq-item">
-                <div class="faq-question">
-                    <h3>Como o ZailonSoft funciona?</h3>
-                    <i data-feather="plus" class="icon"></i>
+        <section id="section02" class="section-container">
+            <p class="subTitle">Desafios Comuns</p>
+            <h2 class="section-title">Enfrente os desafios de hoje, conquiste o futuro</h2>
+            <p class="section-subtitle">Na ZailonSoft, entendemos as dores do dia a dia de uma concessionária. Oferecemos soluções que transformam desafios em oportunidades.</p>
+            <ul id="listaDesafios">
+                <li>
+                    <span class="num">01</span>
+                    <h3>Perda de Leads por Demora</h3>
+                    <p>Clientes não esperam. Com a ZailonSoft, cada lead é atendido instantaneamente, garantindo que nenhum potencial cliente se perca para a concorrência.</p>
+                </li>
+                <li>
+                    <span class="num">02</span>
+                    <h3>Equipe Sobrecarregada</h3>
+                    <p>Sua equipe de vendas gasta tempo precioso respondendo perguntas repetitivas. Automatize as FAQs e libere seu time para focar no que realmente importa: fechar vendas.</p>
+                </li>
+                <li>
+                    <span class="num">03</span>
+                    <h3>Dificuldade em Qualificar Leads</h3>
+                    <p>Nem todo contato é um lead quente. Nossa IA qualifica e segmenta os interessados, entregando para sua equipe apenas os clientes com real intenção de compra.</p>
+                </li>
+                <li>
+                    <span class="num">04</span>
+                    <h3>Falta de Padronização no Atendimento</h3>
+                    <p>Garanta que cada cliente receba a mesma qualidade de atendimento, com informações precisas e no tempo certo, criando uma experiência de marca consistente.</p>
+                </li>
+                <li>
+                    <span class="num">05</span>
+                    <h3>Baixa Taxa de Conversão</h3>
+                    <p>Com um atendimento mais rápido, eficiente e personalizado, observe suas taxas de conversão dispararem e seu faturamento crescer de forma significativa.</p>
+                </li>
+                <li>
+                    <span class="num">06</span>
+                    <h3>Dados Desorganizados</h3>
+                    <p>Tenha acesso a dashboards intuitivos com todas as métricas importantes, permitindo tomadas de decisão baseadas em dados e estratégias mais assertivas.</p>
+                </li>
+            </ul>
+            <a href="https://api.whatsapp.com/send?phone=SEU_NUMERO_WHATSAPP" target="_blank" class="cta-button btnCta">
+                Quero Superar Estes Desafios!
+                <span class="iconBt"><i data-feather="zap"></i></span>
+            </a>
+        </section>
+        <section id="section03" class="section-container">
+            <p class="subTitle">Nossa Solução</p>
+            <h2 class="section-title">A plataforma completa para a sua concessionária</h2>
+            <p class="section-subtitle">Com a ZailonSoft, você transforma o WhatsApp da sua concessionária em uma poderosa ferramenta de vendas e relacionamento. Integrado com as melhores tecnologias.</p>
+            <ul id="listaFerramentas">
+                <li><div></div>Qualificação de Leads</li>
+                <li><div></div>Agendamento de Test Drive</li>
+                <li><div></div>Atendimento 24/7</li>
+                <li><div></div>CRM Integrado</li>
+                <li><div></div>Envio de Catálogo de Veículos</li>
+                <li><div></div>Notificações e Lembretes</li>
+                <li><div></div>Dashboard de Métricas</li>
+                <li><div></div>Campanhas Personalizadas</li>
+            </ul>
+            <div class="boxImgPc">
+                <div class="image-wrapper">
+                    <img src="catalogo.png" alt="Catálogo do Site ZailonSoft">
                 </div>
-                <p>O ZailonSoft usa inteligência artificial avançada para entender as perguntas dos clientes e fornecer respostas precisas. Ele se integra ao seu WhatsApp e acessa seu estoque para mostrar veículos, esclarecer dúvidas e coletar dados de forma autônoma.</p>
+                <div class="boxText">
+                    <h3>Explore nosso <span>Catálogo</span> de Veículos</h3>
+                    <p>Com a ZailonSoft, seus clientes podem acessar o catálogo de veículos diretamente pelo WhatsApp. Informações detalhadas, fotos e vídeos ao alcance de um toque. Agilize a decisão de compra e encante seus clientes.</p>
+                    <a href="https://api.whatsapp.com/send?phone=SEU_NUMERO_WHATSAPP" target="_blank" class="ctaQuero">
+                        Saiba Mais
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-external-link"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </a>
+                </div>
             </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h3>A integração com minha loja é complexa?</h3>
-                    <i data-feather="plus" class="icon"></i>
+            <div class="boxImgPc" style="flex-direction: row-reverse;">
+                <div class="image-wrapper">
+                    <img src="CRM.png" alt="CRM ZailonSoft">
                 </div>
-                <p>Não. Nossa equipe de especialistas cuida de todo o processo de setup (onboarding). A integração é projetada para ser rápida e fluida, garantindo que você esteja operando com o sistema no menor tempo possível e sem dor de cabeça.</p>
+                <div class="boxText">
+                    <h3>Gestão Completa com nosso <span>CRM</span> Integrado</h3>
+                    <p>Nosso CRM integrado permite que você gerencie todos os contatos, histórico de conversas e etapas do funil de vendas em um só lugar. Tenha uma visão 360º do seu cliente e personalize o atendimento como nunca antes.</p>
+                    <a href="https://api.whatsapp.com/send?phone=SEU_NUMERO_WHATSAPP" target="_blank" class="ctaQuero">
+                        Descobrir CRM
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-database"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M21 19c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                    </a>
+                </div>
             </div>
-            <div class="faq-item">
-                <div class="faq-question">
-                    <h3>O sistema pode ser personalizado para minha marca?</h3>
-                    <i data-feather="plus" class="icon"></i>
+        </section>
+        <section id="section04">
+            <div class="iconTR"></div>
+            <div class="iconBL"></div>
+            <div class="boxListWhite">
+                <p class="subTitle">Por que ZailonSoft?</p>
+                <h2>Benefícios Inovadores para Sua Concessionária</h2>
+                <h3>Descubra como a ZailonSoft pode transformar o futuro do seu negócio, otimizando processos e impulsionando suas vendas.</h3>
+                <ul class="list">
+                    <li>
+                        <div class="boxIcon"><i data-feather="clock"></i></div>
+                        <h4>Economia de Tempo</h4>
+                        <p>Automatize tarefas repetitivas e libere sua equipe para atividades de maior valor.</p>
+                    </li>
+                    <li>
+                        <div class="boxIcon"><i data-feather="dollar-sign"></i></div>
+                        <h4>Aumento de Vendas</h4>
+                        <p>Qualifique leads de forma eficiente e aumente suas taxas de conversão.</p>
+                    </li>
+                    <li>
+                        <div class="boxIcon"><i data-feather="users"></i></div>
+                        <h4>Melhor Experiência do Cliente</h4>
+                        <p>Atendimento instantâneo e personalizado 24/7, garantindo satisfação.</p>
+                    </li>
+                    <li>
+                        <div class="boxIcon"><i data-feather="bar-chart-2"></i></div>
+                        <h4>Tomada de Decisão Estratégica</h4>
+                        <p>Acesse dados e métricas em tempo real para insights valiosos.</p>
+                    </li>
+                    <li>
+                        <div class="boxIcon"><i data-feather="award"></i></div>
+                        <h4>Padronização e Qualidade</h4>
+                        <p>Mantenha um alto padrão de atendimento em todas as interações.</p>
+                    </li>
+                    <li>
+                        <div class="boxIcon"><i data-feather="zap"></i></div>
+                        <h4>Agilidade no Atendimento</h4>
+                        <p>Responda a dúvidas e qualifique leads em segundos, não em horas.</p>
+                    </li>
+                </ul>
+            </div>
+        </section>
+        <section id="section05" class="section-container">
+            <div id="bg02"></div>
+            <div class="containImgs"></div>
+            <div class="boxText">
+                <p class="subTitle">Interface Intuitiva</p>
+                <h3>Gerencie tudo de forma <span>Simples</span> e Eficaz</h3>
+                <p>Nossa plataforma foi desenvolvida pensando na usabilidade. Uma interface limpa e intuitiva que permite à sua equipe gerenciar leads, conversas e campanhas sem complicações.</p>
+            </div>
+            <div class="miniSection">
+                <h3>A ZailonSoft é a <span>parceria perfeita</span> para o crescimento da sua concessionária!</h3>
+            </div>
+        </section>
+        <section id="section06">
+            <div id="bg03"></div>
+            <div class="boxText">
+                <h3>Pronto para <span>Revolucionar</span> o atendimento da sua Concessionária?</h3>
+                <a href="https://api.whatsapp.com/send?phone=SEU_NUMERO_WHATSAPP" target="_blank" class="cta-button">
+                    Fale com Nossos Especialistas
+                    <span class="iconBt"><i data-feather="message-square"></i></span>
+                </a>
+            </div>
+        </section>
+        <section id="section07">
+            <div id="bg04"></div>
+            <div id="bg05"></div>
+            <div class="containerCols">
+                <div class="col-50 colLogo"></div>
+                <div class="col-50">
+                    <p class="subTitle">Perguntas Frequentes</p>
+                    <h3>Tire suas dúvidas e saiba mais sobre a ZailonSoft</h3>
+                    <div class="accordion">
+                        <div class="accordion-item">
+                            <button class="accordion-header">
+                                O que é a ZailonSoft?
+                                <span class="containIcon"><i data-feather="chevron-right"></i></span>
+                            </button>
+                            <div class="accordion-content">
+                                <p>A ZailonSoft é uma plataforma de automação de WhatsApp desenvolvida especificamente para concessionárias, focada em qualificação de leads, agendamento de test drives, envio de catálogos e gestão de relacionamento com o cliente.</p>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <button class="accordion-header">
+                                Como a ZailonSoft pode ajudar minha concessionária a vender mais?
+                                <span class="containIcon"><i data-feather="chevron-right"></i></span>
+                            </button>
+                            <div class="accordion-content">
+                                <p>Nossa plataforma automatiza o atendimento inicial, qualifica leads com base nas suas necessidades, envia informações relevantes (como catálogos) instantaneamente e integra-se ao nosso CRM próprio para um acompanhamento eficaz, liberando sua equipe para focar nas vendas diretas.</p>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <button class="accordion-header">
+                                A ZailonSoft se integra com quais CRMs?
+                                <span class="containIcon"><i data-feather="chevron-right"></i></span>
+                            </button>
+                            <div class="accordion-content">
+                                <p>A ZailonSoft possui um CRM próprio, simples e eficiente, desenvolvido especialmente para acompanhar todo o ciclo de atendimento ao cliente. Desde o momento em que o lead é recebido até o fechamento da venda, você pode gerenciar cada etapa – Lead Recebido, Interessado, Dados Captados, Fechado e Lead Perdido – tudo em um só lugar, sem precisar de integrações externas.</p>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <button class="accordion-header">
+                                É difícil implementar a ZailonSoft?
+                                <span class="containIcon"><i data-feather="chevron-right"></i></span>
+                            </button>
+                            <div class="accordion-content">
+                                <p>Não! Nosso processo de implementação é simples e rápido. Oferecemos suporte completo para garantir que sua concessionária esteja operando com a ZailonSoft em pouco tempo, sem interrupções em suas operações.</p>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <button class="accordion-header">
+                                Qual o custo da ZailonSoft?
+                                <span class="containIcon"><i data-feather="chevron-right"></i></span>
+                            </button>
+                            <div class="accordion-content">
+                                <p>Nossos planos são personalizados para atender às necessidades de cada concessionária. Entre em contato conosco para uma demonstração e um orçamento sem compromisso, e descubra o valor que a ZailonSoft pode agregar ao seu negócio.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <p>Com certeza. O ZailonSoft é totalmente personalizável para refletir a voz e a identidade da sua marca, garantindo uma experiência consistente e profissional para seus clientes.</p>
             </div>
         </section>
     </main>
-
-    <footer id="contact">
-        <div class="footer-logo">Zailon<span>Soft</span></div>
-        <p>Pronto para levar sua concessionária para o próximo nível?</p>
+    <footer>
+        <a href="#" class="footer-logo">Zailon<span>Soft</span></a>
+        <p>Automatize sua concessionária, impulsione suas vendas.</p>
         <div class="social-links">
-             <a href="https://wa.me/5546991370461" target="_blank" title="WhatsApp"><i data-feather="message-circle" width="28" height="28"></i></a>
-             <a href="https://www.instagram.com/zailon_software?utm_source=ig_web_button_share_sheet&igsh=dDYwaTRyc2gzMmZ2" target="_blank" title="Instagram"><i data-feather="instagram" width="28" height="28"></i></a>
+            <a href="#" aria-label="Facebook"><i data-feather="facebook"></i></a>
+            <a href="#" aria-label="Instagram"><i data-feather="instagram"></i></a>
+            <a href="https://api.whatsapp.com/send?phone=SEU_NUMERO_WHATSAPP" target="_blank" aria-label="WhatsApp"><i data-feather="message-circle"></i></a>
         </div>
         <div class="footer-bottom">
-            <p>© 2025 ZailonSoft. Todos os direitos reservados. Uma solução inovadora para o mercado automotivo.</p>
+            <p>© 2025 ZailonSoft. Todos os direitos reservados.</p>
         </div>
     </footer>
-
+    <a href="https://api.whatsapp.com/send?phone=SEU_NUMERO_WHATSAPP" target="_blank" class="cta-button cta-button-fixed">
+        Fale Conosco
+        <span class="iconBt"><i data-feather="message-circle"></i></span>
+    </a>
     <script>
-        // Inicializa os ícones da biblioteca Feather Icons
         feather.replace();
-
-        // Lógica do Acordeão (FAQ)
-        document.querySelectorAll('.faq-item').forEach(item => {
-            const question = item.querySelector('.faq-question');
-            question.addEventListener('click', () => {
-                const isActive = item.classList.contains('active');
-                
-                // Fecha todos os outros antes de abrir o novo
-                document.querySelectorAll('.faq-item').forEach(i => {
-                    if (i !== item) {
-                        i.classList.remove('active');
-                    }
-                });
-
-                // Alterna a classe 'active' no item clicado
-                item.classList.toggle('active');
+        document.getElementById('menuMobile').addEventListener('click', function() {
+            const menu = document.getElementById('menu');
+            menu.classList.toggle('active');
+            const icon = this.querySelector('svg');
+            if (menu.classList.contains('active')) {
+                icon.setAttribute('data-feather', 'x');
+            } else {
+                icon.setAttribute('data-feather', 'menu');
+            }
+            feather.replace();
+        });
+        document.querySelectorAll('#menu a').forEach(item => {
+            item.addEventListener('click', () => {
+                const menu = document.getElementById('menu');
+                if (menu.classList.contains('active')) {
+                    menu.classList.remove('active');
+                    document.getElementById('menuMobile').querySelector('svg').setAttribute('data-feather', 'menu');
+                    feather.replace();
+                }
+            });
+        });
+        document.querySelectorAll('.accordion-header').forEach(button => {
+            button.addEventListener('click', () => {
+                const accordionItem = button.parentElement;
+                const accordionContent = button.nextElementSibling;
+                accordionItem.classList.toggle('active');
+                if (accordionItem.classList.contains('active')) {
+                    accordionContent.style.display = 'block';
+                } else {
+                    accordionContent.style.display = 'none';
+                }
             });
         });
     </script>
