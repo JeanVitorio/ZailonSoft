@@ -1,0 +1,495 @@
+{
+    "clients": [
+        {
+            "chat_id": "554699003742@c.us",
+            "name": "Evelyn caroline valkarenghi",
+            "phone": "5546",
+            "cpf": "12345678998",
+            "job": "nao tenho emprego",
+            "state": "Novo Lead",
+            "documents": [
+                "documents/554699003742@c.us/doc_6150de27c5764bab9317e15477eaa62b.png"
+            ],
+            "report": "Cliente iniciou contato via bot.",
+            "payment_method": "financiamento",
+            "deal_type": null,
+            "rg_number": "11",
+            "incomeProof": "",
+            "rg_photo": "",
+            "visit_details": {},
+            "bot_data": {
+                "deal_type": "financiamento",
+                "financing_details": {
+                    "entry": 250000,
+                    "parcels": "36"
+                },
+                "history": [
+                    {
+                        "timestamp": "02/09/2025, 13:00:41",
+                        "updated_data": {
+                            "state": "Movido para 554691370461@c.us via CRM"
+                        }
+                    },
+                    {
+                        "timestamp": "02/09/2025, 13:00:48",
+                        "updated_data": {
+                            "state": "Movido para 554691370461@c.us via CRM"
+                        }
+                    },
+                    {
+                        "timestamp": "02/09/2025, 14:01:06",
+                        "updated_data": {
+                            "state": "Movido para 554691370461@c.us via CRM"
+                        }
+                    },
+                    {
+                        "timestamp": "02/09/2025, 17:00:51",
+                        "updated_data": {
+                            "changes": "Dados atualizados via CRM"
+                        }
+                    },
+                    {
+                        "timestamp": "02/09/2025, 19:32:10",
+                        "updated_data": {
+                            "changes": "Dados atualizados via CRM"
+                        }
+                    },
+                    {
+                        "timestamp": "02/09/2025, 22:23:20",
+                        "updated_data": {
+                            "changes": "Dados atualizados via CRM"
+                        }
+                    },
+                    {
+                        "timestamp": "02/09/2025, 22:30:22",
+                        "updated_data": {
+                            "changes": "Dados atualizados via CRM"
+                        }
+                    },
+                    {
+                        "timestamp": "02/09/2025, 22:33:35",
+                        "updated_data": {
+                            "changes": "Dados atualizados via CRM"
+                        }
+                    },
+                    {
+                        "timestamp": "02/09/2025, 22:37:25",
+                        "updated_data": {
+                            "changes": "Dados atualizados via CRM"
+                        }
+                    },
+                    {
+                        "timestamp": "02/09/2025, 22:38:02",
+                        "updated_data": {
+                            "changes": "Dados atualizados via CRM"
+                        }
+                    }
+                ],
+                "interested_vehicles": [
+                    {
+                        "ano": "2010",
+                        "descricao": "Categoria\r\nCarros, Vans E Utilitários\r\nModelo\r\nFord Gt V8\r\nMarca\r\nFord\r\nAno\r\n2010\r\nQuilometragem\r\n36000\r\nPotência do motor\r\n4.0 Ou Mais\r\nCombustível\r\nGasolina\r\nCâmbio\r\nManual\r\nDireção\r\nMecânica\r\nCor\r\nPreto\r\nPortas\r\n2 Portas\r\nFinal de placa\r\n0\r\nPossui Kit GNV\r\nNão\r\nTipo de direção\r\nMecânica",
+                        "id": "ea2dbee7-e00c-4359-9085-cdbd71f13117",
+                        "imagens": [
+                            "cars/ea2dbee7-e00c-4359-9085-cdbd71f13117/image_1_bc4c109102b540ab99dc451fee90092b.webp",
+                            "cars/ea2dbee7-e00c-4359-9085-cdbd71f13117/image_2_b0f4f7ecf19649e5b5415243f3a263ac.webp",
+                            "cars/ea2dbee7-e00c-4359-9085-cdbd71f13117/image_3_844cb2c91d5b4f3a8cf9b01d953ab61a.webp",
+                            "cars/ea2dbee7-e00c-4359-9085-cdbd71f13117/image_4_14ea7c5e1496480191802a8f026f26b1.webp"
+                        ],
+                        "nome": "FORD MUSTANG SHELB",
+                        "preco": "300000"
+                    },
+                    {
+                        "ano": "2023",
+                        "descricao": "BMW 320i SPORT GP | 2024 | 8.500KM\r\n\r\nTeto Solar\r\nSistema de som Harman Kardon\r\nCinza Skyscraper\r\nInerna Cognac\r\nGarantia de fábrica\r\nSem retoques\r\nManual e chave reserva",
+                        "id": "1fd2f64a-9357-40c8-89ba-c968268c19c9",
+                        "imagens": [
+                            "cars/1fd2f64a-9357-40c8-89ba-c968268c19c9/image_1_82253034599943cbae9e5dbbd47154c7.webp",
+                            "cars/1fd2f64a-9357-40c8-89ba-c968268c19c9/image_3_8b369eba295b4117859a0ea8a45d74d8.webp",
+                            "cars/1fd2f64a-9357-40c8-89ba-c968268c19c9/image_4_10d0eb0475d043999ecb4f9946a7fb55.webp"
+                        ],
+                        "nome": "BMW 320i SPORT GP",
+                        "preco": "200000.00"
+                    }
+                ],
+                "previousState": "leed_recebido",
+                "state": "aguardando_escolha_carro",
+                "temp_car": null,
+                "trade_in_car": {
+                    "difference_payment_method": {
+                        "parcels": "48",
+                        "type": "financiamento"
+                    },
+                    "model": "Jetta",
+                    "photos": [],
+                    "value": 25000,
+                    "year": "2004"
+                }
+            }
+        },
+        {
+            "chat_id": "web_1756872186958",
+            "name": "Jeromeu",
+            "phone": "8777999966",
+            "cpf": "12345678998",
+            "job": "ddddddd",
+            "state": "leed_recebido",
+            "documents": [],
+            "report": "Cliente adicionado manualmente",
+            "payment_method": null,
+            "deal_type": "comum",
+            "rg_number": "",
+            "incomeProof": "",
+            "rg_photo": "",
+            "visit_details": {},
+            "bot_data": {
+                "deal_type": "comum",
+                "interested_vehicles": [
+                    {
+                        "id": "ea2dbee7-e00c-4359-9085-cdbd71f13117",
+                        "nome": "FORD MUSTANG SHELB"
+                    }
+                ],
+                "state": "aguardando_interesse",
+                "history": [
+                    {
+                        "timestamp": "03/09/2025, 01:40:51",
+                        "updated_data": {
+                            "changes": "Dados atualizados via CRM"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "chat_id": "554691370461@c.us",
+            "name": "Jean Vitorio",
+            "phone": "554691370461",
+            "cpf": "12314567809",
+            "job": "Empresário",
+            "state": "Novo Lead",
+            "documents": [],
+            "report": "Cliente iniciou contato via bot.",
+            "payment_method": "financiamento",
+            "deal_type": null,
+            "rg_number": "123456789",
+            "incomeProof": "",
+            "rg_photo": "",
+            "visit_details": {},
+            "bot_data": {
+                "financing_details": {},
+                "history": [
+                    {
+                        "timestamp": "03/09/2025, 02:34:56",
+                        "updated_data": {
+                            "changes": "Dados atualizados via CRM"
+                        }
+                    }
+                ],
+                "interested_vehicles": [
+                    {
+                        "ano": "2021",
+                        "descricao": "BMW 320i SPORT GP | 2024 \r\n\r\nTeto Solar\r\nSistema de som Harman Kardon\r\nCinza Skyscraper\r\nInerna Cognac\r\nGarantia de fábrica\r\nSem retoques\r\nManual e chave reserva",
+                        "id": "1fd2f64a-9357-40c8-89ba-c968268c19c9",
+                        "imagens": [
+                            "cars/1fd2f64a-9357-40c8-89ba-c968268c19c9/image_1_82253034599943cbae9e5dbbd47154c7.webp",
+                            "cars/1fd2f64a-9357-40c8-89ba-c968268c19c9/image_3_8b369eba295b4117859a0ea8a45d74d8.webp",
+                            "cars/1fd2f64a-9357-40c8-89ba-c968268c19c9/image_4_10d0eb0475d043999ecb4f9946a7fb55.webp"
+                        ],
+                        "nome": "BMW 320i SPORT GP",
+                        "preco": "20000.00"
+                    }
+                ],
+                "previousState": "leed_recebido",
+                "state": "aguardando_confirmacao_veiculo",
+                "temp_car": null,
+                "trade_in_car": {},
+                "deal_type": "troca"
+            }
+        },
+        {
+            "chat_id": "web_1756877056398",
+            "name": "Tigãrão",
+            "phone": "(46) 46666-6666",
+            "cpf": "123.456.789-33",
+            "job": "eeeeeeee",
+            "state": "aguardando_interesse",
+            "documents": [],
+            "report": "Cliente adicionado manualmente",
+            "payment_method": null,
+            "deal_type": "financiamento",
+            "rg_number": "",
+            "incomeProof": "",
+            "rg_photo": "",
+            "visit_details": {
+                "day": "",
+                "time": ""
+            },
+            "bot_data": {
+                "deal_type": "financiamento",
+                "financing_details": {
+                    "entry": 12222,
+                    "parcels": "48"
+                },
+                "interested_vehicles": [
+                    {
+                        "id": "ea2dbee7-e00c-4359-9085-cdbd71f13117",
+                        "nome": "FORD MUSTANG SHELB"
+                    }
+                ],
+                "state": "dados_visita",
+                "trade_in_car": {
+                    "model": "",
+                    "value": "",
+                    "year": ""
+                },
+                "visit_details": {
+                    "day": "",
+                    "time": ""
+                },
+                "history": [
+                    {
+                        "timestamp": "03/09/2025, 02:35:47",
+                        "updated_data": {
+                            "changes": "Dados atualizados via CRM"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "chat_id": "web_1756877352078",
+            "name": "Jea",
+            "phone": "(22) 22222-2222",
+            "cpf": "222.222.222-22",
+            "job": "eeee",
+            "state": "aguardando_interesse",
+            "documents": [],
+            "report": "Cliente adicionado manualmente",
+            "payment_method": null,
+            "deal_type": "troca",
+            "rg_number": "",
+            "incomeProof": "",
+            "rg_photo": "",
+            "visit_details": {
+                "day": "",
+                "time": ""
+            },
+            "bot_data": {
+                "state": "aguardando_interesse",
+                "deal_type": "troca",
+                "interested_vehicles": [
+                    {
+                        "id": "626f1fab-980e-475b-8328-95bc37eae10e",
+                        "nome": "Porsche Taycan 4S Cinza Espacial"
+                    }
+                ],
+                "financing_details": {
+                    "entry": "350000",
+                    "parcels": "48"
+                },
+                "visit_details": {
+                    "day": "",
+                    "time": ""
+                },
+                "trade_in_car": {
+                    "model": "Jetta ",
+                    "year": "2004",
+                    "value": "250000"
+                }
+            }
+        },
+        {
+            "chat_id": "web_1756877444478",
+            "name": "Jaya çuck",
+            "phone": "(46) 99137-0461",
+            "cpf": "124.146.829-06",
+            "job": "xxxx",
+            "state": "aguardando_escolha_carro",
+            "documents": [
+                "documents/web_1756877444478/doc_02b250d0988c40eaa6f2a5c87c09c4d3.png",
+                "documents/web_1756877444478/doc_06422375ed87424996239ef458cfe8e1.png"
+            ],
+            "report": "Cliente adicionado manualmente",
+            "payment_method": null,
+            "deal_type": "financiamento",
+            "rg_number": "",
+            "incomeProof": "",
+            "rg_photo": "",
+            "visit_details": {
+                "day": "",
+                "time": ""
+            },
+            "bot_data": {
+                "state": "aguardando_escolha_carro",
+                "deal_type": "financiamento",
+                "interested_vehicles": [
+                    {
+                        "id": "ea2dbee7-e00c-4359-9085-cdbd71f13117",
+                        "nome": "FORD MUSTANG SHELB"
+                    }
+                ],
+                "financing_details": {
+                    "entry": "255555",
+                    "parcels": "48"
+                },
+                "visit_details": {
+                    "day": "",
+                    "time": ""
+                },
+                "trade_in_car": {
+                    "model": "",
+                    "year": "",
+                    "value": "",
+                    "photos": []
+                }
+            }
+        },
+        {
+            "chat_id": "web_1756877485374",
+            "name": "Jeremias",
+            "phone": "(44) 44444-4444",
+            "cpf": "131.313.131-31",
+            "job": "sssssssssssss",
+            "state": "aguardando_escolha_carro",
+            "documents": [
+                "documents/web_1756877485374/doc_49c8127e0dd644b092e4228253642fa6.png",
+                "documents/web_1756877485374/doc_a32b731690d04b7abd354f1163f1bb80.png"
+            ],
+            "report": "Cliente adicionado manualmente",
+            "payment_method": null,
+            "deal_type": "a_vista",
+            "rg_number": "",
+            "incomeProof": "",
+            "rg_photo": "",
+            "visit_details": {
+                "day": "",
+                "time": ""
+            },
+            "bot_data": {
+                "deal_type": "financiamento",
+                "financing_details": {
+                    "entry": "",
+                    "parcels": ""
+                },
+                "interested_vehicles": [
+                    {
+                        "id": "ea2dbee7-e00c-4359-9085-cdbd71f13117",
+                        "nome": "FORD MUSTANG SHELB"
+                    }
+                ],
+                "state": "aguardando_escolha_carro",
+                "trade_in_car": {
+                    "model": "",
+                    "photos": [],
+                    "value": "",
+                    "year": ""
+                },
+                "visit_details": {
+                    "day": "",
+                    "time": ""
+                },
+                "history": [
+                    {
+                        "timestamp": "03/09/2025, 02:36:17",
+                        "updated_data": {
+                            "changes": "Dados atualizados via CRM"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "chat_id": "web_1756877556583",
+            "name": "jason",
+            "phone": "(44) 44444-4444",
+            "cpf": "131.313.131-31",
+            "job": "ssssssssssss",
+            "state": "aguardando_escolha_carro",
+            "documents": [
+                "documents/web_1756877556583/doc_77c35b58c2434f8c86f6a81a4110c85f.png",
+                "documents/web_1756877556583/doc_905efc8bde7f4c8e8c9f102307d0e4a1.png"
+            ],
+            "report": "Cliente adicionado manualmente",
+            "payment_method": null,
+            "deal_type": "troca",
+            "rg_number": "",
+            "incomeProof": "",
+            "rg_photo": "",
+            "visit_details": {
+                "day": "",
+                "time": ""
+            },
+            "bot_data": {
+                "state": "aguardando_escolha_carro",
+                "deal_type": "troca",
+                "interested_vehicles": [
+                    {
+                        "id": "ea2dbee7-e00c-4359-9085-cdbd71f13117",
+                        "nome": "FORD MUSTANG SHELB"
+                    }
+                ],
+                "financing_details": {
+                    "entry": "",
+                    "parcels": ""
+                },
+                "visit_details": {
+                    "day": "",
+                    "time": ""
+                },
+                "trade_in_car": {
+                    "model": "Jeep compass",
+                    "year": "2015",
+                    "value": "700000",
+                    "photos": [
+                        "documents/web_1756877556583/trade_e8674e592d12464f8c227334ff0bee2a.png",
+                        "documents/web_1756877556583/trade_7d28061c5ac24b0e8b00e6d921072f90.png"
+                    ]
+                }
+            }
+        },
+        {
+            "chat_id": "web_1756878015940",
+            "name": "Creituuu",
+            "phone": "(44) 44444-4444",
+            "cpf": "131.313.131-31",
+            "job": "fff",
+            "state": "aguardando_escolha_carro",
+            "documents": [],
+            "report": "Cliente adicionado manualmente",
+            "payment_method": null,
+            "deal_type": "visita",
+            "rg_number": "",
+            "incomeProof": "",
+            "rg_photo": "",
+            "visit_details": {
+                "day": "5555-06-15",
+                "time": "15:00"
+            },
+            "bot_data": {
+                "state": "aguardando_escolha_carro",
+                "deal_type": "visita",
+                "interested_vehicles": [
+                    {
+                        "id": "1fd2f64a-9357-40c8-89ba-c968268c19c9",
+                        "nome": "BMW 320i SPORT GP"
+                    }
+                ],
+                "financing_details": {
+                    "entry": "",
+                    "parcels": ""
+                },
+                "visit_details": {
+                    "day": "5555-06-15",
+                    "time": "15:00"
+                },
+                "trade_in_car": {
+                    "model": "",
+                    "year": "",
+                    "value": "",
+                    "photos": []
+                }
+            }
+        }
+    ]
+}
