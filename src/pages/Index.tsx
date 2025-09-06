@@ -47,8 +47,8 @@ const Index = () => {
     <div className="min-h-screen bg-gray-900 text-gray-100 font-poppins">
       <button
         onClick={toggleSidebar}
-        className="md:hidden fixed top-4 left-4 z-50 text-yellow-400 focus:outline-none"
-        aria-label="Toggle Sidebar"
+        className="md:hidden fixed top-4 left-4 z-50 text-amber-400 focus:outline-none"
+        aria-label="Alternar Sidebar"
       >
         {isSidebarOpen ? (
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">

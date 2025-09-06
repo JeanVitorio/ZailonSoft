@@ -31,7 +31,7 @@ export function LoginPage() {
                 setError('Ocorreu um erro. Verifique os seus dados e tente novamente.');
             }
         } else {
-            navigate('/'); // Redireciona para o dashboard após login
+            navigate('/sistema'); // Redireciona para o dashboard após login
         }
         setLoading(false);
     };
@@ -107,4 +107,3 @@ export function LoginPage() {
         </div>
     );
 }
-

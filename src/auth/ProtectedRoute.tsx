@@ -1,27 +1,21 @@
-// src/auth/ProtectedRoute.tsx
-
-import React, { ReactNode } from 'react';
-import { useAuth } from './AuthContext';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
-// Componente "porteiro": só deixa passar se estiver logado
-export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-    const { user, loading } = useAuth();
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
 
-    if (loading) {
-        // Mostra uma tela de carregamento enquanto verifica a sessão
-        return (
-            <div className="flex h-screen items-center justify-center">
-                <p>Carregando...</p>
-            </div>
-        );
-    }
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { user, loading } = useAuth();
 
-    if (!user) {
-        // Se não estiver carregando e não houver usuário, redireciona para o login
-        return <Navigate to="/login" replace />;
-    }
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-gray-100">Carregando...</div>;
+  }
 
-    // Se estiver tudo certo, mostra o conteúdo da aplicação
-    return <>{children}</>;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
 };

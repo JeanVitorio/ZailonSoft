@@ -3,14 +3,10 @@ import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-
-// IMPORTAÇÕES PARA AUTENTICAÇÃO
 import { AuthProvider } from './auth/AuthContext';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
-
-// PÁGINAS DA APLICAÇÃO
 import HomePage from './pages/HomePage';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
