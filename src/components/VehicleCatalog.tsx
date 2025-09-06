@@ -52,13 +52,17 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
   };
 
   const updateMutation = useMutation({
-    mutationFn: ({ carId, updatedData, newImages }: { carId: string, updatedData: Partial<Vehicle>, newImages: File[] }) => updateVehicleInSupabase({ carId, updatedData, newImages }),
+    mutationFn: ({ carId, updatedData, newImages }: { carId: string, updatedData: Partial<Vehicle>, newImages: File[] }) => 
+      updateVehicleInSupabase({ carId, updatedData, newImages }),
     onSuccess: () => {
       toast({ title: "Sucesso!", description: "Veículo atualizado." });
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       setIsEditing(false);
     },
-    onError: (e: Error) => toast({ title: "Erro!", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => {
+      console.error('Erro ao atualizar veículo:', e);
+      toast({ title: "Erro!", description: e.message || "Falha ao atualizar o veículo.", variant: "destructive" });
+    },
   });
 
   const deleteImageMutation = useMutation({
@@ -67,16 +71,40 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
       toast({ title: "Sucesso!", description: "Imagem removida." });
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
     },
-    onError: (e: Error) => toast({ title: "Erro!", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => {
+      console.error('Erro ao remover imagem:', e);
+      toast({ title: "Erro!", description: e.message || "Falha ao remover a imagem.", variant: "destructive" });
+    },
   });
 
   const handleSave = () => {
+    // Validação dos dados
+    if (!formData.nome || formData.nome.trim() === '') {
+      toast({ title: "Erro!", description: "O nome do veículo é obrigatório.", variant: "destructive" });
+      return;
+    }
+    if (!formData.ano || isNaN(Number(formData.ano))) {
+      toast({ title: "Erro!", description: "O ano do veículo é inválido.", variant: "destructive" });
+      return;
+    }
+    const priceString = String(formData.preco || '').replace(/[^0-9,]/g, '').replace(',', '.');
+    if (!priceString || isNaN(Number(priceString))) {
+      toast({ title: "Erro!", description: "O preço do veículo é inválido.", variant: "destructive" });
+      return;
+    }
+    if (!formData.loja_id) {
+      toast({ title: "Erro!", description: "O ID da loja é obrigatório.", variant: "destructive" });
+      return;
+    }
+
     const updatedData = {
-      name: formData.nome || '',
-      year: formData.ano,
-      price: String(formData.preco || '').replace(/[^0-9,]/g, '').replace(',', '.'),
-      description: formData.descricao || '',
+      nome: formData.nome.trim(),
+      ano: Number(formData.ano),
+      preco: priceString,
+      descricao: formData.descricao || '',
+      loja_id: formData.loja_id,
     };
+
     updateMutation.mutate({ carId: vehicle.id, updatedData, newImages });
   };
 
@@ -222,7 +250,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
             )}
           </div>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label className="text-zinc-800 font-medium">Preço</Label>
                 {isEditing ? (
@@ -299,7 +327,10 @@ export function VehicleCatalog() {
       toast({ title: "Sucesso!", description: "Veículo removido do catálogo." });
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
     },
-    onError: (error: Error) => toast({ title: "Erro!", description: error.message, variant: "destructive" }),
+    onError: (error: Error) => {
+      console.error('Erro ao remover veículo:', error);
+      toast({ title: "Erro!", description: error.message || "Falha ao remover o veículo.", variant: "destructive" });
+    },
   });
 
   const handleDelete = (vehicleId: string) => {
@@ -423,9 +454,9 @@ export function VehicleCatalog() {
       )}
 
       <Dialog open={!!selectedCar} onOpenChange={(isOpen) => { if (!isOpen) { setSelectedCar(null); } }}>
-        <DialogContent className="max-w-4xl max-h-[95vh] p-0 bg-white/70 border border-zinc-200">
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-white/70 border border-zinc-200 overflow-y-auto">
           {selectedCar && (
-            <div className="p-6 overflow-y-auto">
+            <div className="p-6">
               <CarDetailsView vehicle={selectedCar} onBack={() => setSelectedCar(null)} />
             </div>
           )}
