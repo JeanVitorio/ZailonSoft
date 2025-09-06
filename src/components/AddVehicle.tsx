@@ -1,11 +1,6 @@
-// src/components/AddVehicle.tsx
-
-// <<< ALTERAÇÃO AQUI: Adicionado useEffect e useState
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import InputMask from 'react-input-mask';
-
-// Importe seus componentes UI
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,12 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
 import { ArrowLeft, ArrowRight, Car, Upload, DollarSign, Check, FileText, Calendar, Trash2 } from 'lucide-react';
-
-// Importe a função de serviço
 import { addVehicle as addVehicleToSupabase } from '@/services/api';
-
-// <<< ALTERAÇÃO AQUI: Importe seu cliente Supabase
-import { supabase } from '@/supabaseClient'; // Verifique se este é o caminho correto para seu cliente supabase
+import { supabase } from '@/supabaseClient';
 
 // --- Funções Auxiliares ---
 const parseCurrency = (value: string): number => {
@@ -45,27 +36,20 @@ export function AddVehicle() {
     const [formData, setFormData] = useState(initialFormData);
     const [images, setImages] = useState<File[]>([]);
     const [validationError, setValidationError] = useState<string | null>(null);
-
-    // <<< ALTERAÇÃO AQUI: Criamos um estado para armazenar o lojaId
     const [lojaId, setLojaId] = useState<string | null>(null);
 
     const { toast } = useToast();
     const queryClient = useQueryClient();
 
-    // <<< ALTERAÇÃO AQUI: Usamos o useEffect para buscar os dados da loja quando o componente carregar
     useEffect(() => {
         const fetchLojaData = async () => {
-            // 1. Pega o usuário logado
             const { data: { user } } = await supabase.auth.getUser();
-
             if (user) {
-                // 2. Busca na tabela 'lojas' a loja que pertence a esse usuário
                 const { data: lojaData, error } = await supabase
                     .from('lojas')
                     .select('id')
                     .eq('user_id', user.id)
-                    .single(); // .single() pega apenas um resultado
-
+                    .single();
                 if (error) {
                     console.error("Erro ao buscar dados da loja:", error);
                     toast({
@@ -78,9 +62,8 @@ export function AddVehicle() {
                 }
             }
         };
-
         fetchLojaData();
-    }, [toast]); // O toast é uma dependência para poder ser usado dentro do useEffect
+    }, [toast]);
 
     const mutation = useMutation({
         mutationFn: ({ vehicleData, images, lojaId }: { vehicleData: typeof initialFormData; images: File[]; lojaId: string }) => 
@@ -102,7 +85,6 @@ export function AddVehicle() {
         },
     });
 
-    // --- Handlers (sem alterações aqui) ---
     const handleInputChange = (field: keyof typeof initialFormData, value: string) => {
         setValidationError(null);
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -135,7 +117,6 @@ export function AddVehicle() {
 
     const handleSubmit = () => {
         if (!validateStep()) return;
-
         if (!lojaId) {
             toast({
                 title: "Erro de Autenticação",
@@ -144,11 +125,9 @@ export function AddVehicle() {
             });
             return;
         }
-
         mutation.mutate({ vehicleData: formData, images: images, lojaId: lojaId });
     };
     
-    // O resto do componente continua igual...
     const stepsConfig = [
         { step: 1, title: 'Nome do Veículo', icon: Car },
         { step: 2, title: 'Ano do Veículo', icon: Calendar },
@@ -162,39 +141,104 @@ export function AddVehicle() {
     const progressValue = (step / stepsConfig.length) * 100;
 
     return (
-        <div className="container mx-auto p-4 md:p-8 space-y-6 max-w-2xl">
+        <div className="container mx-auto p-4 md:p-8 space-y-6 max-w-2xl font-poppins">
             <div className="space-y-2 text-center">
-                <h1 className="text-3xl font-bold">Cadastro de Novo Veículo</h1>
+                <h1 className="text-3xl font-bold text-zinc-900">Cadastro de Novo Veículo</h1>
                 {currentStepInfo && (
-                    <p className="text-muted-foreground">Etapa {step} de {stepsConfig.length}: {currentStepInfo.title}</p>
+                    <p className="text-zinc-600">Etapa {step} de {stepsConfig.length}: {currentStepInfo.title}</p>
                 )}
             </div>
             
-            <Progress value={progressValue} className="w-full" />
+            <Progress value={progressValue} className="w-full h-2 bg-zinc-200 [&>div]:bg-amber-500" />
             
-            {validationError && <p className="text-sm font-medium text-destructive bg-destructive/10 p-3 rounded-md text-center">{validationError}</p>}
+            {validationError && <p className="text-sm font-medium text-red-500 bg-red-500/10 p-3 rounded-md text-center">{validationError}</p>}
             
-            <Card>
+            <Card className="bg-white/70 border-zinc-200 shadow-sm">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-zinc-900">
                         {currentStepInfo?.icon && React.createElement(currentStepInfo.icon, { className: "h-5 w-5" })}
                         {currentStepInfo?.title}
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {step === 1 && ( <div className="space-y-2"><Label htmlFor="name">Nome / Título do Anúncio *</Label><Input id="name" placeholder="Ex: Honda Civic 2.0 EXL Automático" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} /></div> )}
-                    {step === 2 && ( <div className="space-y-2"><Label htmlFor="year">Ano de Fabricação *</Label><InputMask mask="9999" value={formData.year} onChange={e => handleInputChange('year', e.target.value)}>{(inputProps: any) => <Input {...inputProps} id="year" placeholder="Ex: 2021" />}</InputMask></div> )}
-                    {step === 3 && ( <div className="space-y-2"><Label htmlFor="price">Preço *</Label><Input id="price" placeholder="R$ 0,00" value={formData.price} onChange={e => handleInputChange('price', e.target.value)} /></div> )}
-                    {step === 4 && ( <div className="space-y-2"><Label htmlFor="description">Descrição</Label><Textarea id="description" placeholder="Descreva opcionais, estado de conservação, etc." value={formData.description} onChange={e => handleInputChange('description', e.target.value)} rows={5} /></div> )}
-                    {step === 5 && ( <div><Label htmlFor="image-upload" className="p-6 border-2 border-dashed rounded-lg text-center cursor-pointer hover:border-primary transition-colors block"><Upload className="mx-auto h-12 w-12 text-gray-400" /><p className="mt-2 text-sm text-muted-foreground">Clique para selecionar ou arraste as imagens</p></Label><Input id="image-upload" type="file" multiple className="sr-only" onChange={handleImageChange} accept="image/*"/>{images.length > 0 && ( <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">{images.map((file, index) => ( <div key={index} className="relative aspect-video"><img src={URL.createObjectURL(file)} alt={file.name} className="w-full h-full object-cover rounded-md" /><Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => removeImage(index)}><Trash2 className="h-4 w-4" /></Button></div> ))}</div>)}</div> )}
-                    {step === 6 && ( <div className="space-y-4 text-sm"><div className="p-4 bg-muted rounded-lg space-y-2"><h3 className="font-semibold">Resumo do Veículo</h3><p><span className="text-muted-foreground">Nome:</span> {formData.name}</p><p><span className="text-muted-foreground">Ano:</span> {formData.year}</p><p><span className="text-muted-foreground">Preço:</span> {formData.price}</p><p><span className="text-muted-foreground">Descrição:</span> {formData.description || "N/A"}</p><p><span className="text-muted-foreground">Imagens:</span> {images.length} foto(s)</p></div></div> )}
+                    {step === 1 && (
+                        <div className="space-y-2">
+                            <Label htmlFor="name" className="text-zinc-600">Nome / Título do Anúncio *</Label>
+                            <Input id="name" placeholder="Ex: Honda Civic 2.0 EXL Automático" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20" />
+                        </div>
+                    )}
+                    {step === 2 && (
+                        <div className="space-y-2">
+                            <Label htmlFor="year" className="text-zinc-600">Ano de Fabricação *</Label>
+                            <InputMask mask="9999" value={formData.year} onChange={e => handleInputChange('year', e.target.value)}>
+                                {(inputProps: any) => <Input {...inputProps} id="year" placeholder="Ex: 2021" className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20" />}
+                            </InputMask>
+                        </div>
+                    )}
+                    {step === 3 && (
+                        <div className="space-y-2">
+                            <Label htmlFor="price" className="text-zinc-600">Preço *</Label>
+                            <Input id="price" placeholder="R$ 0,00" value={formData.price} onChange={e => handleInputChange('price', e.target.value)} className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20" />
+                        </div>
+                    )}
+                    {step === 4 && (
+                        <div className="space-y-2">
+                            <Label htmlFor="description" className="text-zinc-600">Descrição</Label>
+                            <Textarea id="description" placeholder="Descreva opcionais, estado de conservação, etc." value={formData.description} onChange={e => handleInputChange('description', e.target.value)} rows={5} className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20" />
+                        </div>
+                    )}
+                    {step === 5 && (
+                        <div>
+                            <Label htmlFor="image-upload" className="p-6 border-2 border-dashed border-zinc-200 rounded-lg text-center cursor-pointer hover:border-amber-400/50 transition-colors block">
+                                <Upload className="mx-auto h-12 w-12 text-zinc-400" />
+                                <p className="mt-2 text-sm text-zinc-600">Clique para selecionar ou arraste as imagens</p>
+                            </Label>
+                            <Input id="image-upload" type="file" multiple className="sr-only" onChange={handleImageChange} accept="image/*"/>
+                            {images.length > 0 && (
+                                <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {images.map((file, index) => (
+                                        <div key={index} className="relative aspect-video">
+                                            <img src={URL.createObjectURL(file)} alt={file.name} className="w-full h-full object-cover rounded-md" />
+                                            <Button className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 hover:bg-red-600" size="icon" onClick={() => removeImage(index)}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {step === 6 && (
+                        <div className="space-y-4 text-sm">
+                            <div className="p-4 bg-zinc-100 rounded-lg space-y-2">
+                                <h3 className="font-semibold text-zinc-900">Resumo do Veículo</h3>
+                                <p><span className="text-zinc-600">Nome:</span> {formData.name}</p>
+                                <p><span className="text-zinc-600">Ano:</span> {formData.year}</p>
+                                <p><span className="text-zinc-600">Preço:</span> {formData.price}</p>
+                                <p><span className="text-zinc-600">Descrição:</span> {formData.description || "N/A"}</p>
+                                <p><span className="text-zinc-600">Imagens:</span> {images.length} foto(s)</p>
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
             <div className="flex justify-between mt-6">
-                {step > 1 ? (<Button variant="outline" onClick={prevStep}><ArrowLeft className="mr-2 h-4 w-4" /> Voltar</Button>) : <div />}
-                {step > 0 && step < stepsConfig.length && (<Button onClick={nextStep}>Avançar <ArrowRight className="ml-2 h-4 w-4" /></Button>)}
-                {step > 0 && step === stepsConfig.length && (<Button onClick={handleSubmit} disabled={mutation.isPending || !lojaId}>{mutation.isPending ? 'Salvando...' : 'Finalizar Cadastro'}</Button>)}
+                {step > 1 ? (
+                    <Button className="border-zinc-200 text-zinc-800 hover:bg-zinc-100 hover:border-amber-400/50" variant="outline" onClick={prevStep}>
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
+                    </Button>
+                ) : <div />}
+                {step > 0 && step < stepsConfig.length && (
+                    <Button className="bg-amber-500 hover:bg-amber-600 text-white" onClick={nextStep}>
+                        Avançar <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                )}
+                {step > 0 && step === stepsConfig.length && (
+                    <Button className="bg-amber-500 hover:bg-amber-600 text-white disabled:bg-amber-300" onClick={handleSubmit} disabled={mutation.isPending || !lojaId}>
+                        {mutation.isPending ? 'Salvando...' : 'Finalizar Cadastro'}
+                    </Button>
+                )}
             </div>
         </div>
     );

@@ -1,5 +1,3 @@
-// src/components/WhatsAppConnection.tsx
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -83,7 +81,6 @@ export function WhatsAppConnection() {
             setIsConnected(false);
             setConnectedNumber('');
             setIsConnecting(false);
-
         } catch (error) {
             console.error("Erro ao desconectar:", error);
         } finally {
@@ -99,23 +96,23 @@ export function WhatsAppConnection() {
     }, []);
 
     return (
-        <div className="container mx-auto py-6 px-4 md:px-6 space-y-6">
+        <div className="container mx-auto py-6 px-4 md:px-6 space-y-6 font-poppins">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground">Conexão WhatsApp</h1>
-                    <p className="text-muted-foreground">Gerencie a conexão do seu bot de atendimento.</p>
+                    <h1 className="text-3xl font-bold text-zinc-900">Conexão WhatsApp</h1>
+                    <p className="text-zinc-600">Gerencie a conexão do seu bot de atendimento.</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 {/* Connection Status Card */}
-                <Card className="shadow-card flex flex-col h-full">
+                <Card className="bg-white/70 border-zinc-200 shadow-sm flex flex-col h-full">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 text-zinc-900">
                             <MessageSquare className="w-5 h-5" />
                             Status da Conexão
                         </CardTitle>
-                        <CardDescription>
+                        <CardDescription className="text-zinc-600">
                             {isConnected 
                                 ? `Conectado com o número: ${connectedNumber}`
                                 : "O bot está offline. Conecte-o para começar."}
@@ -125,25 +122,27 @@ export function WhatsAppConnection() {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 {isConnected ? (
-                                    <Wifi className="w-8 h-8 text-green-500" />
+                                    <Wifi className="w-8 h-8 text-amber-500" />
                                 ) : (
-                                    <WifiOff className="w-8 h-8 text-muted-foreground" />
+                                    <WifiOff className="w-8 h-8 text-zinc-400" />
                                 )}
                                 <div>
-                                    <p className="font-medium text-foreground">
+                                    <p className="font-medium text-zinc-900">
                                         {isConnected ? 'Bot Conectado' : 'Bot Desconectado'}
                                     </p>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-sm text-zinc-600">
                                         {isConnected 
                                             ? 'Pronto para receber mensagens' 
                                             : isConnecting 
                                                 ? 'Aguardando escaneamento do QR Code...'
-                                                : 'Clique para conectar e ativar o bot'
-                                        }
+                                                : 'Clique para conectar e ativar o bot'}
                                     </p>
                                 </div>
                             </div>
-                            <Badge variant={isConnected ? 'default' : 'secondary'} className={isConnected ? 'bg-green-500/10 text-green-500 border-green-500/20' : ''}>
+                            <Badge 
+                                variant={isConnected ? 'default' : 'secondary'} 
+                                className={isConnected ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-zinc-100 text-zinc-600 border-zinc-200'}
+                            >
                                 {isConnected ? 'Online' : 'Offline'}
                             </Badge>
                         </div>
@@ -152,7 +151,7 @@ export function WhatsAppConnection() {
                         {!isConnected ? (
                             <Button 
                                 onClick={handleConnect}
-                                className="w-full"
+                                className="w-full bg-amber-500 hover:bg-amber-600 text-white"
                                 disabled={isConnecting}
                             >
                                 {isConnecting ? (
@@ -165,8 +164,7 @@ export function WhatsAppConnection() {
                         ) : (
                             <Button 
                                 onClick={handleDisconnect}
-                                variant="destructive" 
-                                className="w-full"
+                                className="w-full bg-red-500 hover:bg-red-600 text-white"
                                 disabled={isDisconnecting}
                             >
                                 {isDisconnecting ? (
@@ -186,9 +184,9 @@ export function WhatsAppConnection() {
                 </Card>
 
                 {/* QR Code Card */}
-                <Card className="shadow-card flex flex-col h-full">
+                <Card className="bg-white/70 border-zinc-200 shadow-sm flex flex-col h-full">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 text-zinc-900">
                             <QrCode className="w-5 h-5" />
                             QR Code
                         </CardTitle>
@@ -197,15 +195,15 @@ export function WhatsAppConnection() {
                         {isConnecting ? (
                             <div className="space-y-4 text-center">
                                 {qrError ? (
-                                    <div className="w-full max-w-[256px] aspect-square mx-auto bg-destructive/10 border-2 border-dashed border-destructive/20 rounded-lg flex items-center justify-center p-4">
+                                    <div className="w-full max-w-[256px] aspect-square mx-auto bg-red-500/10 border-2 border-dashed border-red-500/20 rounded-lg flex items-center justify-center p-4">
                                         <div>
-                                            <AlertCircle className="w-12 h-12 mx-auto text-destructive mb-2" />
-                                            <p className="font-medium text-destructive">Erro!</p>
-                                            <p className="text-sm text-muted-foreground">{qrError}</p>
+                                            <AlertCircle className="w-12 h-12 mx-auto text-red-500 mb-2" />
+                                            <p className="font-medium text-red-500">Erro!</p>
+                                            <p className="text-sm text-zinc-600">{qrError}</p>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="w-full max-w-[256px] aspect-square mx-auto bg-background p-2 border rounded-lg flex items-center justify-center transition-opacity duration-500">
+                                    <div className="w-full max-w-[256px] aspect-square mx-auto bg-white p-2 border border-zinc-200 rounded-lg flex items-center justify-center transition-opacity duration-500">
                                         <img 
                                             src={qrCodeUrl} 
                                             alt="QR Code para conexão com WhatsApp"
@@ -216,29 +214,29 @@ export function WhatsAppConnection() {
                                     </div>
                                 )}
                                 <div>
-                                    <p className="font-medium text-foreground">Escaneie com seu WhatsApp</p>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="font-medium text-zinc-900">Escaneie com seu WhatsApp</p>
+                                    <p className="text-sm text-zinc-600">
                                         O QR Code será atualizado automaticamente.
                                     </p>
                                 </div>
                             </div>
                         ) : isConnected ? (
                             <div className="text-center flex flex-col items-center justify-center h-full">
-                                <div className="w-16 h-16 mx-auto bg-green-500/10 rounded-full flex items-center justify-center mb-4">
-                                    <MessageSquare className="w-8 h-8 text-green-500" />
+                                <div className="w-16 h-16 mx-auto bg-amber-500/10 rounded-full flex items-center justify-center mb-4">
+                                    <MessageSquare className="w-8 h-8 text-amber-500" />
                                 </div>
-                                <p className="font-medium text-foreground mb-2">Bot Ativo</p>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="font-medium text-zinc-900 mb-2">Bot Ativo</p>
+                                <p className="text-sm text-zinc-600">
                                     O bot está conectado e funcionando.
                                 </p>
                             </div>
                         ) : (
                             <div className="text-center flex flex-col items-center justify-center h-full">
-                                <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center mb-4">
-                                    <Smartphone className="w-8 h-8 text-muted-foreground" />
+                                <div className="w-16 h-16 mx-auto bg-zinc-100 rounded-full flex items-center justify-center mb-4">
+                                    <Smartphone className="w-8 h-8 text-zinc-400" />
                                 </div>
-                                <p className="font-medium text-foreground mb-2">Pronto para conectar</p>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="font-medium text-zinc-900 mb-2">Pronto para conectar</p>
+                                <p className="text-sm text-zinc-600">
                                     Clique em "Conectar WhatsApp" para gerar o QR Code.
                                 </p>
                             </div>
