@@ -11,8 +11,24 @@ import { fetchAvailableCars, updateVehicle as updateVehicleInSupabase, deleteVeh
 
 interface Vehicle extends SupabaseCar {}
 
+const parsePrice = (value: string | number): number => {
+  if (typeof value === 'number') return value;
+  if (typeof value !== 'string') return 0;
+
+  let cleaned: string;
+  if (value.includes(',')) {
+    // Assume Brazilian format: remove thousands '.', replace decimal ',' with '.'
+    cleaned = value.replace(/\./g, '').replace(',', '.');
+  } else {
+    // Assume dot as decimal or integer
+    cleaned = value;
+  }
+
+  return parseFloat(cleaned) || 0;
+};
+
 const formatCurrency = (value: string | number): string => {
-  const number = Number(String(value).replace(/[^0-9,-]/g, '').replace(',', '.')) || 0;
+  const number = parsePrice(value);
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
 };
 
@@ -32,7 +48,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
 
   useEffect(() => {
     if (vehicle) {
-      const initialPrice = vehicle.preco ? new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(Number(vehicle.preco)) : '';
+      const initialPrice = vehicle.preco ? new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(parsePrice(vehicle.preco)) : '';
       setFormData({ ...vehicle, preco: initialPrice });
       setNewImages([]);
       setCurrentImageIndex(0);
@@ -88,7 +104,8 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
       return;
     }
     const priceString = String(formData.preco || '').replace(/[^0-9,]/g, '').replace(',', '.');
-    if (!priceString || isNaN(Number(priceString))) {
+    const priceNum = parsePrice(priceString);
+    if (isNaN(priceNum) || priceNum <= 0) {
       toast({ title: "Erro!", description: "O preço do veículo é inválido.", variant: "destructive" });
       return;
     }

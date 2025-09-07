@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import * as Feather from 'react-feather';
 import { useAuth } from '@/auth/AuthContext';
+import DashboardImage from './Dashboard.png'; // Importando a imagem
 
 // Componente para pontos de luz animados
 const LightDotsBackground = () => {
@@ -250,7 +251,15 @@ const HomePage = () => {
               <motion.h2 variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-3xl md:text-4xl font-bold mb-12 text-zinc-900">Sua loja inteira, na palma da sua mão.</motion.h2>
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-                  <img src="/dashboard-zailonsoft.png" alt="Dashboard da ZailonSoft em um notebook e celular" className="rounded-xl shadow-xl shadow-zinc-200 border border-zinc-200 w-full" />
+                  <img 
+                    src={DashboardImage} 
+                    alt="Dashboard da ZailonSoft em um notebook e celular" 
+                    className="rounded-xl shadow-xl shadow-zinc-200 border border-zinc-200 w-full"
+                    onError={(e) => {
+                      console.error('Erro ao carregar a imagem do dashboard:', e);
+                      e.currentTarget.src = '/assets/placeholder.png'; // Fallback para uma imagem alternativa
+                    }}
+                  />
                 </motion.div>
                 <motion.div className="text-left space-y-6" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
                   <motion.div variants={fadeInUp} className="flex items-start gap-4">
