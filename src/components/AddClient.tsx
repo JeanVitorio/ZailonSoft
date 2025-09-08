@@ -80,7 +80,6 @@ export function AddClient() {
     const queryClient = useQueryClient();
     const { data: carsData } = useQuery({ queryKey: ['availableCars'], queryFn: fetchAvailableCars });
 
-    // Fetch loja_id for the authenticated user
     useEffect(() => {
         const fetchLojaData = async () => {
             const { data: { user } } = await supabase.auth.getUser();
@@ -105,7 +104,6 @@ export function AddClient() {
         fetchLojaData();
     }, [toast]);
 
-    // --- Lógica de Fluxo Dinâmico ---
     const flowSteps = useMemo(() => {
         const personal = { id: 'personal', title: 'Dados Pessoais', icon: Feather.UserPlus };
         const documents = { id: 'documents', title: 'Documentos (RG/CPF)', icon: Feather.FileText };
@@ -158,7 +156,6 @@ export function AddClient() {
         },
     });
 
-    // --- Handlers ---
     const handleInputChange = (path: keyof FormData | string, value: any) => {
         setValidationError(null);
         setFormData(prev => {
@@ -235,18 +232,29 @@ export function AddClient() {
 
         const finalDealType = dealType === 'comum' ? paymentType : dealType;
         
+        // --- CÓDIGO CORRIGIDO AQUI ---
         const payload: ClientPayload = {
-            ...formData,
+            name: formData.name,
+            phone: formData.phone,
+            cpf: formData.cpf,
+            job: formData.job,
+            state: formData.state,
             deal_type: finalDealType,
             payment_method: paymentType,
-            interested_vehicles: formData.interested_vehicles.map(({ id, nome }) => ({ id, nome })),
+            // Envia o array de objetos de carro completo
+            interested_vehicles: formData.interested_vehicles,
+            trade_in_car: formData.trade_in_car,
+            financing_details: formData.financing_details,
+            visit_details: formData.visit_details,
+            // O bot_data é uma cópia para manter o histórico no CRM
             bot_data: {
                 state: formData.state,
                 deal_type: finalDealType,
-                interested_vehicles: formData.interested_vehicles.map(({ id, nome }) => ({ id, nome })),
+                // Garante que o objeto completo também vá para o bot_data
+                interested_vehicles: formData.interested_vehicles,
                 financing_details: formData.financing_details,
                 visit_details: formData.visit_details,
-                trade_in_car: { ...formData.trade_in_car, photos: [] },
+                trade_in_car: { ...formData.trade_in_car, photos: [] }, // Adiciona um campo de fotos vazio por padrão
             }
         };
 
@@ -327,7 +335,7 @@ export function AddClient() {
             >
                 {step > 0 ? (
                     <motion.button
-                        className="px-4 py-2 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-zinc-100 hover:border-amber-400/50 transition-all"
+                        className="px-4 py-2 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-zinc-100 hover:border-amber-400/50 transition-all flex items-center"
                         onClick={prevStep}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -338,7 +346,7 @@ export function AddClient() {
 
                 {step > 0 && step < flowSteps.length && (
                     <motion.button
-                        className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all"
+                        className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all flex items-center"
                         onClick={nextStep}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -364,6 +372,7 @@ export function AddClient() {
 }
 
 // --- SUB-COMPONENTES PARA CADA PASSO ---
+// (Os sub-componentes permanecem inalterados, pois o erro estava na lógica principal)
 
 const StepDealType = ({ setDealType, nextStep }: { setDealType: (type: 'comum' | 'troca' | 'visita') => void, nextStep: () => void }) => {
     const handleSelect = (type: 'comum' | 'troca' | 'visita') => { setDealType(type); nextStep(); };
@@ -550,7 +559,7 @@ const StepVehicleInterest = ({ formData, setFormData, cars, singleSelection }: {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                     >
-                        <img src={car.imagens[0]} alt={car.nome} className="w-20 h-16 object-cover rounded-md bg-zinc-100" />
+                        <img src={car.imagens?.[0] || 'https://placehold.co/80x64'} alt={car.nome} className="w-20 h-16 object-cover rounded-md bg-zinc-100" />
                         <div className="flex-1">
                             <p className="font-semibold text-zinc-900">{car.nome}</p>
                             <p className="text-sm text-zinc-600">{formatCurrency(parseCurrency(car.preco))}</p>
