@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, Trash2, FileText, Edit, Save, XCircle, X, Upload, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
+// --- ÍCONES (ADICIONADO Loader2) ---
+import { Search, Trash2, FileText, Edit, Save, XCircle, X, Upload, AlertTriangle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 // --- Componentes Drag-and-Drop ---
 import { DndContext, closestCenter, DragOverlay, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -98,14 +99,17 @@ const parseCurrency = (value) => {
     if (!value || typeof value !== 'string') {
         return 0;
     }
-    // Remove o símbolo da moeda, os pontos de milhar, e substitui a vírgula decimal por um ponto.
-    const numberString = value.replace(/R\$\s?/, '').replace(/\./g, '').replace(',', '.');
-    const parsed = parseFloat(numberString);
+    const valueStr = String(value).replace(/R\$\s?/, '').trim();
+    if (valueStr.includes(',')) {
+        const cleaned = valueStr.replace(/\./g, '').replace(',', '.');
+        const parsed = parseFloat(cleaned);
+        return isNaN(parsed) ? 0 : parsed;
+    }
+    const parsed = parseFloat(valueStr);
     return isNaN(parsed) ? 0 : parsed;
 };
 
 const toBRL = (value) => {
-    // A função agora espera um número ou algo que parseCurrency possa converter para um número.
     const number = parseCurrency(value);
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
 };
@@ -151,7 +155,8 @@ const InfoRow = ({ label, children }) => (
         <div className="col-span-2">{children}</div>
     </div>
 );
-// --- Componente do Modal de Detalhes do Cliente ---
+
+// --- Componente do Modal de Detalhes do Cliente (Refatorado) ---
 function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({});
@@ -164,38 +169,29 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
     const [removedTradeInPhotos, setRemovedTradeInPhotos] = useState([]);
     const docInputRef = useRef(null);
     const tradeInInputRef = useRef(null);
-    const { toast } = useToast();
-    const queryClient = useQueryClient();
-
+    
     useEffect(() => {
         if (isOpen && allCars.length === 0) {
             setIsLoadingCars(true);
             fetchAvailableCars()
                 .then(setAllCars)
-                .catch(err => {
-                    console.error(err);
-                    toast({ title: "Erro", description: "Não foi possível carregar o estoque de veículos.", variant: "destructive" });
-                })
+                .catch(err => console.error(err))
                 .finally(() => setIsLoadingCars(false));
         }
-    }, [isOpen, allCars.length, toast]);
-    
-    // Efeito para formatar os valores monetários quando o formulário é carregado ou sai do modo de edição
+    }, [isOpen, allCars.length]);
+
     useEffect(() => {
         if (client) {
             const newFormData = JSON.parse(JSON.stringify(client));
             
-            // Formata o valor de entrada para exibição
             if (newFormData.bot_data?.financing_details?.entry) {
                  const entryValue = parseCurrency(newFormData.bot_data.financing_details.entry);
                  newFormData.bot_data.financing_details.entry = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(entryValue);
             }
-            // Formata o valor do carro de troca para exibição
             if (newFormData.bot_data?.trade_in_car?.value) {
                 const tradeInValue = parseCurrency(newFormData.bot_data.trade_in_car.value);
                 newFormData.bot_data.trade_in_car.value = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(tradeInValue);
             }
-
             setFormData(newFormData);
         }
         
@@ -233,9 +229,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         setFormData(
             produce(draft => {
                 draft.deal_type = value;
-                if (!draft.bot_data) {
-                    draft.bot_data = {};
-                }
+                if (!draft.bot_data) draft.bot_data = {};
                 draft.bot_data.deal_type = value;
             })
         );
@@ -251,6 +245,11 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         const numberValue = Number(digitsOnly) / 100;
         const formattedValue = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(numberValue);
         handleDeepChange(path, formattedValue);
+    };
+
+    const handleYearChange = (e, path) => {
+        const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+        handleDeepChange(path, value);
     };
 
     const handleFileSelect = (e, type) => {
@@ -270,42 +269,29 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         if (type === 'tradeInPhotos') setRemovedTradeInPhotos(prev => [...new Set([...prev, filePath])]);
     };
 
+    // --- FUNÇÃO DE SALVAR ATUALIZADA ---
     const handleSave = async () => {
         try {
             const payload = JSON.parse(JSON.stringify(formData));
             const newDocUrls = [];
             const newTradeInUrls = [];
 
+            // Upload de arquivos (se houver)
             for (const fileObj of newDocs) {
-                const url = await uploadClientFile({
-                    chatId: client.chat_id,
-                    file: fileObj.file,
-                    bucketName: 'client-documents',
-                    filePathPrefix: 'documents'
-                });
+                const url = await uploadClientFile({ chatId: client.chat_id, file: fileObj.file, bucketName: 'client-documents', filePathPrefix: 'documents' });
                 newDocUrls.push(url);
             }
             for (const fileObj of newTradeInPhotos) {
-                const url = await uploadClientFile({
-                    chatId: client.chat_id,
-                    file: fileObj.file,
-                    bucketName: 'trade-in-cars',
-                    filePathPrefix: 'trade-in'
-                });
+                const url = await uploadClientFile({ chatId: client.chat_id, file: fileObj.file, bucketName: 'trade-in-cars', filePathPrefix: 'trade-in' });
                 newTradeInUrls.push(url);
             }
 
+            // Remoção de arquivos (se houver)
             for (const docPath of removedDocs) {
-                await deleteClientFile({
-                    filePath: docPath.split('/client-documents/')[1],
-                    bucketName: 'client-documents'
-                });
+                await deleteClientFile({ filePath: docPath.split('/client-documents/')[1], bucketName: 'client-documents' });
             }
             for (const docPath of removedTradeInPhotos) {
-                await deleteClientFile({
-                    filePath: docPath.split('/trade-in-cars/')[1],
-                    bucketName: 'trade-in-cars'
-                });
+                await deleteClientFile({ filePath: docPath.split('/trade-in-cars/')[1], bucketName: 'trade-in-cars' });
             }
 
             payload.documents = [...(client.documents || []).filter(doc => !removedDocs.includes(doc)), ...newDocUrls];
@@ -313,7 +299,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                 payload.bot_data.trade_in_car.photos = [...(client.bot_data?.trade_in_car?.photos || []).filter(doc => !removedTradeInPhotos.includes(doc)), ...newTradeInUrls];
             }
 
-            // Garante que os valores monetários são salvos como NÚMEROS
+            // Converte valores formatados de volta para números antes de salvar
             if (payload.bot_data?.financing_details?.entry) {
                 payload.bot_data.financing_details.entry = parseCurrency(payload.bot_data.financing_details.entry);
             }
@@ -326,13 +312,15 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                 { timestamp: new Date().toLocaleString("pt-BR"), updated_data: { changes: "Dados atualizados via CRM" } }
             ];
 
+            // Dispara a mutação. O onSuccess no componente pai cuidará da atualização do estado.
             await updateMutation.mutateAsync({ chatId: client.chat_id, updatedData: payload });
 
-            toast({ title: "Sucesso!", description: "Cliente e documentos atualizados." });
+            // Apenas sai do modo de edição. A atualização dos dados virá do componente pai.
             setIsEditing(false);
-            queryClient.invalidateQueries({ queryKey: ['clients'] });
+
         } catch (error) {
-            toast({ title: "Erro ao Salvar", description: `Um erro ocorreu. ${error.message}`, variant: "destructive" });
+            // O `onError` da mutação já exibe um toast, mas podemos logar o erro aqui se necessário.
+            console.error("Falha ao salvar:", error);
         }
     };
 
@@ -353,32 +341,35 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         const currentVehicles = formData.bot_data?.interested_vehicles || [];
         handleDeepChange('bot_data.interested_vehicles', currentVehicles.filter(v => v.id !== carId));
     };
+    
+    const dealType = formData.bot_data?.deal_type || formData.deal_type;
+    const hasFinancing = dealType === 'financiamento' || dealType === 'financiamento_com_troca';
+    const hasTradeIn = dealType === 'troca' || dealType === 'financiamento_com_troca';
 
     const calculations = useMemo(() => {
         const botData = formData.bot_data || {};
         const interestedVehicles = botData.interested_vehicles || [];
-        const tradeInValue = parseCurrency(botData.trade_in_car?.value);
+        
+        const entryValue = hasFinancing ? parseCurrency(botData.financing_details?.entry) : 0;
+        const tradeInValue = hasTradeIn ? parseCurrency(botData.trade_in_car?.value) : 0;
 
         const financingAmount = (car) => {
             const carPrice = parseCurrency(car.preco);
-            const entryValue = parseCurrency(botData.financing_details?.entry);
             return Math.max(0, carPrice - entryValue - tradeInValue);
         };
 
         const totalCarPrice = interestedVehicles.reduce((sum, car) => sum + parseCurrency(car.preco), 0);
         const tradeDifference = totalCarPrice - tradeInValue;
+
         return { financingAmount, tradeDifference };
-    }, [formData]);
+    }, [formData, hasFinancing, hasTradeIn]);
 
     if (!client || !formData.chat_id) return null;
 
     const botData = formData.bot_data || {};
-    const dealType = botData.deal_type || formData.deal_type || client.deal_type;
     const installmentOptions = [12, 24, 36, 48, 60];
     const visibleDocuments = (formData.documents || []).filter(doc => !removedDocs.includes(doc));
     const tradeInPhotos = (botData.trade_in_car?.photos || []).filter(p => !removedTradeInPhotos.includes(p));
-    const showFinancingCard = dealType === 'financiamento';
-    const showTradeInCard = dealType === 'troca' || (dealType === 'financiamento' && (botData.trade_in_car?.model || isEditing));
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -389,10 +380,21 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         <div className="flex items-center gap-2">
                             {isEditing ? (
                                 <>
-                                    <Button size="sm" onClick={handleSave}>
-                                        <Save className="h-4 w-4 mr-2" /> Salvar
+                                    {/* --- BOTÃO SALVAR ATUALIZADO COM LOADING --- */}
+                                    <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending}>
+                                        {updateMutation.isPending ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Salvando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="h-4 w-4 mr-2" />
+                                                Salvar
+                                            </>
+                                        )}
                                     </Button>
-                                    <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>
+                                    <Button size="sm" variant="outline" onClick={() => setIsEditing(false)} disabled={updateMutation.isPending}>
                                         <XCircle className="h-4 w-4 mr-2" /> Cancelar
                                     </Button>
                                 </>
@@ -408,437 +410,144 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                     <div className="p-4 md:p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-6">
                             <div className="md:col-span-3 space-y-6">
+                                {/* Card: Perfil do Cliente */}
                                 <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-base">Perfil do Cliente</CardTitle>
-                                    </CardHeader>
+                                    <CardHeader><CardTitle className="text-base">Perfil do Cliente</CardTitle></CardHeader>
                                     <CardContent className="space-y-1 text-sm">
-                                        <InfoRow label="Nome">
-                                            {isEditing ? (
-                                                <Input value={formData.name || ''} onChange={e => handleDeepChange('name', e.target.value)} />
-                                            ) : (
-                                                formData.name || 'N/A'
-                                            )}
-                                        </InfoRow>
-                                        <InfoRow label="Telefone">
-                                            {isEditing ? (
-                                                <Input value={formData.phone || ''} onChange={e => handleDeepChange('phone', e.target.value)} />
-                                            ) : (
-                                                formData.phone || 'N/A'
-                                            )}
-                                        </InfoRow>
-                                        <InfoRow label="CPF">
-                                            {isEditing ? (
-                                                <Input value={formData.cpf || ''} onChange={e => handleDeepChange('cpf', e.target.value)} />
-                                            ) : (
-                                                formData.cpf || 'N/A'
-                                            )}
-                                        </InfoRow>
-                                        <InfoRow label="Ocupação">
-                                            {isEditing ? (
-                                                <Input value={formData.job || ''} onChange={e => handleDeepChange('job', e.target.value)} />
-                                            ) : (
-                                                formData.job || 'N/A'
-                                            )}
-                                        </InfoRow>
+                                        <InfoRow label="Nome">{isEditing ? <Input value={formData.name || ''} onChange={e => handleDeepChange('name', e.target.value)} /> : (formData.name || 'N/A')}</InfoRow>
+                                        <InfoRow label="Telefone">{isEditing ? <Input value={formData.phone || ''} onChange={e => handleDeepChange('phone', e.target.value)} /> : (formData.phone || 'N/A')}</InfoRow>
+                                        <InfoRow label="CPF">{isEditing ? <Input value={formData.cpf || ''} onChange={e => handleDeepChange('cpf', e.target.value)} /> : (formData.cpf || 'N/A')}</InfoRow>
+                                        <InfoRow label="Ocupação">{isEditing ? <Input value={formData.job || ''} onChange={e => handleDeepChange('job', e.target.value)} /> : (formData.job || 'N/A')}</InfoRow>
                                         <InfoRow label="Negociação">
                                             {isEditing ? (
                                                 <Select value={dealType || ''} onValueChange={handleDealTypeChange}>
-                                                    <SelectTrigger>
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {Object.entries(dealTypeMap).map(([k, v]) => (
-                                                            <SelectItem key={k} value={k}>{v}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
+                                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                                    <SelectContent>{Object.entries(dealTypeMap).map(([k, v]) => (<SelectItem key={k} value={k}>{v}</SelectItem>))}</SelectContent>
                                                 </Select>
-                                            ) : (
-                                                dealTypeMap[dealType] || 'Não informado'
-                                            )}
-                                        </InfoRow>
-                                        <InfoRow label="Estado do Lead">
-                                            {isEditing ? (
-                                                <Select value={botData.state || 'leed_recebido'} onValueChange={v => handleDeepChange('bot_data.state', v)}>
-                                                    <SelectTrigger>
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {KANBAN_COLUMNS.map(col => (
-                                                            <SelectItem key={col.id} value={col.id}>{col.name}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            ) : (
-                                                KANBAN_COLUMNS.find(c => c.id === botData.state)?.name || botData.state
-                                            )}
-                                        </InfoRow>
-                                        <InfoRow label="ID do Chat">
-                                            <span>{formData.chat_id}</span>
+                                            ) : (dealTypeMap[dealType] || 'Não informado')}
                                         </InfoRow>
                                     </CardContent>
                                 </Card>
+
+                                {/* Card: Veículos de Interesse */}
                                 <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-base">Veículos de Interesse</CardTitle>
-                                    </CardHeader>
+                                    <CardHeader><CardTitle className="text-base">Veículos de Interesse</CardTitle></CardHeader>
                                     <CardContent>
                                         {isEditing ? (
                                             <div className="space-y-2">
                                                 <div className="flex flex-wrap gap-2 min-h-[24px]">
                                                     {(botData.interested_vehicles || []).map(v => (
-                                                        <Badge key={v.id} variant="secondary" className="text-base py-1 pr-1">
-                                                            {v.nome}
-                                                            <button
-                                                                onClick={() => removeInterestVehicle(v.id)}
-                                                                className="ml-2 rounded-full hover:bg-destructive/80 p-0.5"
-                                                            >
-                                                                <X className="h-3 w-3" />
-                                                            </button>
-                                                        </Badge>
+                                                        <Badge key={v.id} variant="secondary" className="text-base py-1 pr-1">{v.nome}<button onClick={() => removeInterestVehicle(v.id)} className="ml-2 rounded-full hover:bg-destructive/80 p-0.5"><X className="h-3 w-3" /></button></Badge>
                                                     ))}
                                                 </div>
                                                 <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Input
-                                                            placeholder="Pesquisar e adicionar veículo..."
-                                                            value={vehicleSearch}
-                                                            onChange={e => setVehicleSearch(e.target.value)}
-                                                        />
-                                                    </PopoverTrigger>
+                                                    <PopoverTrigger asChild><Input placeholder="Pesquisar e adicionar veículo..." value={vehicleSearch} onChange={e => setVehicleSearch(e.target.value)} /></PopoverTrigger>
                                                     <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                                        {isLoadingCars ? (
-                                                            <div className="p-4 text-center text-sm">Carregando...</div>
-                                                        ) : vehicleSearchResults.length > 0 ? (
+                                                        {isLoadingCars ? (<div className="p-4 text-center text-sm">Carregando...</div>) : 
+                                                        vehicleSearchResults.length > 0 ? (
                                                             <ScrollArea className="h-[200px]">
-                                                                {vehicleSearchResults.map(car => (
-                                                                    <div
-                                                                        key={car.id}
-                                                                        onClick={() => addInterestVehicle(car)}
-                                                                        className="p-2 hover:bg-accent cursor-pointer"
-                                                                    >
-                                                                        {car.nome} - {toBRL(car.preco)}
-                                                                    </div>
-                                                                ))}
+                                                                {vehicleSearchResults.map(car => (<div key={car.id} onClick={() => addInterestVehicle(car)} className="p-2 hover:bg-accent cursor-pointer">{car.nome} - {toBRL(car.preco)}</div>))}
                                                             </ScrollArea>
-                                                        ) : (
-                                                            <div className="p-4 text-center text-sm">Nenhum veículo encontrado.</div>
-                                                        )}
+                                                        ) : (<div className="p-4 text-center text-sm">Nenhum veículo encontrado.</div>)}
                                                     </PopoverContent>
                                                 </Popover>
                                             </div>
-                                        ) : (
-                                            (botData.interested_vehicles?.length || 0) > 0 ? (
-                                                <ul className="list-disc pl-5 text-sm text-muted-foreground">
-                                                    {botData.interested_vehicles.map(v => (
-                                                        <li key={v.id}>{v.nome}</li>
-                                                    ))}
-                                                </ul>
-                                            ) : (
-                                                <p className="text-sm text-muted-foreground">Nenhum</p>
-                                            )
-                                        )}
+                                        ) : (botData.interested_vehicles?.length > 0 ? (<ul className="list-disc pl-5 text-sm text-muted-foreground">{botData.interested_vehicles.map(v => (<li key={v.id}>{v.nome}</li>))}</ul>) : (<p className="text-sm text-muted-foreground">Nenhum</p>))}
                                     </CardContent>
                                 </Card>
-                                {showFinancingCard && (
+                                
+                                {hasFinancing && (
                                     <Card>
-                                        <CardHeader>
-                                            <CardTitle className="text-base">Detalhes de Financiamento</CardTitle>
-                                        </CardHeader>
+                                        <CardHeader><CardTitle className="text-base">Detalhes de Financiamento</CardTitle></CardHeader>
                                         <CardContent className="text-sm">
-                                            <InfoRow label="Valor da Entrada">
-                                                {isEditing ? (
-                                                    <Input
-                                                        value={botData.financing_details?.entry || ''}
-                                                        onChange={e => handleCurrencyChange(e, 'bot_data.financing_details.entry')}
-                                                        placeholder="R$ 0,00"
-                                                        inputMode="numeric"
-                                                    />
-                                                ) : (
-                                                    toBRL(botData.financing_details?.entry) || 'N/A'
-                                                )}
-                                            </InfoRow>
+                                            <InfoRow label="Valor da Entrada">{isEditing ? <Input value={botData.financing_details?.entry || ''} onChange={e => handleCurrencyChange(e, 'bot_data.financing_details.entry')} placeholder="R$ 0,00" inputMode="numeric"/> : (toBRL(botData.financing_details?.entry) || 'N/A')}</InfoRow>
                                             <InfoRow label="Parcelas">
                                                 {isEditing ? (
-                                                    <Select
-                                                        value={String(botData.financing_details?.parcels || '12')}
-                                                        onValueChange={v => handleDeepChange('bot_data.financing_details.parcels', v)}
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {installmentOptions.map(opt => (
-                                                                <SelectItem key={opt} value={String(opt)}>{opt}x</SelectItem>
-                                                            ))}
-                                                        </SelectContent>
+                                                    <Select value={String(botData.financing_details?.parcels || '12')} onValueChange={v => handleDeepChange('bot_data.financing_details.parcels', v)}>
+                                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                                        <SelectContent>{installmentOptions.map(opt => (<SelectItem key={opt} value={String(opt)}>{opt}x</SelectItem>))}</SelectContent>
                                                     </Select>
-                                                ) : (
-                                                    `${botData.financing_details?.parcels || 'N/A'}x`
-                                                )}
+                                                ) : (`${botData.financing_details?.parcels || 'N/A'}x`)}
                                             </InfoRow>
                                             {(botData.interested_vehicles || []).map(car => (
-                                                <div key={car.id} className="mt-2 p-2 bg-muted rounded text-sm text-center">
-                                                    Valor a financiar ({car.nome}): <strong>{toBRL(calculations.financingAmount(car))}</strong>
-                                                </div>
+                                                <div key={car.id} className="mt-2 p-2 bg-muted rounded text-sm text-center">Valor a financiar ({car.nome}): <strong>{toBRL(calculations.financingAmount(car))}</strong></div>
                                             ))}
                                         </CardContent>
                                     </Card>
                                 )}
-                                {showTradeInCard && (
+                                
+                                {hasTradeIn && (
                                     <Card>
-                                        <CardHeader>
-                                            <CardTitle className="text-base">Carro para Troca</CardTitle>
-                                        </CardHeader>
+                                        <CardHeader><CardTitle className="text-base">Carro para Troca</CardTitle></CardHeader>
                                         <CardContent className="text-sm">
-                                            <InfoRow label="Modelo">
-                                                {isEditing ? (
-                                                    <Input
-                                                        value={botData.trade_in_car?.model || ''}
-                                                        onChange={e => handleDeepChange('bot_data.trade_in_car.model', e.target.value)}
-                                                    />
-                                                ) : (
-                                                    botData.trade_in_car?.model || 'N/A'
-                                                )}
-                                            </InfoRow>
-                                            <InfoRow label="Ano">
-                                                {isEditing ? (
-                                                    <Input
-                                                        value={botData.trade_in_car?.year || ''}
-                                                        onChange={e => handleDeepChange('bot_data.trade_in_car.year', e.target.value)}
-                                                    />
-                                                ) : (
-                                                    botData.trade_in_car?.year || 'N/A'
-                                                )}
-                                            </InfoRow>
-                                            <InfoRow label="Valor Desejado">
-                                                {isEditing ? (
-                                                    <Input
-                                                        value={botData.trade_in_car?.value || ''}
-                                                        onChange={e => handleCurrencyChange(e, 'bot_data.trade_in_car.value')}
-                                                        placeholder="R$ 0,00"
-                                                        inputMode="numeric"
-                                                    />
-                                                ) : (
-                                                    toBRL(botData.trade_in_car?.value) || 'N/A'
-                                                )}
-                                            </InfoRow>
+                                            <InfoRow label="Modelo">{isEditing ? <Input value={botData.trade_in_car?.model || ''} onChange={e => handleDeepChange('bot_data.trade_in_car.model', e.target.value)} /> : (botData.trade_in_car?.model || 'N/A')}</InfoRow>
+                                            <InfoRow label="Ano">{isEditing ? <Input value={botData.trade_in_car?.year || ''} onChange={e => handleYearChange(e, 'bot_data.trade_in_car.year')} placeholder="AAAA" /> : (botData.trade_in_car?.year || 'N/A')}</InfoRow>
+                                            <InfoRow label="Valor Desejado">{isEditing ? <Input value={botData.trade_in_car?.value || ''} onChange={e => handleCurrencyChange(e, 'bot_data.trade_in_car.value')} placeholder="R$ 0,00" inputMode="numeric"/> : (toBRL(botData.trade_in_car?.value) || 'N/A')}</InfoRow>
+                                            
                                             {calculations.tradeDifference > 0 && botData.interested_vehicles?.length > 0 ? (
                                                 <div className="border-t mt-4 pt-4 space-y-2">
-                                                    <div className="p-2 bg-muted rounded text-sm text-center">
-                                                        Diferença a pagar: <strong>{toBRL(calculations.tradeDifference)}</strong>
-                                                    </div>
+                                                    <div className="p-2 bg-muted rounded text-sm text-center">Diferença a pagar: <strong>{toBRL(calculations.tradeDifference)}</strong></div>
                                                     <InfoRow label="Pagar diferença">
                                                         {isEditing ? (
-                                                            <Select
-                                                                value={botData.trade_in_car?.difference_payment_method?.type || ''}
-                                                                onValueChange={v => handleDeepChange('bot_data.trade_in_car.difference_payment_method.type', v)}
-                                                            >
-                                                                <SelectTrigger>
-                                                                    <SelectValue placeholder="Selecione..." />
-                                                                </SelectTrigger>
+                                                            <Select value={botData.trade_in_car?.difference_payment_method?.type || ''} onValueChange={v => handleDeepChange('bot_data.trade_in_car.difference_payment_method.type', v)}>
+                                                                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                                                                 <SelectContent>
                                                                     <SelectItem value="a_vista">À Vista</SelectItem>
                                                                     <SelectItem value="financiamento">Financiamento</SelectItem>
                                                                 </SelectContent>
                                                             </Select>
-                                                        ) : (
-                                                            botData.trade_in_car?.difference_payment_method?.type === 'financiamento' ? 'Financiamento' : 'À Vista'
-                                                        )}
+                                                        ) : (botData.trade_in_car?.difference_payment_method?.type === 'financiamento' ? 'Financiamento' : 'À Vista')}
                                                     </InfoRow>
                                                     {botData.trade_in_car?.difference_payment_method?.type === 'financiamento' && (
                                                         <InfoRow label="Parcelas (Diferença)">
                                                             {isEditing ? (
-                                                                <Select
-                                                                    value={String(botData.trade_in_car?.difference_payment_method?.parcels || '12')}
-                                                                    onValueChange={v => handleDeepChange('bot_data.trade_in_car.difference_payment_method.parcels', v)}
-                                                                >
-                                                                    <SelectTrigger>
-                                                                        <SelectValue />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {installmentOptions.map(opt => (
-                                                                            <SelectItem key={opt} value={String(opt)}>{opt}x</SelectItem>
-                                                                        ))}
-                                                                    </SelectContent>
+                                                                <Select value={String(botData.trade_in_car?.difference_payment_method?.parcels || '12')} onValueChange={v => handleDeepChange('bot_data.trade_in_car.difference_payment_method.parcels', v)}>
+                                                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                                                    <SelectContent>{installmentOptions.map(opt => (<SelectItem key={opt} value={String(opt)}>{opt}x</SelectItem>))}</SelectContent>
                                                                 </Select>
-                                                            ) : (
-                                                                `${botData.trade_in_car?.difference_payment_method?.parcels || 'N/A'}x`
-                                                            )}
+                                                            ) : (`${botData.trade_in_car?.difference_payment_method?.parcels || 'N/A'}x`)}
                                                         </InfoRow>
                                                     )}
                                                 </div>
-                                            ) : (
-                                                calculations.tradeDifference <= 0 && botData.interested_vehicles?.length > 0 &&
-                                                <div className="mt-2 p-2 bg-muted rounded text-sm text-center">
-                                                    O valor da troca cobre o do veículo.
-                                                </div>
-                                            )}
+                                            ) : (calculations.tradeDifference <= 0 && botData.interested_vehicles?.length > 0 && <div className="mt-2 p-2 bg-muted rounded text-sm text-center">O valor da troca cobre o do veículo.</div>)}
                                         </CardContent>
                                     </Card>
                                 )}
                             </div>
+
                             <div className="md:col-span-2 space-y-6">
                                 <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-base">Histórico</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <ScrollArea className="h-40">
-                                            <div className="space-y-3 text-xs">
-                                                {(botData.history || []).slice().reverse().map((item, index) => (
-                                                    <div key={index} className="border-l-2 pl-3">
-                                                        <p className="font-semibold">{Object.values(item.updated_data)[0]}</p>
-                                                        <p className="text-muted-foreground">{item.timestamp}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </ScrollArea>
-                                    </CardContent>
+                                    <CardHeader><CardTitle className="text-base">Histórico</CardTitle></CardHeader>
+                                    <CardContent><ScrollArea className="h-40"><div className="space-y-3 text-xs">{(botData.history || []).slice().reverse().map((item, index) => (<div key={index} className="border-l-2 pl-3"><p className="font-semibold">{Object.values(item.updated_data)[0]}</p><p className="text-muted-foreground">{item.timestamp}</p></div>))}</div></ScrollArea></CardContent>
                                 </Card>
-                                {(tradeInPhotos.length > 0 || newTradeInPhotos.length > 0 || isEditing) && (
+
+                                {hasTradeIn && (
                                     <Card>
-                                        <CardHeader>
-                                            <CardTitle className="text-base">Fotos da Troca</CardTitle>
-                                        </CardHeader>
+                                        <CardHeader><CardTitle className="text-base">Fotos da Troca</CardTitle></CardHeader>
                                         <CardContent>
                                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                                {tradeInPhotos.map(docPath => (
-                                                    <div key={docPath} className="relative group">
-                                                        <img src={docPath} alt="Foto da Troca" className="w-full h-20 object-cover rounded" />
-                                                        {isEditing && (
-                                                            <Button
-                                                                size="icon"
-                                                                variant="destructive"
-                                                                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
-                                                                onClick={() => removeExistingFile(docPath, 'tradeInPhotos')}
-                                                            >
-                                                                <X className="h-4 w-4" />
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                                {newTradeInPhotos.map(file => (
-                                                    <div key={file.preview} className="relative group">
-                                                        <img
-                                                            src={file.preview}
-                                                            alt={file.file.name}
-                                                            className="w-full h-20 object-cover rounded border-2 border-dashed border-primary"
-                                                        />
-                                                        {isEditing && (
-                                                            <Button
-                                                                size="icon"
-                                                                variant="destructive"
-                                                                className="absolute top-1 right-1 h-6 w-6"
-                                                                onClick={() => removeNewFile(file.preview, 'tradeInPhotos')}
-                                                            >
-                                                                <X className="h-4 w-4" />
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                ))}
+                                                {tradeInPhotos.map(docPath => (<div key={docPath} className="relative group"><img src={docPath} alt="Foto da Troca" className="w-full h-20 object-cover rounded" />{isEditing && (<Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => removeExistingFile(docPath, 'tradeInPhotos')}><X className="h-4 w-4" /></Button>)}</div>))}
+                                                {newTradeInPhotos.map(file => (<div key={file.preview} className="relative group"><img src={file.preview} alt={file.file.name} className="w-full h-20 object-cover rounded border-2 border-dashed border-primary"/>{isEditing && (<Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'tradeInPhotos')}><X className="h-4 w-4" /></Button>)}</div>))}
                                             </div>
-                                            {isEditing && (
-                                                <>
-                                                    <input
-                                                        type="file"
-                                                        multiple
-                                                        ref={tradeInInputRef}
-                                                        onChange={e => handleFileSelect(e, 'tradeInPhotos')}
-                                                        className="hidden"
-                                                    />
-                                                    <Button
-                                                        variant="outline"
-                                                        className="w-full mt-4"
-                                                        onClick={() => tradeInInputRef.current.click()}
-                                                    >
-                                                        <Upload className="h-4 w-4 mr-2" />Adicionar Fotos
-                                                    </Button>
-                                                </>
-                                            )}
+                                            {isEditing && (<><input type="file" multiple ref={tradeInInputRef} onChange={e => handleFileSelect(e, 'tradeInPhotos')} className="hidden"/><Button variant="outline" className="w-full mt-4" onClick={() => tradeInInputRef.current.click()}><Upload className="h-4 w-4 mr-2" />Adicionar Fotos</Button></>)}
                                         </CardContent>
                                     </Card>
                                 )}
+                                
                                 <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-base">Documentos</CardTitle>
-                                    </CardHeader>
+                                    <CardHeader><CardTitle className="text-base">Documentos</CardTitle></CardHeader>
                                     <CardContent>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                            {visibleDocuments.map(docPath => (
-                                                <div key={docPath} className="relative group">
-                                                    <img
-                                                        src={docPath}
-                                                        alt="Documento"
-                                                        className="w-full h-20 object-cover rounded"
-                                                    />
-                                                    {isEditing && (
-                                                        <Button
-                                                            size="icon"
-                                                            variant="destructive"
-                                                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
-                                                            onClick={() => removeExistingFile(docPath, 'documents')}
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            ))}
-                                            {newDocs.map(file => (
-                                                <div key={file.preview} className="relative group">
-                                                    <div className="w-full h-20 flex items-center justify-center rounded border-2 border-dashed border-primary">
-                                                        <FileText className="h-10 w-10 text-primary" />
-                                                    </div>
-                                                    {isEditing && (
-                                                        <Button
-                                                            size="icon"
-                                                            variant="destructive"
-                                                            className="absolute top-1 right-1 h-6 w-6"
-                                                            onClick={() => removeNewFile(file.preview, 'documents')}
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            ))}
+                                            {visibleDocuments.map(docPath => (<div key={docPath} className="relative group"><img src={docPath} alt="Documento" className="w-full h-20 object-cover rounded"/>{isEditing && (<Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => removeExistingFile(docPath, 'documents')}><X className="h-4 w-4" /></Button>)}</div>))}
+                                            {newDocs.map(file => (<div key={file.preview} className="relative group"><div className="w-full h-20 flex items-center justify-center rounded border-2 border-dashed border-primary"><FileText className="h-10 w-10 text-primary" /></div>{isEditing && (<Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'documents')}><X className="h-4 w-4" /></Button>)}</div>))}
                                         </div>
-                                        {isEditing && (
-                                            <>
-                                                <input
-                                                    type="file"
-                                                    multiple
-                                                    ref={docInputRef}
-                                                    onChange={e => handleFileSelect(e, 'documents')}
-                                                    className="hidden"
-                                                />
-                                                <Button
-                                                    variant="outline"
-                                                    className="w-full mt-4"
-                                                    onClick={() => docInputRef.current.click()}
-                                                >
-                                                    <Upload className="h-4 w-4 mr-2" />Adicionar Documentos
-                                                </Button>
-                                            </>
-                                        )}
+                                        {isEditing && (<><input type="file" multiple ref={docInputRef} onChange={e => handleFileSelect(e, 'documents')} className="hidden"/><Button variant="outline" className="w-full mt-4" onClick={() => docInputRef.current.click()}><Upload className="h-4 w-4 mr-2" />Adicionar Documentos</Button></>)}
                                     </CardContent>
                                 </Card>
+
                                 <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-base">Anotações</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        {isEditing ? (
-                                            <Textarea
-                                                value={botData.notes || ''}
-                                                onChange={e => handleDeepChange('bot_data.notes', e.target.value)}
-                                                className="min-h-[150px]"
-                                            />
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                                                {botData.notes || 'Nenhuma.'}
-                                            </p>
-                                        )}
-                                    </CardContent>
+                                    <CardHeader><CardTitle className="text-base">Anotações</CardTitle></CardHeader>
+                                    <CardContent>{isEditing ? (<Textarea value={botData.notes || ''} onChange={e => handleDeepChange('bot_data.notes', e.target.value)} className="min-h-[150px]"/>) : (<p className="text-sm text-muted-foreground whitespace-pre-wrap">{botData.notes || 'Nenhuma.'}</p>)}</CardContent>
                                 </Card>
                             </div>
                         </div>
@@ -868,11 +577,8 @@ function CRMKanbanContent() {
         refetchInterval: 10000
     });
 
-    // Handle window resize to update isMobile
     useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
+        const handleResize = () => { setIsMobile(window.innerWidth < 768); };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -886,8 +592,27 @@ function CRMKanbanContent() {
         onError: (err) => toast({ title: "Erro", description: err.message, variant: 'destructive' }),
     });
 
+    // --- MUTATION ATUALIZADA COM onSuccess PARA GARANTIR ATUALIZAÇÃO ---
     const updateDetailsMutation = useMutation({
         mutationFn: updateClientDetails,
+        onSuccess: async (data, variables) => {
+            toast({ title: "Sucesso!", description: "Dados do cliente atualizados." });
+    
+            // Invalida a query e espera a busca por novos dados terminar
+            await queryClient.invalidateQueries({ queryKey: ['clients'] });
+    
+            // Pega os dados frescos diretamente do cache do React Query
+            const updatedClients = queryClient.getQueryData(['clients']);
+    
+            // Encontra o cliente específico que foi atualizado
+            if (updatedClients) {
+                const newlyUpdatedClient = updatedClients.find(c => c.chat_id === variables.chatId);
+                if (newlyUpdatedClient) {
+                    // Atualiza o estado 'detailedClient', forçando o Dialog a re-renderizar com os novos dados
+                    setDetailedClient(newlyUpdatedClient);
+                }
+            }
+        },
         onError: (err) => toast({ title: "Erro ao Salvar", description: err.message, variant: "destructive" }),
     });
 
@@ -918,16 +643,17 @@ function CRMKanbanContent() {
         });
         return KANBAN_COLUMNS.map(col => ({ ...col, clients: data[col.id] }));
     }, [filteredClients]);
-
+    
     useEffect(() => {
-        if (boardRef.current?.firstChild) {
+        if (boardRef.current && boardRef.current.firstChild) {
             const column = boardRef.current.firstChild;
             const columnWidth = column.offsetWidth;
             const gap = parseFloat(window.getComputedStyle(boardRef.current).gap || '16');
-            const offset = (columnWidth + gap) * (currentPage - 1);
-            boardRef.current.style.transform = `translateX(-${offset}px)`;
+            const scrollAmount = (columnWidth + gap) * (currentPage - 1);
+            boardRef.current.style.transform = `translateX(-${scrollAmount}px)`;
         }
     }, [currentPage, columns, isMobile]);
+
 
     function handleDragStart(event) {
         setActiveClient(clients.find(c => c.chat_id === event.active.id));
@@ -952,10 +678,7 @@ function CRMKanbanContent() {
         }
     }
 
-    const handleDeleteRequest = (chatId) => {
-        setClientToDelete(chatId);
-    };
-
+    const handleDeleteRequest = (chatId) => { setClientToDelete(chatId); };
     const handleConfirmDelete = () => {
         if (clientToDelete) {
             deleteMutation.mutate(clientToDelete);
@@ -965,12 +688,8 @@ function CRMKanbanContent() {
 
     if (isLoading) return <div className="p-6">Carregando CRM...</div>;
     if (error) return <div className="p-6 text-destructive">Erro ao carregar dados: {error.message}</div>;
-
-    const totalPages = Math.ceil(columns.length / COLUMNS_PER_PAGE);
-    const visibleColumns = columns.slice(
-        (currentPage - 1) * COLUMNS_PER_PAGE,
-        currentPage * COLUMNS_PER_PAGE
-    );
+    
+    const totalPages = isMobile ? columns.length : Math.ceil(columns.length / COLUMNS_PER_PAGE);
 
     return (
         <>
@@ -978,33 +697,15 @@ function CRMKanbanContent() {
                 <h1 className="text-2xl md:text-3xl font-bold">CRM - Funil de Vendas</h1>
                 <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                    <Input
-                        placeholder="Buscar clientes..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                    />
+                    <Input placeholder="Buscar clientes..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10"/>
                 </div>
-                <DndContext
-                    sensors={sensors}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                    collisionDetection={closestCenter}
-                >
+                <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
                     <div className="w-full overflow-x-hidden pb-4">
-                        <div
-                            ref={boardRef}
-                            className="flex gap-4 md:gap-6 items-start transition-transform duration-300 ease-in-out"
-                            style={{ width: isMobile ? `${columns.length * 100}%` : 'auto' }}
-                        >
+                        <div ref={boardRef} className="flex gap-4 md:gap-6 items-start transition-transform duration-300 ease-in-out" style={{ width: isMobile ? `${columns.length * 100}%` : 'auto' }}>
                             {columns.length > 0 ? (
                                 columns.map((column) => (
                                     <div key={column.id} className={`flex-shrink-0 ${isMobile ? 'w-full max-w-[calc(100vw-2rem)]' : 'w-72'} overflow-x-hidden box-border`}>
-                                        <SortableContext
-                                            id={column.id}
-                                            items={column.clients.map(c => c.chat_id)}
-                                            strategy={verticalListSortingStrategy}
-                                        >
+                                        <SortableContext id={column.id} items={column.clients.map(c => c.chat_id)} strategy={verticalListSortingStrategy}>
                                             <div className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-full">
                                                 <div className="flex items-center justify-between">
                                                     <h3 className="font-semibold text-sm md:text-base truncate">{column.name}</h3>
@@ -1014,124 +715,52 @@ function CRMKanbanContent() {
                                                     <div className="flex-1 space-y-3 pr-3">
                                                         {column.clients.length > 0 ? (
                                                             column.clients.map((client) => (
-                                                                <ClientCard
-                                                                    key={client.chat_id}
-                                                                    client={client}
-                                                                    onDelete={handleDeleteRequest}
-                                                                    onViewDetails={() => setDetailedClient(client)}
-                                                                />
+                                                                <ClientCard key={client.chat_id} client={client} onDelete={handleDeleteRequest} onViewDetails={() => setDetailedClient(client)} />
                                                             ))
-                                                        ) : (
-                                                            <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                                                                Nenhum lead
-                                                            </div>
-                                                        )}
+                                                        ) : ( <div className="h-full flex items-center justify-center text-sm text-muted-foreground">Nenhum lead</div> )}
                                                     </div>
                                                 </ScrollArea>
                                             </div>
                                         </SortableContext>
                                     </div>
                                 ))
-                            ) : (
-                                <div className="w-full text-center text-muted-foreground">Nenhuma coluna disponível</div>
-                            )}
+                            ) : ( <div className="w-full text-center text-muted-foreground">Nenhuma coluna disponível</div> )}
                         </div>
                     </div>
-                    <DragOverlay>
-                        {activeClient && draggedItemRect ? (
-                            <div style={{ width: draggedItemRect.width, height: draggedItemRect.height }}>
-                                <ClientCard client={activeClient} onDelete={() => { }} onViewDetails={() => { }} />
-                            </div>
-                        ) : null}
-                    </DragOverlay>
+                    <DragOverlay>{activeClient && draggedItemRect ? (<div style={{ width: draggedItemRect.width, height: draggedItemRect.height }}><ClientCard client={activeClient} onDelete={() => { }} onViewDetails={() => { }} /></div>) : null}</DragOverlay>
                 </DndContext>
-                {columns.length > 0 && (
+                {totalPages > 1 && (
                     <div className="flex flex-col items-center gap-2 mt-4 z-10">
-                        <div className="text-sm text-muted-foreground">
-                            {isMobile ? (
-                                `Coluna: ${visibleColumns[0]?.name || 'N/A'} (${currentPage} de ${totalPages})`
-                            ) : (
-                                `Página ${currentPage} de ${totalPages}`
-                            )}
+                         <div className="text-sm text-muted-foreground">
+                            {isMobile ? `Coluna: ${columns[(currentPage - 1)]?.name || 'N/A'} (${currentPage} de ${totalPages})` : `Página ${currentPage} de ${totalPages}`}
                         </div>
                         <div className="flex justify-center items-center gap-2">
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
-                                className="h-8 w-8 bg-background border border-input shadow-sm"
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                            </Button>
+                            <Button variant="outline" size="icon" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="h-8 w-8 bg-background border border-input shadow-sm"><ChevronLeft className="h-4 w-4" /></Button>
                             {isMobile ? (
-                                <Select
-                                    value={String(currentPage)}
-                                    onValueChange={(value) => setCurrentPage(Number(value))}
-                                >
-                                    <SelectTrigger className="w-40 h-8 text-sm">
-                                        <SelectValue placeholder="Selecionar coluna" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {columns.map((col, index) => (
-                                            <SelectItem key={col.id} value={String(index + 1)}>
-                                                {col.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
+                                <Select value={String(currentPage)} onValueChange={(value) => setCurrentPage(Number(value))}>
+                                    <SelectTrigger className="w-40 h-8 text-sm"><SelectValue placeholder="Selecionar coluna" /></SelectTrigger>
+                                    <SelectContent>{columns.map((col, index) => (<SelectItem key={col.id} value={String(index + 1)}>{col.name}</SelectItem>))}</SelectContent>
                                 </Select>
                             ) : (
                                 Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                    <Button
-                                        key={page}
-                                        variant={currentPage === page ? 'default' : 'outline'}
-                                        size="icon"
-                                        onClick={() => setCurrentPage(page)}
-                                        className="h-8 w-8"
-                                    >
-                                        {page}
-                                    </Button>
+                                    <Button key={page} variant={currentPage === page ? 'default' : 'outline'} size="icon" onClick={() => setCurrentPage(page)} className="h-8 w-8">{page}</Button>
                                 ))
                             )}
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
-                                className="h-8 w-8 bg-background border border-input shadow-sm"
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
+                            <Button variant="outline" size="icon" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="h-8 w-8 bg-background border border-input shadow-sm"><ChevronRight className="h-4 w-4" /></Button>
                         </div>
                     </div>
                 )}
             </div>
-            {detailedClient && (
-                <ClientDetailDialog
-                    client={detailedClient}
-                    isOpen={!!detailedClient}
-                    onOpenChange={(isOpen) => !isOpen && setDetailedClient(null)}
-                    updateMutation={updateDetailsMutation}
-                />
-            )}
+            {detailedClient && (<ClientDetailDialog client={detailedClient} isOpen={!!detailedClient} onOpenChange={(isOpen) => !isOpen && setDetailedClient(null)} updateMutation={updateDetailsMutation}/>)}
             <Dialog open={!!clientToDelete} onOpenChange={() => setClientToDelete(null)}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <AlertTriangle className="text-destructive" />
-                            Confirmar Exclusão
-                        </DialogTitle>
-                        <DialogDescription>
-                            Você tem certeza que deseja excluir este cliente? Esta ação é irreversível e todos os dados serão perdidos.
-                        </DialogDescription>
+                        <DialogTitle className="flex items-center gap-2"><AlertTriangle className="text-destructive" />Confirmar Exclusão</DialogTitle>
+                        <DialogDescription>Você tem certeza que deseja excluir este cliente? Esta ação é irreversível e todos os dados serão perdidos.</DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="mt-4">
-                        <Button variant="outline" onClick={() => setClientToDelete(null)}>
-                            Cancelar
-                        </Button>
-                        <Button variant="destructive" onClick={handleConfirmDelete}>
-                            Sim, Excluir Cliente
-                        </Button>
+                        <Button variant="outline" onClick={() => setClientToDelete(null)}>Cancelar</Button>
+                        <Button variant="destructive" onClick={handleConfirmDelete}>Sim, Excluir Cliente</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
