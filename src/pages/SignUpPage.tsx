@@ -25,13 +25,13 @@ export function SignUpPage() {
         setError(null);
         setMessage('');
 
-        // Passo 1: Criar o usuário na autenticação do Supabase
+        // Passo 1: Registar o utilizador, enviando os dados extra no campo 'options.data'
         const { data: authData, error: authError } = await supabase.auth.signUp({ 
             email, 
             password,
             options: {
                 data: {
-                    full_name: fullName,
+                    full_name: fullName, // Estes dados vão para 'raw_user_meta_data'
                 }
             }
         });
@@ -43,29 +43,26 @@ export function SignUpPage() {
         }
 
         if (!authData.user) {
-            setError("Não foi possível criar a conta de usuário. Tente novamente.");
+            setError("Não foi possível criar o utilizador. Tente novamente.");
             setLoading(false);
             return;
         }
         
-        // ALTERAÇÃO: Lógica movida do trigger para o front-end.
-        // Passo 2: Criar a loja na tabela 'lojas', vinculando com o ID do novo usuário.
+        // Passo 2: O trigger já criou a loja com os dados básicos.
+        // Agora, atualizamos a loja com o nome e WhatsApp que o utilizador inseriu.
         const { error: storeError } = await supabase
             .from('lojas')
-            .insert({
-                user_id: authData.user.id, // Vincula a loja ao usuário recém-criado
+            .update({
                 nome: storeName,
-                proprietario: fullName,
                 whatsapp: whatsapp,
-                email: email
-            });
+                // O proprietario já foi preenchido pelo trigger com 'full_name'
+            })
+            .eq('user_id', authData.user.id);
 
         if (storeError) {
-            // Se der erro aqui, a conta foi criada, mas a loja não.
-            // É importante avisar o usuário para tentar de novo ou contatar o suporte.
-            setError(`Sua conta de usuário foi criada, mas houve uma falha ao registrar a loja: ${storeError.message}`);
+            setError(`A sua conta foi criada, mas houve um erro ao registar a loja: ${storeError.message}`);
         } else {
-            setMessage('Conta e loja criadas com sucesso! Verifique seu e-mail para confirmar e poder fazer o login.');
+            setMessage('Conta criada com sucesso! Verifique seu e-mail para confirmar e poder fazer o login.');
         }
         
         setLoading(false);
@@ -82,6 +79,7 @@ export function SignUpPage() {
                 >
                     <div className="grid gap-2 text-center">
                         <div className="flex justify-center items-center gap-4 mb-4">
+                            {/* CORRIGIDO: Cores do logo para âmbar */}
                             <div className="w-14 h-14 rounded-lg bg-amber-500 flex items-center justify-center">
                                 <UserPlus className="w-8 h-8 text-white" />
                             </div>
@@ -120,12 +118,14 @@ export function SignUpPage() {
                         {error && <p className="text-sm font-medium text-red-600 bg-red-500/10 p-3 rounded-md">{error}</p>}
                         {message && <p className="text-sm font-medium text-emerald-600 bg-emerald-500/10 p-3 rounded-md">{message}</p>}
                         
+                        {/* CORRIGIDO: Cores do botão para âmbar */}
                         <Button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-white" disabled={loading}>
                             {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando conta...</> : <><UserPlus className="mr-2 h-4 w-4" /> Criar Conta</>}
                         </Button>
                     </form>
                     <div className="mt-4 text-center text-sm">
                         Já tem uma conta?{' '}
+                        {/* CORRIGIDO: Cor do link para âmbar */}
                         <Link to="/login" className="underline text-amber-600 font-semibold hover:text-amber-700">
                             Faça login
                         </Link>
