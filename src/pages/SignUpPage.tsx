@@ -4,13 +4,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { BarChart3, UserPlus } from 'lucide-react';
+import { UserPlus, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export function SignUpPage() {
     // Estados para todos os dados do formulário
     const [fullName, setFullName] = useState('');
     const [storeName, setStoreName] = useState('');
-    const [whatsapp, setWhatsapp] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     
@@ -25,14 +25,20 @@ export function SignUpPage() {
         setError(null);
         setMessage('');
 
-        // Passo 1: Registar o utilizador, enviando os dados extra no campo 'options.data'
+        // Validação básica
+        if (!fullName.trim() || !storeName.trim() || !email.trim() || !password.trim()) {
+            setError("Por favor, preencha todos os campos.");
+            setLoading(false);
+            return;
+        }
+
+        // Passo 1: Registrar o usuário, enviando o nome completo nos metadados
         const { data: authData, error: authError } = await supabase.auth.signUp({ 
             email, 
             password,
             options: {
                 data: {
-                    full_name: fullName, // Estes dados vão para 'raw_user_meta_data'
-                    phone: whatsapp,
+                    full_name: fullName,
                 }
             }
         });
@@ -44,93 +50,86 @@ export function SignUpPage() {
         }
 
         if (!authData.user) {
-            setError("Não foi possível criar o utilizador. Tente novamente.");
+            setError("Não foi possível criar o usuário. Tente novamente.");
             setLoading(false);
             return;
         }
         
-        // Passo 2: O trigger já criou a loja com os dados básicos.
-        // Agora, atualizamos a loja com o nome correto que o utilizador inseriu.
+        // Passo 2: O trigger já criou a loja. Agora, atualizamos com o nome e proprietário corretos.
         const { error: storeError } = await supabase
             .from('lojas')
             .update({
                 nome: storeName,
+                proprietario: fullName
             })
             .eq('user_id', authData.user.id);
 
         if (storeError) {
-            setError(`A sua conta foi criada, mas houve um erro ao registar a loja: ${storeError.message}`);
+            // Se der erro aqui, é importante avisar que a conta foi criada mas a loja não.
+            setError(`Sua conta foi criada, mas houve um erro ao configurar a loja: ${storeError.message}`);
         } else {
-            setMessage('Conta criada com sucesso! A redirecionar para o login...');
-            setTimeout(() => navigate('/login'), 3000); 
+            setMessage('Conta criada com sucesso! Verifique seu e-mail para confirmar e fazer o login.');
+            // Não redireciona mais, o usuário precisa confirmar o e-mail
         }
         
         setLoading(false);
     };
 
     return (
-        <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-             <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-                <div className="mx-auto grid w-[380px] gap-6 animate-fade-in-up">
+        <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 font-poppins">
+            <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+                <motion.div 
+                    className="mx-auto grid w-[400px] gap-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
                     <div className="grid gap-2 text-center">
-                        <div className="flex justify-center items-center gap-3 mb-4">
-                            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
-                                <BarChart3 className="w-7 h-7 text-primary-foreground" />
-                            </div>
-                            <div>
-                                <h1 className="text-3xl font-bold text-foreground">ZailonSoft</h1>
-                                <p className="text-balance text-muted-foreground">CRM Automotivo</p>
-                            </div>
-                        </div>
-                         <p className="text-balance text-muted-foreground">
-                            Crie a sua conta para começar a gerir a sua loja hoje.
+                        <h1 className="text-3xl font-bold text-zinc-900">
+                            Crie sua Conta
+                        </h1>
+                        <p className="text-balance text-zinc-600">
+                            Preencha os dados abaixo para começar a vender mais.
                         </p>
                     </div>
                     <form onSubmit={handleSignUp} className="grid gap-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="fullName">O seu Nome</Label>
-                                <Input id="fullName" placeholder="Ex: João Silva" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-                            </div>
-                             <div className="grid gap-2">
-                                <Label htmlFor="storeName">Nome da Loja</Label>
-                                <Input id="storeName" placeholder="Ex: Auto Premium" value={storeName} onChange={(e) => setStoreName(e.target.value)} required />
-                            </div>
-                        </div>
-                         <div className="grid gap-2">
-                            <Label htmlFor="whatsapp">WhatsApp da Loja</Label>
-                            <Input id="whatsapp" placeholder="Ex: 5511988888888" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} required />
+                        <div className="grid gap-2">
+                            <Label htmlFor="fullName" className="text-zinc-600">Seu Nome Completo</Label>
+                            <Input id="fullName" placeholder="Ex: João da Silva" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="focus-visible:ring-amber-500/20" />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="email">E-mail de Acesso</Label>
-                            <Input id="email" type="email" placeholder="usado para login" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                            <Label htmlFor="storeName" className="text-zinc-600">Nome da Sua Loja</Label>
+                            <Input id="storeName" placeholder="Ex: Silva Veículos" value={storeName} onChange={(e) => setStoreName(e.target.value)} required className="focus-visible:ring-amber-500/20" />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Crie uma Senha</Label>
-                            <Input id="password" type="password" placeholder="Mínimo de 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                            <Label htmlFor="email" className="text-zinc-600">Seu Melhor E-mail</Label>
+                            <Input id="email" type="email" placeholder="usado para o login" value={email} onChange={(e) => setEmail(e.target.value)} required className="focus-visible:ring-amber-500/20" />
                         </div>
-                        {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-                        {message && <p className="text-sm font-medium text-emerald-600 bg-emerald-50 p-3 rounded-md">{message}</p>}
-                        <Button type="submit" className="w-full" disabled={loading}>
-                            {loading ? 'A registar...' : <><UserPlus className="mr-2 h-4 w-4" /> Criar Conta</>}
+                        <div className="grid gap-2">
+                            <Label htmlFor="password" className="text-zinc-600">Crie uma Senha</Label>
+                            <Input id="password" type="password" placeholder="Mínimo de 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} required className="focus-visible:ring-amber-500/20" />
+                        </div>
+                        {error && <p className="text-sm font-medium text-red-600 bg-red-500/10 p-3 rounded-md">{error}</p>}
+                        {message && <p className="text-sm font-medium text-emerald-600 bg-emerald-500/10 p-3 rounded-md">{message}</p>}
+                        <Button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-white" disabled={loading}>
+                            {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando conta...</> : <><UserPlus className="mr-2 h-4 w-4" /> Criar Conta Grátis</>}
                         </Button>
                     </form>
                     <div className="mt-4 text-center text-sm">
                         Já tem uma conta?{' '}
-                        <Link to="/login" className="underline text-primary font-semibold">
-                            Faça login
+                        <Link to="/login" className="underline text-amber-600 font-semibold hover:text-amber-700">
+                            Faça login aqui
                         </Link>
                     </div>
-                </div>
+                </motion.div>
             </div>
-            <div className="hidden bg-muted lg:block">
+            <div className="hidden bg-zinc-100 lg:block">
                 <img
-                    src="https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2072&auto=format&fit=crop"
-                    alt="Imagem de vários carros numa concessionária"
+                    src="https://images.unsplash.com/photo-1554224155-8d044b4a15e3?q=80&w=2070&auto=format&fit=crop"
+                    alt="Imagem de uma pessoa assinando um contrato de um carro"
                     className="h-full w-full object-cover"
                 />
             </div>
         </div>
     );
 }
-
