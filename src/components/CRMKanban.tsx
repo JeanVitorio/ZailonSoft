@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef, useContext, useReducer } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { produce } from 'immer';
+
 // --- Componentes UI ---
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,12 +13,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 // --- ÍCONES ---
 import { Search, Trash2, FileText, Edit, Save, XCircle, X, Upload, AlertTriangle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+
 // --- Componentes Drag-and-Drop ---
 import { DndContext, closestCenter, DragOverlay, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+
 // --- Sistema de Notificações (Toast) ---
 const ToastContext = React.createContext(null);
 function toastReducer(state, action) {
@@ -65,7 +69,8 @@ const useToast = () => {
         },
     };
 };
-// --- Funções da API e Tipos Supabase ---
+
+// --- Funções da API e Tipos ---
 import {
     fetchClients,
     fetchAvailableCars,
@@ -89,9 +94,7 @@ const KANBAN_COLUMNS = [
     { id: "dados_financiamento", name: "Dados de Financiamento" },
     { id: "finalizado", name: "Atendimento Finalizado" },
 ];
-const dealTypeMap = { comum: "Venda", troca: "Troca", visita: "Visita", financiamento: "Financiamento", a_vista: "À Vista", "financiamento_com_troca": "Financiamento e Troca" };
 
-// --- FUNÇÕES DE MOEDA ---
 const parseCurrency = (value) => {
     if (typeof value === 'number') return value;
     if (!value || typeof value !== 'string') return 0;
@@ -107,9 +110,6 @@ const toBRL = (value) => {
 
 const getClientColumnId = (state) => {
     if (!state) return "leed_recebido";
-    if (state.startsWith("troca_")) return "dados_troca";
-    if (state.startsWith("visita_")) return "dados_visita";
-    if (state.startsWith("financiamento_") || state.startsWith("a_vista_")) return "dados_financiamento";
     const columnExists = KANBAN_COLUMNS.some(col => col.id === state);
     return columnExists ? state : "leed_recebido";
 };
@@ -132,7 +132,7 @@ function ClientCard({ client, onDelete, onViewDetails }) {
     }
 
     const dealTypeKey = client.bot_data?.deal_type || client.deal_type;
-    const dealType = dealTypeMap[dealTypeKey] || "Não informado";
+    const dealType = KANBAN_COLUMNS.find(c => c.id === dealTypeKey)?.name || "Não informado";
 
     return (
         <Card ref={setNodeRef} style={style} {...attributes} className="touch-none bg-background/80 backdrop-blur-sm shadow-md hover:shadow-lg w-full max-w-full">
@@ -162,7 +162,6 @@ const InfoRow = ({ label, children }) => (
     </div>
 );
 
-// Helper para renderizar preview de arquivos (imagem ou ícone)
 const renderFilePreview = (docPath, isEditing, onRemove) => {
     const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(docPath);
     return (
@@ -258,11 +257,11 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         }));
     };
 
-    const handleDealTypeChange = (value) => {
+    const handleStatusChange = (value) => {
         setFormData(produce(draft => {
-            draft.deal_type = value;
+            draft.state = value;
             if (!draft.bot_data) draft.bot_data = {};
-            draft.bot_data.deal_type = value;
+            draft.bot_data.state = value;
         }));
     };
 
@@ -437,13 +436,15 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                                         <InfoRow label="Telefone">{isEditing ? <Input className="focus-visible:ring-amber-500/20" value={formData.phone || ''} onChange={e => handleDeepChange('phone', e.target.value)} /> : (formData.phone || 'N/A')}</InfoRow>
                                         <InfoRow label="CPF">{isEditing ? <Input className="focus-visible:ring-amber-500/20" value={formData.cpf || ''} onChange={e => handleDeepChange('cpf', e.target.value)} /> : (formData.cpf || 'N/A')}</InfoRow>
                                         <InfoRow label="Ocupação">{isEditing ? <Input className="focus-visible:ring-amber-500/20" value={formData.job || ''} onChange={e => handleDeepChange('job', e.target.value)} /> : (formData.job || 'N/A')}</InfoRow>
-                                        <InfoRow label="Negociação">
+                                        <InfoRow label="Status no Funil">
                                             {isEditing ? (
-                                                <Select value={dealType || ''} onValueChange={handleDealTypeChange}>
+                                                <Select value={formData.state || ''} onValueChange={handleStatusChange}>
                                                     <SelectTrigger className="focus:ring-amber-500/20"><SelectValue /></SelectTrigger>
-                                                    <SelectContent>{Object.entries(dealTypeMap).map(([k, v]) => (<SelectItem key={k} value={k}>{v}</SelectItem>))}</SelectContent>
+                                                    <SelectContent>
+                                                        {KANBAN_COLUMNS.map(col => (<SelectItem key={col.id} value={col.id}>{col.name}</SelectItem>))}
+                                                    </SelectContent>
                                                 </Select>
-                                            ) : (dealTypeMap[dealType] || 'Não informado')}
+                                            ) : (KANBAN_COLUMNS.find(c => c.id === formData.state)?.name || 'Não informado')}
                                         </InfoRow>
                                     </CardContent>
                                 </Card>
@@ -562,7 +563,6 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                                             {visibleDocuments.map(docPath => renderFilePreview(docPath, isEditing, () => removeExistingFile(docPath, 'documents')))}
                                             {newDocs.map(file => (
                                                 <div key={file.preview} className="relative group">
-                                                    {/* CORRIGIDO: Cor do ícone e borda */}
                                                     <div className="w-full h-20 flex items-center justify-center rounded border-2 border-dashed border-amber-500"><FileText className="h-10 w-10 text-amber-500" /></div>
                                                     {isEditing && (
                                                         <Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'documents')}>
@@ -577,7 +577,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                                 </Card>
                                 <Card>
                                     <CardHeader><CardTitle className="text-base">Anotações</CardTitle></CardHeader>
-                                    <CardContent>{isEditing ? (<Textarea className="focus-visible:ring-amber-500/20" value={botData.notes || ''} onChange={e => handleDeepChange('bot_data.notes', e.target.value)} className="min-h-[150px]"/>) : (<p className="text-sm text-muted-foreground whitespace-pre-wrap">{botData.notes || 'Nenhuma.'}</p>)}</CardContent>
+                                    <CardContent>{isEditing ? (<Textarea className="focus-visible:ring-amber-500/20" value={botData.notes || ''} onChange={e => handleDeepChange('bot_data.notes', e.target.value)} />) : (<p className="text-sm text-muted-foreground whitespace-pre-wrap">{botData.notes || 'Nenhuma.'}</p>)}</CardContent>
                                 </Card>
                             </div>
                         </div>
@@ -588,6 +588,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
     );
 }
 
+// --- Componente Principal do CRM ---
 function CRMKanbanContent() {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeClient, setActiveClient] = useState(null);
@@ -598,7 +599,8 @@ function CRMKanbanContent() {
     const [currentPage, setCurrentPage] = useState(1);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const boardRef = useRef(null);
-    const COLUMNS_PER_PAGE = isMobile ? 1 : 4;
+    const columnRefs = useRef({});
+    
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
     const { data: clients = [], isLoading, error } = useQuery({
         queryKey: ['clients'],
@@ -607,7 +609,7 @@ function CRMKanbanContent() {
     });
 
     useEffect(() => {
-        const handleResize = () => { setIsMobile(window.innerWidth < 768); };
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -665,15 +667,17 @@ function CRMKanbanContent() {
         return KANBAN_COLUMNS.map(col => ({ ...col, clients: data[col.id] }));
     }, [filteredClients]);
     
-    useEffect(() => {
-        if (boardRef.current && boardRef.current.firstChild) {
-            const column = boardRef.current.firstChild;
-            const columnWidth = column.offsetWidth;
-            const gap = parseFloat(window.getComputedStyle(boardRef.current).gap || '16');
-            const scrollAmount = (columnWidth + gap) * (currentPage - 1);
-            boardRef.current.style.transform = `translateX(-${scrollAmount}px)`;
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+        const columnId = columns[newPage - 1]?.id;
+        if (columnRefs.current[columnId]) {
+            columnRefs.current[columnId].scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'start'
+            });
         }
-    }, [currentPage, columns, isMobile]);
+    };
 
     function handleDragStart(event) {
         setActiveClient(clients.find(c => c.chat_id === event.active.id));
@@ -694,7 +698,7 @@ function CRMKanbanContent() {
         }
     }
 
-    const handleDeleteRequest = (chatId) => { setClientToDelete(chatId); };
+    const handleDeleteRequest = (chatId) => setClientToDelete(chatId);
     const handleConfirmDelete = () => {
         if (clientToDelete) {
             deleteMutation.mutate(clientToDelete);
@@ -705,7 +709,7 @@ function CRMKanbanContent() {
     if (isLoading) return <div className="p-6">Carregando CRM...</div>;
     if (error) return <div className="p-6 text-destructive">Erro ao carregar dados: {error.message}</div>;
     
-    const totalPages = isMobile ? columns.length : Math.ceil(columns.length / COLUMNS_PER_PAGE);
+    const totalPages = columns.length;
 
     return (
         <>
@@ -716,11 +720,15 @@ function CRMKanbanContent() {
                     <Input placeholder="Buscar clientes..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 focus-visible:ring-amber-500/20"/>
                 </div>
                 <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
-                    <div className="w-full overflow-x-hidden pb-4">
-                        <div ref={boardRef} className="flex gap-4 md:gap-6 items-start transition-transform duration-300 ease-in-out" style={{ width: isMobile ? `${columns.length * 100}%` : 'auto' }}>
+                    <div ref={boardRef} className="w-full overflow-x-auto pb-4 scroll-smooth">
+                        <div className="flex gap-4 md:gap-6 items-start">
                             {columns.length > 0 ? (
                                 columns.map((column) => (
-                                    <div key={column.id} className={`flex-shrink-0 ${isMobile ? 'w-full max-w-[calc(100vw-2rem)]' : 'w-72'} overflow-x-hidden box-border`}>
+                                    <div 
+                                      key={column.id} 
+                                      ref={el => columnRefs.current[column.id] = el}
+                                      className="flex-shrink-0 w-[calc(100%-2rem)] sm:w-72 overflow-x-hidden box-border"
+                                    >
                                         <SortableContext id={column.id} items={column.clients.map(c => c.chat_id)} strategy={verticalListSortingStrategy}>
                                             <div className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-full">
                                                 <div className="flex items-center justify-between">
@@ -747,22 +755,22 @@ function CRMKanbanContent() {
                 </DndContext>
                 {totalPages > 1 && (
                     <div className="flex flex-col items-center gap-2 mt-4 z-10">
-                        <div className="text-sm text-muted-foreground">
+                         <div className="text-sm text-muted-foreground">
                             {isMobile ? `Coluna: ${columns[(currentPage - 1)]?.name || 'N/A'} (${currentPage} de ${totalPages})` : `Página ${currentPage} de ${totalPages}`}
                         </div>
                         <div className="flex justify-center items-center gap-2">
-                            <Button variant="outline" size="icon" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="h-8 w-8 bg-background border border-input shadow-sm"><ChevronLeft className="h-4 w-4" /></Button>
+                            <Button variant="outline" size="icon" onClick={() => handlePageChange(Math.max(1, currentPage - 1))} disabled={currentPage === 1} className="h-8 w-8 bg-background border border-input shadow-sm"><ChevronLeft className="h-4 w-4" /></Button>
                             {isMobile ? (
-                                <Select value={String(currentPage)} onValueChange={(value) => setCurrentPage(Number(value))}>
+                                <Select value={String(currentPage)} onValueChange={(value) => handlePageChange(Number(value))}>
                                     <SelectTrigger className="w-40 h-8 text-sm focus:ring-amber-500/20"><SelectValue placeholder="Selecionar coluna" /></SelectTrigger>
                                     <SelectContent>{columns.map((col, index) => (<SelectItem key={col.id} value={String(index + 1)}>{col.name}</SelectItem>))}</SelectContent>
                                 </Select>
                             ) : (
-                                Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                Array.from({ length: Math.ceil(totalPages / 4) }, (_, i) => i + 1).map(page => (
                                     <Button key={page} variant={currentPage === page ? 'default' : 'outline'} size="icon" onClick={() => setCurrentPage(page)} className={`h-8 w-8 ${currentPage === page ? 'bg-amber-500 hover:bg-amber-600 text-white' : ''}`}>{page}</Button>
                                 ))
                             )}
-                            <Button variant="outline" size="icon" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="h-8 w-8 bg-background border border-input shadow-sm"><ChevronRight className="h-4 w-4" /></Button>
+                            <Button variant="outline" size="icon" onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages} className="h-8 w-8 bg-background border border-input shadow-sm"><ChevronRight className="h-4 w-4" /></Button>
                         </div>
                     </div>
                 )}
