@@ -295,7 +295,7 @@ const HomePage = () => {
               <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="bg-white p-8 rounded-xl border border-amber-300 shadow-xl shadow-amber-100">
                 <h3 className="text-2xl font-semibold text-zinc-900 mb-2">ZailonSoft Pro</h3>
                 <p className="text-zinc-600 mb-6">Tudo que você precisa para automatizar e escalar suas vendas.</p>
-                <p className="text-5xl font-bold text-zinc-900 mb-4">R$ 350<span className="text-xl text-zinc-500">/mês</span></p>
+                <p className="text-5xl font-bold text-zinc-900 mb-4">R$ 299<span className="text-xl text-zinc-500">/mês</span></p>
                 <ul className="text-left space-y-3 my-8 max-w-sm mx-auto text-zinc-800">
                   <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Bot de Atendimento Ilimitado</li>
                   <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Qualificação Automática de Leads</li>
