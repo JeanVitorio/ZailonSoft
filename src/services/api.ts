@@ -370,3 +370,42 @@ export const updateStoreDetails = async (lojaId: string, updates: any) => {
     return data[0];
 };
 
+// --- Funções da API para Vendedores ---
+
+export const fetchVendedores = async (lojaId: string) => {
+    if (!lojaId) return [];
+    const { data, error } = await supabase
+        .from('vendedores')
+        .select('*')
+        .eq('loja_id', lojaId);
+    if (error) {
+        console.error('Erro ao buscar vendedores:', error);
+        throw new Error('Falha ao buscar vendedores.');
+    }
+    return data;
+};
+
+export const createVendedor = async (vendedorData: any) => {
+    const { data, error } = await supabase
+        .from('vendedores')
+        .insert(vendedorData)
+        .select();
+    if (error) {
+        console.error('Erro ao criar vendedor:', error);
+        throw new Error(`Falha ao adicionar vendedor: ${error.message}`);
+    }
+    return data[0];
+};
+
+export const deleteVendedor = async (vendedorId: string) => {
+    const { error } = await supabase
+        .from('vendedores')
+        .delete()
+        .eq('id', vendedorId);
+    if (error) {
+        console.error('Erro ao deletar vendedor:', error);
+        throw new Error('Falha ao deletar vendedor.');
+    }
+    return vendedorId;
+};
+

@@ -41,8 +41,9 @@ interface FormData {
 }
 
 // --- Funções Auxiliares ---
-const parseCurrency = (value: string): number => {
-    if (!value) return 0;
+const parseCurrency = (value: string | number): number => {
+    if (typeof value === 'number') return value;
+    if (!value || typeof value !== 'string') return 0;
     return Number(String(value).replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
 };
 
@@ -106,7 +107,7 @@ export function AddClient() {
 
     const flowSteps = useMemo(() => {
         const personal = { id: 'personal', title: 'Dados Pessoais', icon: Feather.UserPlus };
-        const documents = { id: 'documents', title: 'Documentos (RG/CPF)', icon: Feather.FileText };
+        const documents = { id: 'documents', title: 'Documentos (RG/CPF/CNH)', icon: Feather.FileText };
         const interest = { id: 'interest', title: 'Veículo de Interesse', icon: Feather.Car };
         const state = { id: 'state', title: 'Estado do Lead', icon: Feather.Check };
         const summary = { id: 'summary', title: 'Resumo e Confirmação', icon: Feather.Check };
@@ -116,6 +117,7 @@ export function AddClient() {
                 const tradeSteps = [ personal, documents, { id: 'trade_details', title: 'Detalhes da Troca', icon: Feather.RefreshCw }, { id: 'trade_photos', title: 'Fotos da Troca', icon: Feather.Upload }, interest, state ];
                 const tradeInValue = parseCurrency(formData.trade_in_car.value);
                 const interestedCarPrice = formData.interested_vehicles[0] ? parseCurrency(formData.interested_vehicles[0].preco) : 0;
+                
                 if (formData.interested_vehicles.length > 0 && interestedCarPrice > tradeInValue) {
                     tradeSteps.push({ id: 'troca_payment_type', title: 'Pagamento da Diferença', icon: Feather.DollarSign });
                     if (paymentType === 'financiamento') {
@@ -232,7 +234,6 @@ export function AddClient() {
 
         const finalDealType = dealType === 'comum' ? paymentType : dealType;
         
-        // --- CÓDIGO CORRIGIDO AQUI ---
         const payload: ClientPayload = {
             name: formData.name,
             phone: formData.phone,
@@ -241,20 +242,17 @@ export function AddClient() {
             state: formData.state,
             deal_type: finalDealType,
             payment_method: paymentType,
-            // Envia o array de objetos de carro completo
             interested_vehicles: formData.interested_vehicles,
             trade_in_car: formData.trade_in_car,
             financing_details: formData.financing_details,
             visit_details: formData.visit_details,
-            // O bot_data é uma cópia para manter o histórico no CRM
             bot_data: {
                 state: formData.state,
                 deal_type: finalDealType,
-                // Garante que o objeto completo também vá para o bot_data
                 interested_vehicles: formData.interested_vehicles,
                 financing_details: formData.financing_details,
                 visit_details: formData.visit_details,
-                trade_in_car: { ...formData.trade_in_car, photos: [] }, // Adiciona um campo de fotos vazio por padrão
+                trade_in_car: { ...formData.trade_in_car, photos: [] },
             }
         };
 
@@ -275,9 +273,17 @@ export function AddClient() {
             case 'visit_details': return <StepVisitDetails formData={formData} handleInputChange={handleInputChange} />;
             case 'payment_type': return <StepPaymentType setPaymentType={setPaymentType} nextStep={nextStep} />;
             case 'troca_payment_type': return <StepPaymentType setPaymentType={setPaymentType} nextStep={nextStep} title="Como será pago o valor restante?" />;
+            
             case 'financing':
                 const carForFinancing = formData.interested_vehicles[0];
-                return <StepFinancing formData={formData} handleInputChange={handleInputChange} carPrice={carForFinancing ? parseCurrency(carForFinancing.preco) : 0} />;
+                const tradeInValue = dealType === 'troca' ? parseCurrency(formData.trade_in_car.value) : 0;
+                return <StepFinancing 
+                    formData={formData} 
+                    handleInputChange={handleInputChange} 
+                    carPrice={carForFinancing ? parseCurrency(carForFinancing.preco) : 0}
+                    tradeInValue={tradeInValue}
+                />;
+
             case 'state': return <StepLeadState formData={formData} handleInputChange={handleInputChange} />;
             case 'summary': return <StepSummary formData={formData} files={files} dealType={dealType} paymentType={paymentType} />;
             default: return null;
@@ -372,7 +378,6 @@ export function AddClient() {
 }
 
 // --- SUB-COMPONENTES PARA CADA PASSO ---
-// (Os sub-componentes permanecem inalterados, pois o erro estava na lógica principal)
 
 const StepDealType = ({ setDealType, nextStep }: { setDealType: (type: 'comum' | 'troca' | 'visita') => void, nextStep: () => void }) => {
     const handleSelect = (type: 'comum' | 'troca' | 'visita') => { setDealType(type); nextStep(); };
@@ -686,18 +691,30 @@ const StepPaymentType = ({ setPaymentType, nextStep, title }: { setPaymentType: 
     );
 };
 
-const StepFinancing = ({ formData, handleInputChange, carPrice }: { formData: FormData, handleInputChange: (path: string, value: any) => void, carPrice: number }) => {
+const StepFinancing = ({ formData, handleInputChange, carPrice, tradeInValue }: { formData: FormData, handleInputChange: (path: string, value: any) => void, carPrice: number, tradeInValue: number }) => {
     const entryValue = parseCurrency(formData.financing_details.entry);
-    const amountToFinance = carPrice > entryValue ? carPrice - entryValue : 0;
+    const amountToFinance = Math.max(0, carPrice - tradeInValue - entryValue);
+
     return (
         <motion.div
             className="bg-white/70 p-4 md:p-6 rounded-lg border border-zinc-200 shadow-sm font-poppins"
             variants={fadeInUp}
         >
             <h2 className="text-lg md:text-xl font-semibold text-zinc-900 mb-4">Detalhes do Financiamento</h2>
+            
+            {tradeInValue > 0 && (
+                <div className="mb-4 p-3 bg-zinc-100 rounded-md text-sm">
+                    <p>Valor do veículo: <span className="font-semibold">{formatCurrency(carPrice)}</span></p>
+                    <p>Valor do carro na troca: <span className="font-semibold text-red-600">- {formatCurrency(tradeInValue)}</span></p>
+                    <p className="mt-1 border-t pt-1">Valor restante a negociar: <span className="font-semibold text-zinc-900">{formatCurrency(carPrice - tradeInValue)}</span></p>
+                </div>
+            )}
+
             <div className="space-y-4">
                 <div>
-                    <Label htmlFor="entry-value" className="text-zinc-600">Valor de Entrada *</Label>
+                    <Label htmlFor="entry-value" className="text-zinc-600">
+                        {tradeInValue > 0 ? "Valor de Entrada (além da troca)" : "Valor de Entrada *"}
+                    </Label>
                     <Input 
                         id="entry-value" 
                         placeholder="R$ 0,00" 
@@ -713,7 +730,7 @@ const StepFinancing = ({ formData, handleInputChange, carPrice }: { formData: Fo
                         value={formatCurrency(amountToFinance)} 
                         readOnly 
                         disabled 
-                        className="border-zinc-200 bg-zinc-100"
+                        className="border-zinc-200 bg-zinc-100 font-bold"
                     />
                 </div>
                 <div>

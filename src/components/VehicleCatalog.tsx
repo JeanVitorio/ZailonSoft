@@ -11,20 +11,19 @@ import { fetchAvailableCars, updateVehicle as updateVehicleInSupabase, deleteVeh
 
 interface Vehicle extends SupabaseCar {}
 
+// ALTERAÇÃO: Função de parse mais robusta para lidar com formatos monetários brasileiros.
 const parsePrice = (value: string | number): number => {
   if (typeof value === 'number') return value;
-  if (typeof value !== 'string') return 0;
+  if (!value || typeof value !== 'string') return 0;
 
-  let cleaned: string;
-  if (value.includes(',')) {
-    // Assume Brazilian format: remove thousands '.', replace decimal ',' with '.'
-    cleaned = value.replace(/\./g, '').replace(',', '.');
-  } else {
-    // Assume dot as decimal or integer
-    cleaned = value;
-  }
+  // Remove o símbolo de real, espaços, pontos de milhar e substitui a vírgula do decimal por um ponto.
+  const cleaned = String(value)
+    .replace(/R\$\s?/, '')
+    .replace(/\./g, '')
+    .replace(',', '.');
 
-  return parseFloat(cleaned) || 0;
+  const number = parseFloat(cleaned);
+  return isNaN(number) ? 0 : number;
 };
 
 const formatCurrency = (value: string | number): string => {
@@ -48,7 +47,8 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
 
   useEffect(() => {
     if (vehicle) {
-      const initialPrice = vehicle.preco ? new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(parsePrice(vehicle.preco)) : '';
+      // ALTERAÇÃO: Simplificado para usar a função formatCurrency, mas sem o 'R$' para o input.
+      const initialPrice = vehicle.preco ? formatCurrency(vehicle.preco).replace(/R\$\s?/, '') : '';
       setFormData({ ...vehicle, preco: initialPrice });
       setNewImages([]);
       setCurrentImageIndex(0);
@@ -94,7 +94,6 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
   });
 
   const handleSave = () => {
-    // Validação dos dados
     if (!formData.nome || formData.nome.trim() === '') {
       toast({ title: "Erro!", description: "O nome do veículo é obrigatório.", variant: "destructive" });
       return;
@@ -103,12 +102,14 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
       toast({ title: "Erro!", description: "O ano do veículo é inválido.", variant: "destructive" });
       return;
     }
-    const priceString = String(formData.preco || '').replace(/[^0-9,]/g, '').replace(',', '.');
-    const priceNum = parsePrice(priceString);
+
+    // ALTERAÇÃO: Converte o preço formatado para um número puro usando a função robusta.
+    const priceNum = parsePrice(String(formData.preco || ''));
     if (isNaN(priceNum) || priceNum <= 0) {
       toast({ title: "Erro!", description: "O preço do veículo é inválido.", variant: "destructive" });
       return;
     }
+    
     if (!formData.loja_id) {
       toast({ title: "Erro!", description: "O ID da loja é obrigatório.", variant: "destructive" });
       return;
@@ -117,7 +118,8 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
     const updatedData = {
       nome: formData.nome.trim(),
       ano: Number(formData.ano),
-      preco: priceString,
+      // ALTERAÇÃO: Envia o preço como um NÚMERO, não mais como texto.
+      preco: priceNum,
       descricao: formData.descricao || '',
       loja_id: formData.loja_id,
     };
