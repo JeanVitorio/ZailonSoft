@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import * as Feather from 'react-feather';
 import { useAuth } from '@/auth/AuthContext';
-import CrmImage from './CRM.png'; // Imagem do CRM
-import CatalogoImage from './Catalogo.png'; // Imagem do Catálogo
-import HeroImage from './HomemComemorando.png'; // Nova imagem do vendedor
+import CrmImage from './../public/CRM.png'; // Imagem do CRM
+import CatalogoImage from './../public/Catalogo.png'; // Imagem do Catálogo
+import HeroImage from '../../public/HomemComemorando.png'; // Nova imagem do vendedor
 
 // Componente para pontos de luz animados
 const LightDotsBackground = () => {
