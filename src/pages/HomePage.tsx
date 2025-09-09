@@ -4,9 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import * as Feather from 'react-feather';
 import { useAuth } from '@/auth/AuthContext';
-import CrmImage from './../public/CRM.png'; // Imagem do CRM
-import CatalogoImage from './../public/Catalogo.png'; // Imagem do Catálogo
-import HeroImage from '../../public/HomemComemorando.png'; // Nova imagem do vendedor
+
+// TODAS AS IMPORTAÇÕES DE IMAGEM FORAM REMOVIDAS.
 
 // Componente para pontos de luz animados
 const LightDotsBackground = () => {
@@ -220,9 +219,18 @@ const HomePage = () => {
                   <motion.h1 variants={fadeInUp} className="text-4xl md:text-6xl font-extrabold mb-6 text-zinc-900 leading-tight">
                     Sua Concessionária <span className="text-amber-500">Faturando 24h por Dia.</span>
                   </motion.h1>
+
+                  <motion.div 
+                    className="block lg:hidden my-8"
+                    variants={fadeInUp}
+                  >
+                    <img src="/HomemComemorando.png" alt="Vendedor feliz comemorando uma venda com celular na mão" className="w-full max-w-sm mx-auto h-auto" />
+                  </motion.div>
+
                   <motion.p variants={fadeInUp} className="text-zinc-600 max-w-xl mx-auto lg:mx-0 text-xl mb-10">
                     Chega de perder vendas. Nosso assistente virtual qualifica clientes no WhatsApp e entrega o negócio pronto no seu CRM. <strong>Seus vendedores só precisam fechar.</strong>
                   </motion.p>
+                  
                   <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Link
@@ -243,13 +251,14 @@ const HomePage = () => {
                   </motion.div>
                   <motion.p variants={fadeInUp} className="text-zinc-500 mt-4 text-sm">Download grátis. Ativação requer assinatura.</motion.p>
                 </motion.div>
+
                 <motion.div 
                   className="hidden lg:block"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
                 >
-                  <img src={HeroImage} alt="Vendedor feliz comemorando uma venda com celular na mão" className="w-full h-auto" />
+                  <img src="/HomemComemorando.png" alt="Vendedor feliz comemorando uma venda com celular na mão" className="w-full h-auto" />
                 </motion.div>
               </div>
             </div>
@@ -262,7 +271,7 @@ const HomePage = () => {
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
                   <img 
-                    src={CatalogoImage} 
+                    src="/Catalogo.png" 
                     alt="Tela do catálogo de veículos da ZailonSoft mostrando diversos carros" 
                     className="rounded-xl shadow-xl shadow-zinc-200 border border-zinc-200 w-full"
                   />
@@ -272,21 +281,21 @@ const HomePage = () => {
                     <Feather.BookOpen className="text-amber-500 mt-1 flex-shrink-0" size={24}/>
                     <div>
                       <h3 className="text-xl font-semibold text-zinc-900">Catálogo Inteligente Conectado</h3>
-                      <p className="text-zinc-600">Cadastre seu estoque uma única vez. Nosso bot acessa seu catálogo em tempo real para apresentar as melhores opções aos clientes, com fotos e detalhes, **poupando horas de trabalho manual** da sua equipe.</p>
+                      <p className="text-zinc-600">Cadastre seu estoque uma única vez. Nosso bot acessa seu catálogo em tempo real para apresentar as melhores opções aos clientes, com fotos e detalhes, poupando horas de trabalho manual da sua equipe.</p>
                     </div>
                   </motion.div>
                    <motion.div variants={fadeInUp} className="flex items-start gap-4">
                     <Feather.Users className="text-amber-500 mt-1 flex-shrink-0" size={24}/>
                     <div>
                       <h3 className="text-xl font-semibold text-zinc-900">Leads 100% Qualificados</h3>
-                      <p className="text-zinc-600">O bot simula um vendedor, extraindo informações cruciais: se o cliente tem carro para troca, se precisa de financiamento e valor de entrada. **Chega de perder tempo** com curiosos.</p>
+                      <p className="text-zinc-600">O bot simula um vendedor, extraindo informações cruciais: se o cliente tem carro para troca, se precisa de financiamento e valor de entrada. Chega de perder tempo com curiosos.</p>
                     </div>
                   </motion.div>
                   <motion.div variants={fadeInUp} className="flex items-start gap-4">
                     <Feather.Layout className="text-amber-500 mt-1 flex-shrink-0" size={24}/>
                     <div>
                       <h3 className="text-xl font-semibold text-zinc-900">CRM e Dashboard: Seu Centro de Comando</h3>
-                      <p className="text-zinc-600">Visualize todas as negociações em tempo real no funil Kanban. Com o Dashboard, você tem relatórios claros sobre o desempenho da sua equipe e a saúde do seu negócio. **Tenha o controle total, na palma da sua mão.**</p>
+                      <p className="text-zinc-600">Visualize todas as negociações em tempo real no funil Kanban. Com o Dashboard, você tem relatórios claros sobre o desempenho da sua equipe e a saúde do seu negócio. Tenha o controle total, na palma da sua mão.</p>
                     </div>
                   </motion.div>
                 </motion.div>
@@ -307,7 +316,7 @@ const HomePage = () => {
                       <motion.p variants={fadeInUp} className="text-amber-500 font-medium">DE LEAD A CLIENTE</motion.p>
                       <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-zinc-900">Transforme Conversas em Contratos Assinados</motion.h2>
                       <motion.p variants={fadeInUp} className="text-zinc-600 text-lg">
-                          Diga adeus a planilhas confusas e anotações perdidas. Com o lead perfeitamente qualificado e todos os dados organizados no CRM, seu vendedor foca no que realmente importa: **o relacionamento e o fechamento.** Aumente a taxa de conversão da sua equipe e veja seu faturamento crescer.
+                          Diga adeus a planilhas confusas e anotações perdidas. Com o lead perfeitamente qualificado e todos os dados organizados no CRM, seu vendedor foca no que realmente importa: o relacionamento e o fechamento. Aumente a taxa de conversão da sua equipe e veja seu faturamento crescer.
                       </motion.p>
                   </motion.div>
                   <motion.div 
@@ -317,7 +326,7 @@ const HomePage = () => {
                       viewport={{ once: true }}
                   >
                       <img 
-                          src={CrmImage} 
+                          src="/CRM.png" 
                           alt="Tela do CRM da ZailonSoft com um funil de vendas Kanban" 
                           className="rounded-xl shadow-2xl shadow-zinc-300 border border-zinc-200 w-full"
                       />
