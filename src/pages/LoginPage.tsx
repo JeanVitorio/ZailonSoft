@@ -210,7 +210,7 @@ export function LoginPage() {
         </motion.div>
         <div className="hidden bg-zinc-100 lg:block">
           <img
-            src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2070&auto=format&fit=crop"
+            src="./CamaroBranco.png"
             alt="Imagem de um carro desportivo amarelo"
             className="h-full w-full object-cover"
           />
