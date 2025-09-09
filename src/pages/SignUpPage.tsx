@@ -11,6 +11,7 @@ export function SignUpPage() {
     // Estados para todos os dados do formulário
     const [fullName, setFullName] = useState('');
     const [storeName, setStoreName] = useState('');
+    const [whatsapp, setWhatsapp] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     
@@ -25,20 +26,13 @@ export function SignUpPage() {
         setError(null);
         setMessage('');
 
-        // Validação básica
-        if (!fullName.trim() || !storeName.trim() || !email.trim() || !password.trim()) {
-            setError("Por favor, preencha todos os campos.");
-            setLoading(false);
-            return;
-        }
-
-        // Passo 1: Registrar o usuário, enviando o nome completo nos metadados
+        // Passo 1: Registrar o usuário, enviando os dados extras no campo 'options.data'
         const { data: authData, error: authError } = await supabase.auth.signUp({ 
             email, 
             password,
             options: {
                 data: {
-                    full_name: fullName,
+                    full_name: fullName, // Estes dados vão para 'raw_user_meta_data'
                 }
             }
         });
@@ -55,21 +49,21 @@ export function SignUpPage() {
             return;
         }
         
-        // Passo 2: O trigger já criou a loja. Agora, atualizamos com o nome e proprietário corretos.
+        // Passo 2: O trigger já criou a loja com os dados básicos.
+        // Agora, atualizamos a loja com o nome e WhatsApp que o usuário inseriu.
         const { error: storeError } = await supabase
             .from('lojas')
             .update({
                 nome: storeName,
-                proprietario: fullName
+                whatsapp: whatsapp,
+                // O proprietario já foi preenchido pelo trigger com 'full_name'
             })
             .eq('user_id', authData.user.id);
 
         if (storeError) {
-            // Se der erro aqui, é importante avisar que a conta foi criada mas a loja não.
-            setError(`Sua conta foi criada, mas houve um erro ao configurar a loja: ${storeError.message}`);
+            setError(`Sua conta foi criada, mas houve um erro ao registrar a loja: ${storeError.message}`);
         } else {
-            setMessage('Conta criada com sucesso! Verifique seu e-mail para confirmar e fazer o login.');
-            // Não redireciona mais, o usuário precisa confirmar o e-mail
+            setMessage('Conta criada com sucesso! Verifique seu e-mail para confirmar e poder fazer o login.');
         }
         
         setLoading(false);
@@ -85,25 +79,38 @@ export function SignUpPage() {
                     transition={{ duration: 0.5 }}
                 >
                     <div className="grid gap-2 text-center">
-                        <h1 className="text-3xl font-bold text-zinc-900">
-                            Crie sua Conta
-                        </h1>
-                        <p className="text-balance text-zinc-600">
-                            Preencha os dados abaixo para começar a vender mais.
+                        <div className="flex justify-center items-center gap-4 mb-4">
+                            {/* CORRIGIDO: Cores do logo para âmbar */}
+                            <div className="w-14 h-14 rounded-lg bg-amber-500 flex items-center justify-center">
+                                <UserPlus className="w-8 h-8 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-3xl font-bold text-zinc-900">ZailonSoft</h1>
+                                <p className="text-balance text-zinc-600">CRM Automotivo</p>
+                            </div>
+                        </div>
+                         <p className="text-balance text-zinc-600">
+                            Crie sua conta para começar a vender mais, hoje mesmo.
                         </p>
                     </div>
                     <form onSubmit={handleSignUp} className="grid gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="fullName" className="text-zinc-600">Seu Nome Completo</Label>
-                            <Input id="fullName" placeholder="Ex: João da Silva" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="focus-visible:ring-amber-500/20" />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="fullName" className="text-zinc-600">Seu Nome</Label>
+                                <Input id="fullName" placeholder="Ex: João Silva" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="focus-visible:ring-amber-500/20" />
+                            </div>
+                             <div className="grid gap-2">
+                                <Label htmlFor="storeName" className="text-zinc-600">Nome da Loja</Label>
+                                <Input id="storeName" placeholder="Ex: Silva Veículos" value={storeName} onChange={(e) => setStoreName(e.target.value)} required className="focus-visible:ring-amber-500/20" />
+                            </div>
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="storeName" className="text-zinc-600">Nome da Sua Loja</Label>
-                            <Input id="storeName" placeholder="Ex: Silva Veículos" value={storeName} onChange={(e) => setStoreName(e.target.value)} required className="focus-visible:ring-amber-500/20" />
+                            <Label htmlFor="whatsapp" className="text-zinc-600">WhatsApp da Loja</Label>
+                            <Input id="whatsapp" placeholder="Ex: 5511988888888" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} required className="focus-visible:ring-amber-500/20" />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="email" className="text-zinc-600">Seu Melhor E-mail</Label>
-                            <Input id="email" type="email" placeholder="usado para o login" value={email} onChange={(e) => setEmail(e.target.value)} required className="focus-visible:ring-amber-500/20" />
+                            <Label htmlFor="email" className="text-zinc-600">E-mail de Acesso</Label>
+                            <Input id="email" type="email" placeholder="usado para login" value={email} onChange={(e) => setEmail(e.target.value)} required className="focus-visible:ring-amber-500/20" />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="password" className="text-zinc-600">Crie uma Senha</Label>
@@ -111,14 +118,17 @@ export function SignUpPage() {
                         </div>
                         {error && <p className="text-sm font-medium text-red-600 bg-red-500/10 p-3 rounded-md">{error}</p>}
                         {message && <p className="text-sm font-medium text-emerald-600 bg-emerald-500/10 p-3 rounded-md">{message}</p>}
+                        
+                        {/* CORRIGIDO: Cores do botão para âmbar */}
                         <Button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-white" disabled={loading}>
-                            {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando conta...</> : <><UserPlus className="mr-2 h-4 w-4" /> Criar Conta Grátis</>}
+                            {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando conta...</> : <><UserPlus className="mr-2 h-4 w-4" /> Criar Conta</>}
                         </Button>
                     </form>
                     <div className="mt-4 text-center text-sm">
                         Já tem uma conta?{' '}
+                        {/* CORRIGIDO: Cor do link para âmbar */}
                         <Link to="/login" className="underline text-amber-600 font-semibold hover:text-amber-700">
-                            Faça login aqui
+                            Faça login
                         </Link>
                     </div>
                 </motion.div>

@@ -115,11 +115,10 @@ export function StoreSettingsPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // ALTERAÇÃO: Verificação agora usa 'lojaData.id', que é o estado do formulário.
         if (!lojaData?.id) {
             toast({
-                title: "Erro",
-                description: "ID da loja não encontrado. Aguarde o carregamento ou recarregue a página.",
+                title: "Erro de Carregamento",
+                description: "Os dados da loja ainda não foram carregados. Por favor, aguarde ou recarregue a página.",
                 variant: "destructive",
             });
             return;
@@ -145,7 +144,6 @@ export function StoreSettingsPage() {
 
     if (isLoadingStore) return <p className="text-zinc-600 font-poppins p-8">Carregando configurações...</p>;
     
-    // ALTERAÇÃO: Adicionado um bloco para tratar o erro ao carregar os dados da loja.
     if (storeError) {
         return (
             <div className="container mx-auto p-4 md:p-8">
@@ -153,12 +151,12 @@ export function StoreSettingsPage() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><AlertTriangle /> Erro ao Carregar Dados</CardTitle>
                         <CardDescription className="text-red-600">
-                            Não foi possível buscar as informações da sua loja. Isso pode acontecer se não houver uma loja associada a este usuário.
+                            Não foi possível buscar as informações da sua loja. Isso pode acontecer se a loja não foi criada durante o cadastro ou devido a permissões.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <p className="text-sm"><b>Detalhe do erro:</b> {(storeError as Error).message}</p>
-                        <p className="text-sm mt-2"><b>Sugestão:</b> Verifique suas políticas de segurança de linha (RLS) na tabela `lojas` no painel da Supabase.</p>
+                        <p className="text-sm mt-2"><b>Próximos Passos:</b> Por favor, delete este usuário de teste e crie um novo. A automação que acabamos de configurar no banco de dados deve resolver o problema para todos os novos cadastros.</p>
                     </CardContent>
                 </Card>
             </div>
