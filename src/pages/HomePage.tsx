@@ -334,10 +334,10 @@ const HomePage = () => {
                     <p className="text-zinc-600 mb-6">Tudo que você precisa para automatizar e escalar suas vendas.</p>
                     <p className="text-5xl font-bold text-zinc-900 mb-4">R$ 299<span className="text-xl text-zinc-500">/mês</span></p>
                     <ul className="text-left space-y-3 my-8 max-w-sm mx-auto text-zinc-800">
-                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> **Atendimento 24/7** que não perde clientes</li>
-                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Leads **100% Qualificados** e prontos</li>
-                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> **Catálogo Inteligente** conectado ao Bot</li>
-                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> **CRM Visual** para controle total das vendas</li>
+                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Atendimento 24/7 que não perde clientes</li>
+                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Leads 100% Qualificados e prontos</li>
+                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Catálogo Inteligente conectado ao Bot</li>
+                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> CRM Visual para controle total das vendas</li>
                     <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Dashboard e Relatórios de Desempenho</li>
                     <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Suporte Prioritário</li>
                     </ul>
