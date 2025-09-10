@@ -25,12 +25,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const getSessionAndSubscription = async (currentUser: User | null) => {
       if (currentUser) {
-        const { data } = await supabase
+        // MUDANÇA AQUI: Removemos o .single() para evitar o erro 406
+        const { data, error } = await supabase
           .from('subscriptions')
           .select('status')
           .eq('user_id', currentUser.id)
-          .single();
-        setSubscriptionStatus(data?.status || null);
+          .limit(1); // Pegamos no máximo 1 resultado
+
+        if (error) {
+          console.error("Erro ao buscar assinatura:", error);
+          setSubscriptionStatus(null);
+        } else if (data && data.length > 0) {
+          // Se encontrou um registro, define o status
+          setSubscriptionStatus(data[0].status);
+        } else {
+          // Se não encontrou NENHUMA linha, o usuário não tem uma assinatura.
+          // Isso NÃO é um erro, é um estado válido que chamaremos de 'not_subscribed'.
+          setSubscriptionStatus('not_subscribed');
+        }
       } else {
         setSubscriptionStatus(null);
       }
