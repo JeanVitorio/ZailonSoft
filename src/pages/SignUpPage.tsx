@@ -1,6 +1,8 @@
+// src/pages/SignUpPage.tsx
+
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,61 +15,40 @@ export function SignUpPage() {
     const [whatsapp, setWhatsapp] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const navigate = useNavigate();
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
-        setMessage('');
 
-        // Passo 1: Registar o utilizador, enviando os dados extra no campo 'options.data'
-        const { data: authData, error: authError } = await supabase.auth.signUp({ 
-            email, 
-            password,
-            options: {
-                data: {
-                    full_name: fullName, // Estes dados vão para 'raw_user_meta_data'
-                }
+        if (password.length < 6) {
+            setError("A senha deve ter no mínimo 6 caracteres.");
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const { data, error: functionError } = await supabase.functions.invoke('start-subscription', {
+                body: { fullName, storeName, whatsapp, email, password },
+            });
+
+            if (functionError) throw functionError;
+            
+            if (data?.checkoutUrl) {
+                window.location.href = data.checkoutUrl;
+            } else {
+                setError("Não foi possível iniciar o processo de assinatura. Tente novamente.");
             }
-        });
-
-        if (authError) {
-            setError(authError.message);
+        } catch (e: any) {
+            setError(e.message || "Ocorreu um erro desconhecido.");
+        } finally {
             setLoading(false);
-            return;
         }
-
-        if (!authData.user) {
-            setError("Não foi possível criar o utilizador. Tente novamente.");
-            setLoading(false);
-            return;
-        }
-        
-        // Passo 2: O trigger já criou a loja com os dados básicos.
-        // Agora, atualizamos a loja com o nome e WhatsApp que o utilizador inseriu.
-        const { error: storeError } = await supabase
-            .from('lojas')
-            .update({
-                nome: storeName,
-                whatsapp: whatsapp,
-                // O proprietario já foi preenchido pelo trigger com 'full_name'
-            })
-            .eq('user_id', authData.user.id);
-
-        if (storeError) {
-            setError(`A sua conta foi criada, mas houve um erro ao registar a loja: ${storeError.message}`);
-        } else {
-            setMessage('Conta criada com sucesso! Verifique seu e-mail para confirmar e poder fazer o login.');
-        }
-        
-        setLoading(false);
     };
-
+    
+    // Seu JSX para o formulário continua aqui, sem alterações...
     return (
         <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 font-poppins">
             <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -79,7 +60,6 @@ export function SignUpPage() {
                 >
                     <div className="grid gap-2 text-center">
                         <div className="flex justify-center items-center gap-4 mb-4">
-                            {/* CORRIGIDO: Cores do logo para âmbar */}
                             <div className="w-14 h-14 rounded-lg bg-amber-500 flex items-center justify-center">
                                 <UserPlus className="w-8 h-8 text-white" />
                             </div>
@@ -116,16 +96,13 @@ export function SignUpPage() {
                             <Input id="password" type="password" placeholder="Mínimo de 6 caracteres" value={password} onChange={(e) => setPassword(e.target.value)} required className="focus-visible:ring-amber-500/20" />
                         </div>
                         {error && <p className="text-sm font-medium text-red-600 bg-red-500/10 p-3 rounded-md">{error}</p>}
-                        {message && <p className="text-sm font-medium text-emerald-600 bg-emerald-500/10 p-3 rounded-md">{message}</p>}
                         
-                        {/* CORRIGIDO: Cores do botão para âmbar */}
                         <Button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-white" disabled={loading}>
-                            {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando conta...</> : <><UserPlus className="mr-2 h-4 w-4" /> Criar Conta</>}
+                            {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processando...</> : <><UserPlus className="mr-2 h-4 w-4" /> Criar Conta e Assinar</>}
                         </Button>
                     </form>
                     <div className="mt-4 text-center text-sm">
                         Já tem uma conta?{' '}
-                        {/* CORRIGIDO: Cor do link para âmbar */}
                         <Link to="/login" className="underline text-amber-600 font-semibold hover:text-amber-700">
                             Faça login
                         </Link>

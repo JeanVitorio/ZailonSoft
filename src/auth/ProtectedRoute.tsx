@@ -1,20 +1,23 @@
+// src/auth/ProtectedRoute.tsx
+
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
-
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth();
+export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading, subscriptionStatus } = useAuth();
+  const location = useLocation();
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-gray-100">Carregando...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gray-100">Carregando...</div>;
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  
+  if (subscriptionStatus !== 'active') {
+    return <Navigate to="/regularizar-pagamento" replace />;
   }
 
   return <>{children}</>;

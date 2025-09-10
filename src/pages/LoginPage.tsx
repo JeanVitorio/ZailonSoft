@@ -1,12 +1,15 @@
+// Salve este arquivo como: src/pages/LoginPage.tsx
+
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Feather from 'react-feather';
 
-// Componente para pontos de luz animados
+// --- Componentes de Background (copiados da sua versão) ---
+
 const LightDotsBackground = () => {
-  const [dots, setDots] = useState([]);
+  const [dots, setDots] = useState<any[]>([]);
 
   React.useEffect(() => {
     const generateDots = () => {
@@ -62,13 +65,15 @@ const LightDotsBackground = () => {
   );
 };
 
-// Componente para o fundo animado
 const AnimatedBackground = () => (
   <div className="absolute inset-0 -z-10 h-full w-full pointer-events-none">
     <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] bg-[size:14px_24px]"></div>
     <div className="absolute left-0 right-0 top-[-10%] h-[1000px] w-[1000px] rounded-full bg-[radial-gradient(circle_400px_at_50%_300px,#fef3c740,transparent)]"></div>
   </div>
 );
+
+
+// --- Componente Principal da Página de Login ---
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -82,23 +87,57 @@ export function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    // 1. Tenta autenticar o usuário com e-mail e senha
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+    });
 
-    if (error) {
-      if (error.message.includes('Invalid login credentials')) {
+    if (authError) {
+      if (authError.message.includes('Invalid login credentials')) {
         setError('E-mail ou senha inválidos.');
-      } else if (error.message.includes('Email not confirmed')) {
+      } else if (authError.message.includes('Email not confirmed')) {
         setError('Por favor, confirme o seu e-mail antes de fazer o login.');
       } else {
         setError('Ocorreu um erro. Verifique os seus dados e tente novamente.');
       }
-    } else {
-      navigate('/sistema');
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    // 2. Se a autenticação for bem-sucedida, busca a assinatura do usuário
+    if (authData.user) {
+        try {
+            const { data: subscription, error: subError } = await supabase
+                .from('subscriptions')
+                .select('status')
+                .eq('user_id', authData.user.id)
+                .single();
+
+            // Ignora o erro "nenhuma linha encontrada", pois significa que o usuário não tem assinatura
+            if (subError && subError.code !== 'PGRST116') { 
+                throw subError;
+            }
+
+            // 3. Redireciona o usuário com base no status da assinatura
+            if (subscription?.status === 'active') {
+                // TUDO CERTO! Acesso liberado.
+                navigate('/sistema'); 
+            } else {
+                // Se a assinatura estiver pendente, cancelada, ou nem existir,
+                // mande o usuário para uma página onde ele possa (re)tentar pagar.
+                // Você precisará criar esta página: '/assinar'
+                navigate('/assinar');
+            }
+
+        } catch (e: any) {
+            setError("Não foi possível verificar sua assinatura. Tente novamente.");
+            console.error("Erro ao buscar assinatura:", e);
+            setLoading(false);
+        }
+    }
   };
 
-  // Animações
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeInOut' } },
@@ -110,12 +149,12 @@ export function LoginPage() {
       <AnimatedBackground />
       <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
         <motion.div
-          className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative z-10" // z-10 para garantir que fique acima do fundo
+          className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative z-10"
           initial="hidden"
           animate="visible"
           variants={fadeInUp}
         >
-          <div className="mx-auto grid w-[350px] gap-6 bg-white/70 p-6 rounded-lg border border-zinc-200 shadow-sm">
+          <div className="mx-auto grid w-[350px] gap-6 bg-white/70 p-6 rounded-lg border border-zinc-200 shadow-sm backdrop-blur-sm">
             <div className="grid gap-2 text-center">
               <div className="flex justify-center items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
@@ -134,36 +173,23 @@ export function LoginPage() {
             </div>
             <form onSubmit={handleLogin} className="grid gap-4">
               <div className="grid gap-2">
-                <label htmlFor="email" className="text-zinc-800 font-medium">
-                  E-mail
-                </label>
+                <label htmlFor="email" className="text-zinc-800 font-medium">E-mail</label>
                 <input
-                  id="email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="email" type="email" placeholder="seu@email.com"
+                  value={email} onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-lg border border-zinc-200 px-4 py-2 text-zinc-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
                   required
                 />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-zinc-800 font-medium">
-                    Senha
-                  </label>
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-amber-500 hover:text-amber-600 transition-colors"
-                  >
+                  <label htmlFor="password" className="text-zinc-800 font-medium">Senha</label>
+                  <Link to="/forgot-password" className="text-sm text-amber-500 hover:text-amber-600 transition-colors">
                     Esqueceu a sua senha?
                   </Link>
                 </div>
                 <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                   className="w-full rounded-lg border border-zinc-200 px-4 py-2 text-zinc-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
                   required
                 />
@@ -174,7 +200,7 @@ export function LoginPage() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="text-sm font-medium text-red-500"
+                    className="text-sm font-medium text-red-600"
                   >
                     {error}
                   </motion.p>
@@ -184,25 +210,14 @@ export function LoginPage() {
                 type="submit"
                 className="w-full bg-amber-500 text-white px-8 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all duration-300 shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)]"
                 disabled={loading}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               >
-                {loading ? (
-                  'A entrar...'
-                ) : (
-                  <>
-                    <Feather.LogIn size={18} />
-                    Entrar no Painel
-                  </>
-                )}
+                {loading ? 'Verificando...' : <><Feather.LogIn size={18} /> Entrar no Painel</>}
               </motion.button>
             </form>
             <div className="mt-4 text-center text-sm text-zinc-600">
               Não tem uma conta?{' '}
-              <Link
-                to="/signup"
-                className="text-amber-500 font-semibold hover:text-amber-600 transition-colors"
-              >
+              <Link to="/signup" className="text-amber-500 font-semibold hover:text-amber-600 transition-colors">
                 Crie uma agora
               </Link>
             </div>
@@ -210,8 +225,8 @@ export function LoginPage() {
         </motion.div>
         <div className="hidden bg-zinc-100 lg:block">
           <img
-            src="./CamaroBranco.png"
-            alt="Imagem de um carro desportivo amarelo"
+            src="/CamaroBranco.png"
+            alt="Imagem de um carro desportivo"
             className="h-full w-full object-cover"
           />
         </div>
