@@ -13,14 +13,13 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      # Passo 1: Instala a ferramenta (CLI) do Supabase no ambiente do GitHub
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v1
         with:
           version: latest
 
-      # Passo 2: Executa o comando de deploy usando a ferramenta instalada
       - name: Deploy Supabase Edge Function
-        run: supabase functions deploy --project-id ${{ secrets.SUPABASE_PROJECT_ID }}
+        # A correção está aqui: trocamos --project-id por --project-ref
+        run: supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
