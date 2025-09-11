@@ -1,5 +1,5 @@
 # Nome do workflow que aparecerá na aba "Actions" do GitHub
-name: Deploy Supabase Functions
+name: Deploy Supabase Function
 
 # Gatilho (trigger): Define quando o workflow deve rodar
 on:
