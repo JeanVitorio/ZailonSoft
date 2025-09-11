@@ -15,7 +15,8 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Deploy to Supabase
-        uses: supabase/actions-workflow@v1.0.3
+        # Este é o nome CORRETO da action oficial do Supabase
+        uses: supabase/github-action@v1.0.0
         with:
           access-token: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          args: functions deploy --project-id ${{ secrets.SUPABASE_PROJECT_ID }}
+          args: 'functions deploy --project-id ${{ secrets.SUPABASE_PROJECT_ID }}'
