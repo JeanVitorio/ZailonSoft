@@ -1,11 +1,9 @@
-name: Deploy Supabase Functions
+name: Deploy Supabase Function
 
 on:
   push:
     branches:
       - master
-    paths:
-      - 'supabase/functions/**'
 
 jobs:
   deploy:
@@ -21,15 +19,12 @@ jobs:
           version: latest
 
       - name: Deploy Supabase Edge Functions
-        run: |
-          supabase functions deploy create-stripe-checkout --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
-          supabase functions deploy stripe-webhook --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
+        run: supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
-          # Certifique-se de adicionar todos os segredos que suas funções precisam
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           SITE_URL: ${{ secrets.SITE_URL }}
           STRIPE_PRICE_ID: ${{ secrets.STRIPE_PRICE_ID }}
