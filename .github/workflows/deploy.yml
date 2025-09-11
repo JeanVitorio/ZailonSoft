@@ -1,11 +1,9 @@
 name: Deploy Supabase Function
 
 on:
-  # Este gatilho faz a ação rodar toda vez que você envia código (push)
-  # para a branch 'main'. Se sua branch principal for 'master', mude abaixo.
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:
