@@ -1,49 +1,45 @@
 # Nome do workflow que aparecerá na aba "Actions" do GitHub
-name: Deploy Supabase Function
+name: Deploy Supabase Edge Function
 
-# Gatilho (trigger): Define quando o workflow deve rodar
 on:
+  # Gatilho 1: Rodar automaticamente ao fazer push na branch 'master'
   push:
     branches:
-      # Roda apenas para pushes feitos na branch 'master'
-      - master
+      - master  # <-- Confirmado que a branch é 'master'
     paths:
-      # Roda apenas se houver qualquer alteração dentro da pasta de functions
       - 'supabase/functions/**'
+      - '.github/workflows/**' # <-- Roda se o próprio workflow for alterado
 
-# Tarefas (jobs) que serão executadas
+  # Gatilho 2: Rodar manualmente pela aba "Actions"
+  workflow_dispatch:
+
 jobs:
   deploy:
-    # Define o tipo de máquina virtual que executará o job
     runs-on: ubuntu-latest
 
-    # Passos (steps) a serem seguidos dentro do job
     steps:
-      # Passo 1: Baixa (clona) o seu código do repositório para a máquina virtual
+      # Passo 1: Clona o repositório
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Passo 2: Instala e configura a ferramenta de linha de comando (CLI) do Supabase
+      # Passo 2: Configura a CLI do Supabase
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v1
         with:
           version: latest
 
-      # Passo 3: Executa o comando para fazer o deploy das suas functions para o Supabase
-      - name: Deploy Supabase Edge Functions
-        run: |
-          # Deploy da função que inicia a assinatura
-          supabase functions deploy start-subscription --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
-          
-          # Deploy da função de webhook que recebe a confirmação de pagamento
-          supabase functions deploy mercado-pago-webhook --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
+      # Passo 3: Define os segredos no Supabase Vault
+      - name: Set Supabase Secrets
         env:
-          # Segredos do Supabase - Necessários para autenticar o comando de deploy
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          
-          # Segredos do Projeto - Serão injetados como variáveis de ambiente nas suas functions
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SITE_URL: ${{ secrets.SITE_URL }}
-          MERCADO_PAGO_ACCESS_TOKEN: ${{ secrets.MERCADO_PAGO_ACCESS_TOKEN }}
-          MERCADO_PAGO_PLAN_ID: ${{ secrets.MERCADO_PAGO_PLAN_ID }}
+        run: |
+          supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} MERCADO_PAGO_ACCESS_TOKEN=${{ secrets.MERCADO_PAGO_ACCESS_TOKEN }}
+          supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} MERCADO_PAGO_PLAN_ID=${{ secrets.MERCADO_PAGO_PLAN_ID }}
+
+      # Passo 4: Faz o deploy das functions
+      - name: Deploy Supabase Edge Functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase functions deploy start-subscription --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
+          supabase functions deploy mercado-pago-webhook --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
