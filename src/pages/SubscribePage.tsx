@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { useAuth } from '../auth/AuthContext'; // Usamos para obter o e-mail do usuário
+import { useAuth } from '../auth/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 export function SubscribePage() {
@@ -15,24 +15,20 @@ export function SubscribePage() {
         setError(null);
 
         if (!user) {
-            setError("Você precisa estar logado para iniciar uma assinatura.");
+            setError("Você precisa estar logado para (re)ativar uma assinatura.");
             setLoading(false);
             return;
         }
 
         try {
-            // Esta é uma nova Edge Function que vamos criar.
-            // Ela é mais simples: apenas pega um usuário existente e gera um link de pagamento.
-            const { data, error: functionError } = await supabase.functions.invoke('create-checkout-link', {
-                // Não precisamos enviar dados do usuário, a função pega do token de autenticação
-            });
+            const { data, error: functionError } = await supabase.functions.invoke('create-checkout-link');
 
             if (functionError) throw functionError;
 
             if (data?.checkoutUrl) {
                 window.location.href = data.checkoutUrl;
             } else {
-                setError("Não foi possível gerar o link de pagamento. Tente novamente.");
+                setError(data?.error || "Não foi possível gerar o link de pagamento. Tente novamente.");
             }
 
         } catch (e: any) {

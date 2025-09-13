@@ -1,4 +1,4 @@
-// Salve este arquivo como: src/pages/LoginPage.tsx
+// src/pages/LoginPage.tsx
 
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
@@ -6,65 +6,29 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Feather from 'react-feather';
 
-// --- Componentes de Background (copiados da sua versão) ---
-
+// --- Componentes de Background ---
 const LightDotsBackground = () => {
   const [dots, setDots] = useState<any[]>([]);
-
   React.useEffect(() => {
     const generateDots = () => {
       const newDots = Array.from({ length: 70 }).map(() => ({
-        id: Math.random(),
-        top: `${Math.random() * 100}%`,
-        left: `${Math.random() * 100}%`,
-        animationDuration: `${Math.random() * 8 + 8}s`,
-        animationDelay: `${Math.random() * 8}s`,
-        size: `${Math.random() * 2 + 1}px`,
-        opacity: `${Math.random() * 0.4 + 0.3}`,
+        id: Math.random(), top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`,
+        animationDuration: `${Math.random() * 8 + 8}s`, animationDelay: `${Math.random() * 8}s`,
+        size: `${Math.random() * 2 + 1}px`, opacity: `${Math.random() * 0.4 + 0.3}`,
       }));
       setDots(newDots);
     };
     generateDots();
   }, []);
-
   return (
     <>
-      <style>
-        {`
-          @keyframes move-dots {
-            from { transform: translateY(0px); }
-            to { transform: translateY(-1500px); }
-          }
-          .light-dot {
-            animation: move-dots linear infinite;
-            position: absolute;
-            background-color: #a1a1aa;
-            border-radius: 50%;
-            z-index: -20;
-          }
-        `}
-      </style>
+      <style>{`@keyframes move-dots { from { transform: translateY(0px); } to { transform: translateY(-1500px); } } .light-dot { animation: move-dots linear infinite; position: absolute; background-color: #a1a1aa; border-radius: 50%; z-index: -20; }`}</style>
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        {dots.map(dot => (
-          <div
-            key={dot.id}
-            className="light-dot"
-            style={{
-              top: dot.top,
-              left: dot.left,
-              animationDuration: dot.animationDuration,
-              animationDelay: dot.animationDelay,
-              width: dot.size,
-              height: dot.size,
-              opacity: dot.opacity,
-            }}
-          />
-        ))}
+        {dots.map(dot => (<div key={dot.id} className="light-dot" style={{ top: dot.top, left: dot.left, animationDuration: dot.animationDuration, animationDelay: dot.animationDelay, width: dot.size, height: dot.size, opacity: dot.opacity, }}/>))}
       </div>
     </>
   );
 };
-
 const AnimatedBackground = () => (
   <div className="absolute inset-0 -z-10 h-full w-full pointer-events-none">
     <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] bg-[size:14px_24px]"></div>
@@ -72,9 +36,7 @@ const AnimatedBackground = () => (
   </div>
 );
 
-
-// --- Componente Principal da Página de Login ---
-
+// --- Componente Principal ---
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -87,7 +49,6 @@ export function LoginPage() {
     setLoading(true);
     setError(null);
 
-    // 1. Tenta autenticar o usuário com e-mail e senha
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ 
         email, 
         password 
@@ -105,7 +66,6 @@ export function LoginPage() {
       return;
     }
 
-    // 2. Se a autenticação for bem-sucedida, busca a assinatura do usuário
     if (authData.user) {
         try {
             const { data: subscription, error: subError } = await supabase
@@ -114,19 +74,13 @@ export function LoginPage() {
                 .eq('user_id', authData.user.id)
                 .single();
 
-            // Ignora o erro "nenhuma linha encontrada", pois significa que o usuário não tem assinatura
             if (subError && subError.code !== 'PGRST116') { 
                 throw subError;
             }
 
-            // 3. Redireciona o usuário com base no status da assinatura
             if (subscription?.status === 'active') {
-                // TUDO CERTO! Acesso liberado.
                 navigate('/sistema'); 
             } else {
-                // Se a assinatura estiver pendente, cancelada, ou nem existir,
-                // mande o usuário para uma página onde ele possa (re)tentar pagar.
-                // Você precisará criar esta página: '/assinar'
                 navigate('/assinar');
             }
 
