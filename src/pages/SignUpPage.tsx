@@ -39,7 +39,8 @@ export function SignUpPage() {
             if (data?.checkoutUrl) {
                 window.location.href = data.checkoutUrl;
             } else {
-                setError("Não foi possível iniciar o processo de assinatura. Tente novamente.");
+                // Pega a mensagem de erro específica retornada pela nossa função
+                setError(data?.error || "Não foi possível iniciar o processo de assinatura. Tente novamente.");
             }
         } catch (e: any) {
             setError(e.message || "Ocorreu um erro desconhecido.");
@@ -48,7 +49,6 @@ export function SignUpPage() {
         }
     };
     
-    // Seu JSX para o formulário continua aqui, sem alterações...
     return (
         <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 font-poppins">
             <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
