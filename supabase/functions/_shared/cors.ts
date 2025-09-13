@@ -1,5 +1,10 @@
 // supabase/functions/_shared/cors.ts
-const allowedOrigins = Deno.env.get('ENV') === 'development' ? '*' : 'www.zailonsoft.com.br';
+
+// <-- MUDANÇA: Temporariamente permitimos todas as origens para facilitar os testes locais.
+// Antes de ir para produção final, você pode voltar para a lógica com variável de ambiente
+// ou colocar seu domínio de produção diretamente aqui.
+const allowedOrigins = '*'; 
+
 export const corsHeaders = {
   'Access-Control-Allow-Origin': allowedOrigins,
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
