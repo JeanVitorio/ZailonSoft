@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Feather from 'react-feather';
 
-// --- Componentes de Background ---
+// --- Componentes de Background (assumindo que existem no seu projeto) ---
 const LightDotsBackground = () => {
   const [dots, setDots] = useState<any[]>([]);
   React.useEffect(() => {
@@ -49,46 +49,24 @@ export function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password 
+    // A lógica agora é mais simples: a página de login só se preocupa em autenticar.
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
 
     if (authError) {
       if (authError.message.includes('Invalid login credentials')) {
         setError('E-mail ou senha inválidos.');
-      } else if (authError.message.includes('Email not confirmed')) {
-        setError('Por favor, confirme o seu e-mail antes de fazer o login.');
       } else {
-        setError('Ocorreu um erro. Verifique os seus dados e tente novamente.');
+        setError('Ocorreu um erro ao tentar fazer login.');
       }
       setLoading(false);
-      return;
-    }
-
-    if (authData.user) {
-        try {
-            const { data: subscription, error: subError } = await supabase
-                .from('subscriptions')
-                .select('status')
-                .eq('user_id', authData.user.id)
-                .single();
-
-            if (subError && subError.code !== 'PGRST116') { 
-                throw subError;
-            }
-
-            if (subscription?.status === 'active') {
-                navigate('/sistema'); 
-            } else {
-                navigate('/assinar');
-            }
-
-        } catch (e: any) {
-            setError("Não foi possível verificar sua assinatura. Tente novamente.");
-            console.error("Erro ao buscar assinatura:", e);
-            setLoading(false);
-        }
+    } else {
+      // Se o login for bem-sucedido, simplesmente mandamos o usuário para a raiz do sistema.
+      // O AuthContext e o ProtectedRoute, que já são robustos, farão o trabalho de verificar
+      // a assinatura e redirecionar para o lugar certo (/sistema ou /assinar).
+      navigate('/sistema');
     }
   };
 
