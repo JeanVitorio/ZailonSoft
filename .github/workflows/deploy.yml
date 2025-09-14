@@ -27,14 +27,15 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
-          # Segredos do Mercado Pago (continuam iguais)
-          supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} MERCADO_PAGO_ACCESS_TOKEN=${{ secrets.MERCADO_PAGO_ACCESS_TOKEN }}
-          supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} MERCADO_PAGO_PLAN_ID=${{ secrets.MERCADO_PAGO_PLAN_ID }}
+          # Segredos da Stripe
+          supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+          supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} STRIPE_PRICE_ID=${{ secrets.STRIPE_PRICE_ID }}
+          supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
           
-          # Segredos do Site (continua igual)
+          # Segredos do Site
           supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} SITE_URL=${{ secrets.SITE_URL }}
           
-          # <-- MUDANÇA CRÍTICA: Renomeamos a chave de serviço para não ser bloqueada
+          # Segredo Customizado do Supabase
           supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} CUSTOM_SUPABASE_SERVICE_ROLE_KEY=${{ secrets.CUSTOM_SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Deploy Supabase Edge Functions
@@ -42,5 +43,6 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           supabase functions deploy start-subscription --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
-          supabase functions deploy mercado-pago-webhook --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
           supabase functions deploy create-checkout-link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
+          # Removido o webhook do Mercado Pago e adicionado o da Stripe
+          supabase functions deploy stripe-webhook --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
