@@ -31,7 +31,6 @@ jobs:
           supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} STRIPE_PRICE_ID=${{ secrets.STRIPE_PRICE_ID }}
           supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
           supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} SITE_URL=${{ secrets.SITE_URL }}
-          # A linha abaixo usa o segredo CUSTOM_... do GitHub para criar o segredo na Supabase
           supabase secrets set --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} CUSTOM_SUPABASE_SERVICE_ROLE_KEY=${{ secrets.CUSTOM_SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Deploy Supabase Edge Functions
@@ -41,4 +40,3 @@ jobs:
           supabase functions deploy start-subscription --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
           supabase functions deploy create-checkout-link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
           supabase functions deploy stripe-webhook --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
-          supabase functions deploy hello-world --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --no-verify-jwt
