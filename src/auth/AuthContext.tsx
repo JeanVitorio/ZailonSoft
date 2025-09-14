@@ -1,15 +1,15 @@
 // src/auth/AuthContext.tsx
+
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
 import { User } from '@supabase/supabase-js';
 
-// Define o tipo da assinatura para usarmos no nosso contexto
+// Define o tipo da nossa assinatura
 interface Subscription {
   status: string | null;
-  // adicione outros campos da sua tabela de assinaturas se precisar
 }
 
-// Define o que nosso contexto vai fornecer
+// Define o que nosso contexto vai fornecer para a aplicação
 interface AuthContextType {
   user: User | null;
   subscription: Subscription | null;
@@ -20,28 +20,45 @@ interface AuthContextType {
 // Cria o contexto
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Cria o provedor do contexto
+// Cria o Provedor que vai gerenciar o estado
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // --- MUDANÇA PRINCIPAL ---
+  // Este useEffect agora lida com o carregamento inicial de forma mais robusta
   useEffect(() => {
-    // Busca os dados da sessão inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (!session?.user) {
-        setLoading(false);
-      }
-    });
+    const fetchInitialData = async () => {
+      // 1. Pega o usuário da sessão atual
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
 
-    // Escuta por mudanças no estado de autenticação (login/logout)
+      // 2. Se houver um usuário, busca a assinatura dele
+      if (currentUser) {
+        const { data: subData } = await supabase
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', currentUser.id)
+          .single();
+        setSubscription(subData as Subscription | null);
+      }
+      
+      // 3. Só então, diz que o carregamento terminou
+      setLoading(false);
+    };
+
+    fetchInitialData();
+
+    // Mantemos o listener para reagir a logins e logouts que aconteçam
+    // depois que a página já carregou.
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
+        setSubscription(null); // Limpa a assinatura antiga
         
-        // Se houver um usuário, busca o status da assinatura dele
         if (currentUser) {
           const { data: subData } = await supabase
             .from('subscriptions')
@@ -49,10 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .eq('user_id', currentUser.id)
             .single();
           setSubscription(subData as Subscription | null);
-        } else {
-          setSubscription(null);
         }
-        setLoading(false);
       }
     );
 
@@ -62,9 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
   
   const logout = async () => {
-      await supabase.auth.signOut();
-      setUser(null);
-      setSubscription(null);
+    await supabase.auth.signOut();
+    setUser(null);
+    setSubscription(null);
   };
 
   const value = {
@@ -77,11 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// Hook customizado para usar o contexto facilmente
+// Hook customizado para facilitar o uso do contexto
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
   return context;
 }
