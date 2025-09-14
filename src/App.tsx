@@ -11,8 +11,7 @@ import { ProtectedRoute } from './auth/ProtectedRoute';
 // Importe todas as suas páginas
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
-import { SubscribePage } from './pages/SubscribePage'; // Rota para quem precisa assinar
-import { RegularizePaymentPage } from './pages/RegularizePaymentPage'; // Rota para quem tem pagamento pendente
+import { SubscribePage } from './pages/SubscribePage';
 import HomePage from './pages/HomePage';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
@@ -27,18 +26,17 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            {/* Rotas Públicas */}
+            {/* --- Rotas Públicas --- */}
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             
-            {/* Rotas de Gerenciamento de Assinatura */}
+            {/* --- Rota Única para Gerenciar Assinatura --- */}
             <Route path="/assinar" element={<SubscribePage />} />
-            <Route path="/regularizar-pagamento" element={<RegularizePaymentPage />} />
 
-            {/* Rota Protegida Principal */}
+            {/* --- Rota Protegida Principal --- */}
             <Route
-              path="/sistema/*" // O "/*" permite rotas aninhadas dentro do seu painel principal (Index)
+              path="/sistema/*"
               element={
                 <ProtectedRoute>
                   <Index />
@@ -46,7 +44,7 @@ const App = () => (
               }
             />
 
-            {/* Rota para páginas não encontradas */}
+            {/* --- Rota para Página Não Encontrada --- */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
