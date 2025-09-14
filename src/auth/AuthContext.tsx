@@ -3,14 +3,11 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
 import { User } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
 
-// Define o tipo da nossa assinatura
 interface Subscription {
   status: string | null;
 }
 
-// Define o que nosso contexto vai fornecer para a aplicação
 interface AuthContextType {
   user: User | null;
   subscription: Subscription | null;
@@ -18,69 +15,87 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-// Cria o contexto
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Cria o Provedor que vai gerenciar o estado
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
+  // Este useEffect agora também escuta por mudanças em tempo real
   useEffect(() => {
-    // onAuthStateChange é nossa fonte única da verdade.
-    // Ele roda uma vez no carregamento inicial e depois sempre que o estado de auth muda.
+    // Função para buscar os dados iniciais
+    const fetchInitialData = async (currentUser: User | null) => {
+      if (currentUser) {
+        const { data: subData } = await supabase
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', currentUser.id)
+          .single();
+        setSubscription(subData as Subscription | null);
+      }
+      setLoading(false);
+    };
+
+    // Pega a sessão inicial para evitar tela de carregamento em reloads
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      fetchInitialData(currentUser);
+    });
+
+    // Escuta por mudanças no login/logout
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
-        setSubscription(null); // Limpa a assinatura antiga para evitar mostrar dados errados
-
-        if (currentUser) {
-          // Se um usuário for encontrado, busca a assinatura dele
-          const { data: subData } = await supabase
-            .from('subscriptions')
-            .select('status')
-            .eq('user_id', currentUser.id)
-            .single();
-          setSubscription(subData as Subscription | null);
+        setSubscription(null);
+        if (!currentUser) {
+            setLoading(false);
+        } else {
+            fetchInitialData(currentUser);
         }
-        
-        // Só finaliza o carregamento DEPOIS de ter verificado o usuário E a assinatura
-        setLoading(false);
       }
     );
 
-    // Função de limpeza
     return () => {
       authListener.subscription.unsubscribe();
+      // Remove todos os listeners de canais quando o componente desmontar
       supabase.removeAllChannels();
     };
   }, []);
 
-  // Este useEffect para o Realtime escuta por mudanças no banco de dados
+  // <-- MUDANÇA REALTIME: Este novo useEffect escuta o banco de dados
   useEffect(() => {
+    // Só cria o listener se tivermos um usuário logado
     if (user) {
       const channel = supabase
         .channel(`subscriptions:${user.id}`)
         .on(
           'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'subscriptions', filter: `user_id=eq.${user.id}`},
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'subscriptions',
+            filter: `user_id=eq.${user.id}`,
+          },
           (payload) => {
+            // O webhook atualizou o DB! Vamos atualizar nosso estado no frontend.
             console.log('Mudança na assinatura recebida em tempo real!', payload.new);
             setSubscription(payload.new as Subscription);
           }
         )
         .subscribe();
-      return () => { supabase.removeChannel(channel); };
+
+      // Função de limpeza para remover o listener quando o usuário mudar
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
-  }, [user]);
+  }, [user]); // Roda sempre que o objeto 'user' mudar
 
   const logout = async () => {
     await supabase.auth.signOut();
-    // A navegação agora é mais simples, o listener vai cuidar de limpar o estado
-    navigate('/login');
   };
 
   const value = { user, subscription, loading, logout };
@@ -88,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// Hook customizado para facilitar o uso do contexto
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
