@@ -10,20 +10,41 @@ interface Subscription {
 interface AuthContextType {
   user: User | null;
   subscription: Subscription | null;
-  loading: boolean;
+  loading: boolean; // Indica a verificação em segundo plano
   logout: () => Promise<void>;
 }
 
 // --- Contexto ---
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Chave para o cache
+const SUBSCRIPTION_CACHE_KEY = 'zailon_subscription_status';
+
 // --- Provider ---
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  
+  // Tenta carregar o estado inicial da assinatura do cache para uma resposta rápida da UI
+  const [subscription, setSubscription] = useState<Subscription | null>(() => {
+    try {
+      const cachedSub = sessionStorage.getItem(SUBSCRIPTION_CACHE_KEY);
+      return cachedSub ? JSON.parse(cachedSub) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // A verificação inicial da sessão é crucial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            setLoading(false);
+            sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
+        }
+    });
+
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         try {
@@ -40,17 +61,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (subError) {
               console.error('Erro ao buscar assinatura:', subError.message);
               setSubscription(null);
+              sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY); // Limpa cache em caso de erro
             } else {
               setSubscription(subData as Subscription | null);
+              // Salva o resultado mais recente no cache
+              sessionStorage.setItem(SUBSCRIPTION_CACHE_KEY, JSON.stringify(subData));
             }
           } else {
-            // Se não houver usuário (logout), limpa o estado da assinatura.
             setSubscription(null);
+            // Limpa o cache no logout
+            sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
           }
         } catch (error) {
             console.error("Ocorreu um erro no listener de autenticação:", error);
         } finally {
-            // ESSENCIAL: Garante que o loading termine, mesmo se ocorrer um erro.
+            // Garante que o loading termine, mesmo se ocorrer um erro.
             setLoading(false);
         }
       }
@@ -61,34 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Listener para atualizações em tempo real na tabela de assinaturas
-  useEffect(() => {
-    if (user) {
-      const channel = supabase
-        .channel(`subscriptions:${user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'subscriptions',
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            console.log('Realtime: Mudança na assinatura recebida!', payload.new);
-            setSubscription(payload.new as Subscription);
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user]);
-
   const logout = async () => {
     await supabase.auth.signOut();
+    // O listener onAuthStateChange cuidará de limpar os estados e o cache.
   };
 
   const value = { user, subscription, loading, logout };
