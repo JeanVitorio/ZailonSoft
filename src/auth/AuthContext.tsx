@@ -1,34 +1,93 @@
-// src/auth/AuthGuard.tsx
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { supabase } from '../supabaseClient';
+import { User } from '@supabase/supabase-js';
 
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+// --- Interfaces ---
+interface Subscription {
+  status: 'active' | 'pending_payment' | 'incomplete' | 'canceled' | null;
+}
 
-// Você pode reutilizar seu componente de loader ou criar um aqui
-const FullPageLoader = () => (
-  <div className="flex h-screen items-center justify-center bg-zinc-50">
-    <div className="text-center">
-      <p className="text-lg font-semibold animate-pulse text-zinc-700">Carregando...</p>
-      <p className="text-sm text-zinc-500">Aguarde um momento.</p>
-    </div>
-  </div>
-);
+interface AuthContextType {
+  user: User | null;
+  subscription: Subscription | null;
+  loading: boolean;
+  logout: () => Promise<void>;
+}
 
+// --- Contexto ---
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+// --- Provider ---
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // 1. Enquanto o AuthContext verifica o usuário, mostramos o loader.
-  if (loading) {
-    return <FullPageLoader />;
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        
+        if (currentUser) {
+            const { data: subData } = await supabase
+                .from('subscriptions')
+                .select('status')
+                .eq('user_id', currentUser.id)
+                .single();
+            setSubscription(subData as Subscription | null);
+        } else {
+            setSubscription(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      const channel = supabase
+        .channel(`subscriptions:${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'subscriptions',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            console.log('Realtime: Mudança na assinatura recebida!', payload.new);
+            setSubscription(payload.new as Subscription);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user]);
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const value = { user, subscription, loading, logout };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+// --- Hook de Acesso ---
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
-
-  // 2. Se, após o carregamento, não houver usuário, redireciona para o login.
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  // 3. Se o usuário existe, permite o acesso à página.
-  return <>{children}</>;
+  return context;
 }
