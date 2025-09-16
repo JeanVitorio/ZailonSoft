@@ -10,7 +10,7 @@ interface Subscription {
 interface AuthContextType {
   user: User | null;
   subscription: Subscription | null;
-  loading: boolean; // Indica a verificação em segundo plano
+  loading: boolean;
   logout: () => Promise<void>;
 }
 
@@ -23,8 +23,6 @@ const SUBSCRIPTION_CACHE_KEY = 'zailon_subscription_status';
 // --- Provider ---
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  
-  // Tenta carregar o estado inicial da assinatura do cache para uma resposta rápida da UI
   const [subscription, setSubscription] = useState<Subscription | null>(() => {
     try {
       const cachedSub = sessionStorage.getItem(SUBSCRIPTION_CACHE_KEY);
@@ -33,53 +31,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
   });
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // A verificação inicial da sessão é crucial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!session) {
-            setLoading(false);
-            sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
-        }
-    });
+    // Função para carregar informações do usuário e assinatura
+    const loadUserData = async (currentUser: User | null) => {
+      try {
+        if (currentUser) {
+          const { data: subData, error: subError } = await supabase
+            .from('subscriptions')
+            .select('status')
+            .eq('user_id', currentUser.id)
+            .single();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        try {
-          const currentUser = session?.user ?? null;
-          setUser(currentUser);
-          
-          if (currentUser) {
-            const { data: subData, error: subError } = await supabase
-              .from('subscriptions')
-              .select('status')
-              .eq('user_id', currentUser.id)
-              .single();
-
-            if (subError) {
-              console.error('Erro ao buscar assinatura:', subError.message);
-              setSubscription(null);
-              sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY); // Limpa cache em caso de erro
-            } else {
-              setSubscription(subData as Subscription | null);
-              // Salva o resultado mais recente no cache
-              sessionStorage.setItem(SUBSCRIPTION_CACHE_KEY, JSON.stringify(subData));
-            }
-          } else {
+          if (subError) {
+            console.error('Erro ao buscar assinatura:', subError.message);
             setSubscription(null);
-            // Limpa o cache no logout
             sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
+          } else {
+            setSubscription(subData as Subscription | null);
+            sessionStorage.setItem(SUBSCRIPTION_CACHE_KEY, JSON.stringify(subData));
           }
-        } catch (error) {
-            console.error("Ocorreu um erro no listener de autenticação:", error);
-        } finally {
-            // Garante que o loading termine, mesmo se ocorrer um erro.
-            setLoading(false);
+        } else {
+          setSubscription(null);
+          sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
         }
+      } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error);
+        setSubscription(null);
+        sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
+      } finally {
+        setLoading(false);
       }
-    );
+    };
+
+    // Verificação inicial da sessão
+    const checkInitialSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+        await loadUserData(session?.user ?? null);
+      } catch (error) {
+        console.error('Erro na verificação inicial da sessão:', error);
+        setUser(null);
+        setSubscription(null);
+        sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
+        setLoading(false);
+      }
+    };
+
+    checkInitialSession();
+
+    // Listener para mudanças no estado de autenticação
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      await loadUserData(currentUser);
+    });
 
     return () => {
       authListener.subscription.unsubscribe();
@@ -87,8 +95,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    // O listener onAuthStateChange cuidará de limpar os estados e o cache.
+    try {
+      await supabase.auth.signOut();
+      // O listener onAuthStateChange cuidará de limpar os estados
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
   };
 
   const value = { user, subscription, loading, logout };
