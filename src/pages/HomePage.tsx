@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import * as Feather from 'react-feather';
@@ -7,7 +7,7 @@ import { useAuth } from '@/auth/AuthContext';
 
 // Componente para pontos de luz animados
 const LightDotsBackground = () => {
-  const [dots, setDots] = useState([]);
+  const [dots, setDots] = useState<any[]>([]);
 
   useEffect(() => {
     const generateDots = () => {
@@ -72,7 +72,7 @@ const AnimatedBackground = () => (
 );
 
 // Componente para o item do FAQ (Accordion)
-const FaqItem = ({ question, answer, isOpen, onClick }) => {
+const FaqItem = ({ question, answer, isOpen, onClick }: { question: string, answer: string, isOpen: boolean, onClick: () => void }) => {
   return (
     <motion.div
       layout
@@ -106,7 +106,7 @@ const FaqItem = ({ question, answer, isOpen, onClick }) => {
 };
 
 const HomePage = () => {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -137,12 +137,12 @@ const HomePage = () => {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !(window as any).fbq) {
-      (function(f, b, e, v, n, t, s) {
-        if ((f as any).fbq) return;
-        n = (f as any).fbq = function() {
+      (function(f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
+        if (f.fbq) return;
+        n = f.fbq = function() {
           n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
         };
-        if (!(f as any)._fbq) (f as any)._fbq = n;
+        if (!f._fbq) f._fbq = n;
         n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = [];
         t = b.createElement(e); t.async = !0; t.src = v;
         s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
@@ -176,7 +176,10 @@ const HomePage = () => {
               <a href="#planos" onClick={closeMenu} className="text-zinc-700 hover:text-amber-500 transition-colors">Preços</a>
               <a href="#faq" onClick={closeMenu} className="text-zinc-700 hover:text-amber-500 transition-colors">Dúvidas</a>
               <div className="h-6 w-px bg-zinc-300 hidden md:block"></div>
-              {user ? (
+              
+              {loading ? (
+                <Feather.Loader size={18} className="animate-spin text-zinc-500" />
+              ) : user ? (
                 <motion.button
                   onClick={handleLogout}
                   className="text-amber-500 hover:text-amber-600 transition-all flex items-center gap-2"
@@ -204,13 +207,8 @@ const HomePage = () => {
 
         <main>
           <section id="inicio" className="relative w-full min-h-screen flex items-center pt-20">
-            {/* --- INÍCIO DA ALTERAÇÃO: FUNDO RESPONSIVO --- */}
-            {/* Fundo para Telas Grandes (Desktop) */}
             <div className="absolute inset-0 hidden lg:block bg-cover bg-center z-0" style={{ backgroundImage: `url(/BannerCamaro.png)` }}></div>
-            {/* Fundo para Telas Pequenas (Mobile) */}
             <div className="absolute inset-0 block lg:hidden bg-cover bg-center z-0" style={{ backgroundImage: `url(/CamaroBranco.png)` }}></div>
-            {/* --- FIM DA ALTERAÇÃO --- */}
-
             <div className="absolute inset-0 bg-black opacity-50 z-10"></div>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-20">
               <div className="grid lg:grid-cols-5 gap-12 items-center">
@@ -231,10 +229,16 @@ const HomePage = () => {
                   <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <Link
-                        to={user ? "/sistema" : "/signup"}
-                        className="w-full sm:w-auto inline-block bg-amber-500 text-white px-8 py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300 transform shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)]"
+                        to={!loading && user ? "/sistema" : "/signup"}
+                        className={`w-full sm:w-auto inline-block bg-amber-500 text-white px-8 py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300 transform shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={(e) => { if (loading) e.preventDefault(); }}
                       >
-                        {user ? "Acessar Sistema" : "Quero Vender Mais Agora"} <Feather.ArrowRight size={22} />
+                        {loading 
+                          ? <><Feather.Loader size={22} className="animate-spin" /> Verificando...</> 
+                          : user 
+                            ? <>Acessar Sistema <Feather.ArrowRight size={22} /></>
+                            : <>Quero Vender Mais Agora <Feather.ArrowRight size={22} /></>
+                        }
                       </Link>
                     </motion.div>
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -255,133 +259,133 @@ const HomePage = () => {
           <div className='relative'>
             <AnimatedBackground />
             <section id="solucao" className="py-24 px-4 sm:px-6 lg:px-8 bg-zinc-50/80">
-                <div className="max-w-7xl mx-auto text-center">
-                <motion.p variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-amber-500 font-medium mb-2">A FERRAMENTA DEFINITIVA</motion.p>
-                <motion.h2 variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-3xl md:text-4xl font-bold mb-12 text-zinc-900">A Máquina de Vendas que Trabalha por Você</motion.h2>
+              <div className="max-w-7xl mx-auto text-center">
+              <motion.p variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-amber-500 font-medium mb-2">A FERRAMENTA DEFINITIVA</motion.p>
+              <motion.h2 variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-3xl md:text-4xl font-bold mb-12 text-zinc-900">A Máquina de Vendas que Trabalha por Você</motion.h2>
                 <div className="grid md:grid-cols-2 gap-8 items-center">
-                    <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-                    <img 
-                        src="/Catalogo.png" 
-                        alt="Tela do catálogo de veículos da ZailonSoft mostrando diversos carros" 
-                        className="rounded-xl shadow-xl shadow-zinc-200 border border-zinc-200 w-full"
-                    />
-                    </motion.div>
-                    <motion.div className="text-left space-y-6" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-                    <motion.div variants={fadeInUp} className="flex items-start gap-4">
-                        <Feather.BookOpen className="text-amber-500 mt-1 flex-shrink-0" size={24}/>
-                        <div>
-                        <h3 className="text-xl font-semibold text-zinc-900">Catálogo Inteligente Conectado</h3>
-                        <p className="text-zinc-600">Cadastre seu estoque uma única vez. Nosso bot acessa seu catálogo em tempo real para apresentar as melhores opções aos clientes, com fotos e detalhes, poupando horas de trabalho manual da sua equipe.</p>
-                        </div>
-                    </motion.div>
-                    <motion.div variants={fadeInUp} className="flex items-start gap-4">
-                        <Feather.Users className="text-amber-500 mt-1 flex-shrink-0" size={24}/>
-                        <div>
-                        <h3 className="text-xl font-semibold text-zinc-900">Leads 100% Qualificados</h3>
-                        <p className="text-zinc-600">O bot simula um vendedor, extraindo informações cruciais: se o cliente tem carro para troca, se precisa de financiamento e valor de entrada. Chega de perder tempo com curiosos.</p>
-                        </div>
-                    </motion.div>
-                    <motion.div variants={fadeInUp} className="flex items-start gap-4">
-                        <Feather.Layout className="text-amber-500 mt-1 flex-shrink-0" size={24}/>
-                        <div>
-                        <h3 className="text-xl font-semibold text-zinc-900">CRM e Dashboard: Seu Centro de Comando</h3>
-                        <p className="text-zinc-600">Visualize todas as negociações em tempo real no funil Kanban. Com o Dashboard, você tem relatórios claros sobre o desempenho da sua equipe e a saúde do seu negócio. Tenha o controle total, na palma da sua mão.</p>
-                        </div>
-                    </motion.div>
-                    </motion.div>
+                  <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+                  <img 
+                    src="/Catalogo.png" 
+                    alt="Tela do catálogo de veículos da ZailonSoft mostrando diversos carros" 
+                    className="rounded-xl shadow-xl shadow-zinc-200 border border-zinc-200 w-full"
+                  />
+                  </motion.div>
+                  <motion.div className="text-left space-y-6" variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+                  <motion.div variants={fadeInUp} className="flex items-start gap-4">
+                    <Feather.BookOpen className="text-amber-500 mt-1 flex-shrink-0" size={24}/>
+                    <div>
+                    <h3 className="text-xl font-semibold text-zinc-900">Catálogo Inteligente Conectado</h3>
+                    <p className="text-zinc-600">Cadastre seu estoque uma única vez. Nosso bot acessa seu catálogo em tempo real para apresentar as melhores opções aos clientes, com fotos e detalhes, poupando horas de trabalho manual da sua equipe.</p>
+                    </div>
+                  </motion.div>
+                  <motion.div variants={fadeInUp} className="flex items-start gap-4">
+                    <Feather.Users className="text-amber-500 mt-1 flex-shrink-0" size={24}/>
+                    <div>
+                    <h3 className="text-xl font-semibold text-zinc-900">Leads 100% Qualificados</h3>
+                    <p className="text-zinc-600">O bot simula um vendedor, extraindo informações cruciais: se o cliente tem carro para troca, se precisa de financiamento e valor de entrada. Chega de perder tempo com curiosos.</p>
+                    </div>
+                  </motion.div>
+                  <motion.div variants={fadeInUp} className="flex items-start gap-4">
+                    <Feather.Layout className="text-amber-500 mt-1 flex-shrink-0" size={24}/>
+                    <div>
+                    <h3 className="text-xl font-semibold text-zinc-900">CRM e Dashboard: Seu Centro de Comando</h3>
+                    <p className="text-zinc-600">Visualize todas as negociações em tempo real no funil Kanban. Com o Dashboard, você tem relatórios claros sobre o desempenho da sua equipe e a saúde do seu negócio. Tenha o controle total, na palma da sua mão.</p>
+                    </div>
+                  </motion.div>
+                  </motion.div>
                 </div>
-                </div>
+              </div>
             </section>
             
             <section id="crm" className="py-24 px-4 sm:px-6 lg:px-8 bg-white/80">
-                <div className="max-w-7xl mx-auto">
-                <div className="grid md:grid-cols-2 gap-12 items-center">
-                    <motion.div 
-                        className="text-left space-y-4"
-                        variants={staggerContainer} 
-                        initial="hidden" 
-                        whileInView="visible" 
-                        viewport={{ once: true }}
-                    >
-                        <motion.p variants={fadeInUp} className="text-amber-500 font-medium">DE LEAD A CLIENTE</motion.p>
-                        <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-zinc-900">Transforme Conversas em Contratos Assinados</motion.h2>
-                        <motion.p variants={fadeInUp} className="text-zinc-600 text-lg">
-                            Diga adeus a planilhas confusas e anotações perdidas. Com o lead perfeitamente qualificado e todos os dados organizados no CRM, seu vendedor foca no que realmente importa: o relacionamento e o fechamento. Aumente a taxa de conversão da sua equipe e veja seu faturamento crescer.
-                        </motion.p>
-                    </motion.div>
-                    <motion.div 
-                        variants={fadeInUp} 
-                        initial="hidden" 
-                        whileInView="visible" 
-                        viewport={{ once: true }}
-                    >
-                        <img 
-                            src="/CRM.png" 
-                            alt="Tela do CRM da ZailonSoft com um funil de vendas Kanban" 
-                            className="rounded-xl shadow-2xl shadow-zinc-300 border border-zinc-200 w-full"
-                        />
-                    </motion.div>
-                </div>
-                </div>
+              <div className="max-w-7xl mx-auto">
+              <div className="grid md:grid-cols-2 gap-12 items-center">
+                <motion.div 
+                  className="text-left space-y-4"
+                  variants={staggerContainer} 
+                  initial="hidden" 
+                  whileInView="visible" 
+                  viewport={{ once: true }}
+                >
+                  <motion.p variants={fadeInUp} className="text-amber-500 font-medium">DE LEAD A CLIENTE</motion.p>
+                  <motion.h2 variants={fadeInUp} className="text-3xl md:text-4xl font-bold text-zinc-900">Transforme Conversas em Contratos Assinados</motion.h2>
+                  <motion.p variants={fadeInUp} className="text-zinc-600 text-lg">
+                    Diga adeus a planilhas confusas e anotações perdidas. Com o lead perfeitamente qualificado e todos os dados organizados no CRM, seu vendedor foca no que realmente importa: o relacionamento e o fechamento. Aumente a taxa de conversão da sua equipe e veja seu faturamento crescer.
+                  </motion.p>
+                </motion.div>
+                <motion.div 
+                  variants={fadeInUp} 
+                  initial="hidden" 
+                  whileInView="visible" 
+                  viewport={{ once: true }}
+                >
+                  <img 
+                    src="/CRM.png"
+                    alt="Tela do CRM da ZailonSoft com um funil de vendas Kanban" 
+                    className="rounded-xl shadow-2xl shadow-zinc-300 border border-zinc-200 w-full"
+                  />
+                </motion.div>
+              </div>
+              </div>
             </section>
 
             <section id="planos" className="py-24 px-4 sm:px-6 lg:px-8 bg-zinc-100/80">
-                <div className="max-w-4xl mx-auto text-center">
-                <motion.p variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-amber-500 font-medium mb-2">PREÇO SIMPLES. LUCRO IMEDIATO.</motion.p>
-                <motion.h2 variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-3xl md:text-4xl font-bold mb-12 text-zinc-900">Um plano simples. Resultados completos.</motion.h2>
-                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="bg-white p-8 rounded-xl border border-amber-300 shadow-xl shadow-amber-100">
-                    <h3 className="text-2xl font-semibold text-zinc-900 mb-2">ZailonSoft Pro</h3>
-                    <p className="text-zinc-600 mb-6">Tudo que você precisa para automatizar e escalar suas vendas.</p>
-                    <p className="text-5xl font-bold text-zinc-900 mb-4">R$ 299<span className="text-xl text-zinc-500">/mês</span></p>
-                    <ul className="text-left space-y-3 my-8 max-w-sm mx-auto text-zinc-800">
-                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Atendimento 24/7 que não perde clientes</li>
-                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Leads 100% Qualificados e prontos</li>
-                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Catálogo Inteligente conectado ao Bot</li>
-                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> CRM Visual para controle total das vendas</li>
-                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Dashboard e Relatórios de Desempenho</li>
-                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Suporte Prioritário</li>
-                    </ul>
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="mt-8">
-                    <Link
-                        to="/signup"
-                        className="inline-block bg-amber-500 text-white px-10 py-4 rounded-lg font-bold text-lg transition-all duration-300 transform shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)]"
-                    >
-                        Assinar e Aumentar Meu Lucro
-                    </Link>
-                    </motion.div>
+              <div className="max-w-4xl mx-auto text-center">
+              <motion.p variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-amber-500 font-medium mb-2">PREÇO SIMPLES. LUCRO IMEDIATO.</motion.p>
+              <motion.h2 variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-3xl md:text-4xl font-bold mb-12 text-zinc-900">Um plano simples. Resultados completos.</motion.h2>
+              <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="bg-white p-8 rounded-xl border border-amber-300 shadow-xl shadow-amber-100">
+                <h3 className="text-2xl font-semibold text-zinc-900 mb-2">ZailonSoft Pro</h3>
+                <p className="text-zinc-600 mb-6">Tudo que você precisa para automatizar e escalar suas vendas.</p>
+                <p className="text-5xl font-bold text-zinc-900 mb-4">R$ 299<span className="text-xl text-zinc-500">/mês</span></p>
+                <ul className="text-left space-y-3 my-8 max-w-sm mx-auto text-zinc-800">
+                <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Atendimento 24/7 que não perde clientes</li>
+                <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Leads 100% Qualificados e prontos</li>
+                <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Catálogo Inteligente conectado ao Bot</li>
+                <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> CRM Visual para controle total das vendas</li>
+                <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Dashboard e Relatórios de Desempenho</li>
+                <li className="flex items-center gap-3"><Feather.CheckCircle size={20} className="text-amber-500" /> Suporte Prioritário</li>
+                </ul>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="mt-8">
+                <Link
+                  to="/signup"
+                  className="inline-block bg-amber-500 text-white px-10 py-4 rounded-lg font-bold text-lg transition-all duration-300 transform shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)]"
+                >
+                  Assinar e Aumentar Meu Lucro
+                </Link>
                 </motion.div>
-                </div>
+              </motion.div>
+              </div>
             </section>
 
             <section id="faq" className="py-24 px-4 sm:px-6 lg:px-8 bg-white/80">
-                <div className="max-w-3xl mx-auto">
-                <div className="text-center mb-12">
-                    <motion.h2 variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-3xl md:text-4xl font-bold text-zinc-900">Perguntas Frequentes</motion.h2>
-                </div>
-                <motion.div 
-                    className="space-y-4"
-                    variants={staggerContainer}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.2 }}
-                >
-                    {[
-                    { question: 'Como o bot sabe quais carros oferecer?', answer: 'Ele se conecta diretamente ao seu Catálogo de Veículos cadastrado no sistema. Quando um cliente descreve o que procura, o bot busca as melhores correspondências no seu estoque e as apresenta automaticamente. Você atualiza o catálogo no sistema, e o bot já sabe o que vender.' },
-                    { question: 'Preciso ter conhecimento técnico?', answer: 'Não! A instalação é simples e nossa equipe de suporte te auxilia em todo o processo. A plataforma de gestão é super intuitiva, pensada para donos de loja e vendedores, não para programadores.' },
-                    { question: 'O que acontece depois que o bot qualifica o lead?', answer: 'O lead qualificado, com todos os dados, aparece instantaneamente no seu CRM como um novo card no funil de vendas. Seu vendedor recebe a notificação e já pode preparar a proposta final. Menos tempo digitando, mais tempo vendendo.' },
-                    { question: 'Existe algum contrato de fidelidade?', answer: 'Não. Nosso plano é mensal e você pode cancelar quando quiser. Nossa confiança no produto é total, acreditamos que os resultados falarão por si e você se tornará um parceiro por escolha, não por obrigação.' },
-                    ].map((item, index) => (
-                    <motion.div key={index} variants={fadeInUp}>
-                        <FaqItem
-                        question={item.question}
-                        answer={item.answer}
-                        isOpen={openFaq === index}
-                        onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                        />
-                    </motion.div>
-                    ))}
-                </motion.div>
-                </div>
+              <div className="max-w-3xl mx-auto">
+              <div className="text-center mb-12">
+                <motion.h2 variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-3xl md:text-4xl font-bold text-zinc-900">Perguntas Frequentes</motion.h2>
+              </div>
+              <motion.div 
+                className="space-y-4"
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+              >
+                {[
+                  { question: 'Como o bot sabe quais carros oferecer?', answer: 'Ele se conecta diretamente ao seu Catálogo de Veículos cadastrado no sistema. Quando um cliente descreve o que procura, o bot busca as melhores correspondências no seu estoque e as apresenta automaticamente. Você atualiza o catálogo no sistema, e o bot já sabe o que vender.' },
+                  { question: 'Preciso ter conhecimento técnico?', answer: 'Não! A instalação é simples e nossa equipe de suporte te auxilia em todo o processo. A plataforma de gestão é super intuitiva, pensada para donos de loja e vendedores, não para programadores.' },
+                  { question: 'O que acontece depois que o bot qualifica o lead?', answer: 'O lead qualificado, com todos os dados, aparece instantaneamente no seu CRM como um novo card no funil de vendas. Seu vendedor recebe a notificação e já pode preparar a proposta final. Menos tempo digitando, mais tempo vendendo.' },
+                  { question: 'Existe algum contrato de fidelidade?', answer: 'Não. Nosso plano é mensal e você pode cancelar quando quiser. Nossa confiança no produto é total, acreditamos que os resultados falarão por si e você se tornará um parceiro por escolha, não por obrigação.' },
+                ].map((item, index) => (
+                  <motion.div key={index} variants={fadeInUp}>
+                    <FaqItem
+                    question={item.question}
+                    answer={item.answer}
+                    isOpen={openFaq === index}
+                    onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
+              </div>
             </section>
           </div>
         </main>
