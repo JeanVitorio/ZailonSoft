@@ -34,30 +34,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Função para carregar informações do usuário e assinatura
-    const loadUserData = async (currentUser: User | null) => {
+    // Função para carregar dados da assinatura
+    const loadSubscription = async (userId: string | null) => {
+      if (!userId) {
+        setSubscription(null);
+        sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
+        return;
+      }
       try {
-        if (currentUser) {
-          const { data: subData, error: subError } = await supabase
-            .from('subscriptions')
-            .select('status')
-            .eq('user_id', currentUser.id)
-            .single();
+        const { data: subData, error: subError } = await supabase
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', userId)
+          .single();
 
-          if (subError) {
-            console.error('Erro ao buscar assinatura:', subError.message);
-            setSubscription(null);
-            sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
-          } else {
-            setSubscription(subData as Subscription | null);
-            sessionStorage.setItem(SUBSCRIPTION_CACHE_KEY, JSON.stringify(subData));
-          }
-        } else {
+        if (subError) {
+          console.error('Erro ao buscar assinatura:', subError.message);
           setSubscription(null);
           sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
+        } else {
+          setSubscription(subData as Subscription | null);
+          sessionStorage.setItem(SUBSCRIPTION_CACHE_KEY, JSON.stringify(subData));
         }
       } catch (error) {
-        console.error('Erro ao carregar dados do usuário:', error);
+        console.error('Erro ao carregar assinatura:', error);
+        setSubscription(null);
+        sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
+      }
+    };
+
+    // Função para lidar com a sessão
+    const handleSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        await loadSubscription(currentUser?.id ?? null);
+      } catch (error) {
+        console.error('Erro ao verificar sessão:', error);
+        setUser(null);
         setSubscription(null);
         sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
       } finally {
@@ -65,39 +80,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // Verificação inicial da sessão
-    const checkInitialSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setUser(session?.user ?? null);
-        await loadUserData(session?.user ?? null);
-      } catch (error) {
-        console.error('Erro na verificação inicial da sessão:', error);
-        setUser(null);
-        setSubscription(null);
-        sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
-        setLoading(false);
-      }
-    };
+    // Executa a verificação inicial
+    handleSession();
 
-    checkInitialSession();
-
-    // Listener para mudanças no estado de autenticação
+    // Configura o listener de autenticação
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-      await loadUserData(currentUser);
+      await loadSubscription(currentUser?.id ?? null);
+      setLoading(false); // Garante que o loading seja desativado após cada mudança
     });
+
+    // Timeout de segurança para evitar loading infinito
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn('Timeout atingido: forçando o fim do estado de loading');
+        setLoading(false);
+      }
+    }, 10000); // 10 segundos
 
     return () => {
       authListener.subscription.unsubscribe();
+      clearTimeout(timeout);
     };
   }, []);
 
   const logout = async () => {
     try {
       await supabase.auth.signOut();
-      // O listener onAuthStateChange cuidará de limpar os estados
+      setUser(null);
+      setSubscription(null);
+      sessionStorage.removeItem(SUBSCRIPTION_CACHE_KEY);
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     }
