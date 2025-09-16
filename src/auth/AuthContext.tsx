@@ -25,22 +25,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-        
-        if (currentUser) {
-            const { data: subData } = await supabase
-                .from('subscriptions')
-                .select('status')
-                .eq('user_id', currentUser.id)
-                .single();
-            setSubscription(subData as Subscription | null);
-        } else {
+      async (_event, session) => {
+        try {
+          const currentUser = session?.user ?? null;
+          setUser(currentUser);
+          
+          if (currentUser) {
+            const { data: subData, error: subError } = await supabase
+              .from('subscriptions')
+              .select('status')
+              .eq('user_id', currentUser.id)
+              .single();
+
+            if (subError) {
+              console.error('Erro ao buscar assinatura:', subError.message);
+              setSubscription(null);
+            } else {
+              setSubscription(subData as Subscription | null);
+            }
+          } else {
+            // Se não houver usuário (logout), limpa o estado da assinatura.
             setSubscription(null);
+          }
+        } catch (error) {
+            console.error("Ocorreu um erro no listener de autenticação:", error);
+        } finally {
+            // ESSENCIAL: Garante que o loading termine, mesmo se ocorrer um erro.
+            setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
 
@@ -49,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Listener para atualizações em tempo real na tabela de assinaturas
   useEffect(() => {
     if (user) {
       const channel = supabase
