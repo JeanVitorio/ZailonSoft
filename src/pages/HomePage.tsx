@@ -106,6 +106,7 @@ const FaqItem = ({ question, answer, isOpen, onClick }: { question: string, answ
 };
 
 const HomePage = () => {
+  // ALTERAÇÃO 1: Adicionamos 'loading' aqui para saber o status da verificação
   const { user, loading, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -138,11 +139,11 @@ const HomePage = () => {
   useEffect(() => {
     if (typeof window !== 'undefined' && !(window as any).fbq) {
       (function(f: any, b: any, e: any, v: any, n?: any, t?: any, s?: any) {
-        if (f.fbq) return;
-        n = f.fbq = function() {
+        if ((f as any).fbq) return;
+        n = (f as any).fbq = function() {
           n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
         };
-        if (!f._fbq) f._fbq = n;
+        if (!(f as any)._fbq) (f as any)._fbq = n;
         n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = [];
         t = b.createElement(e); t.async = !0; t.src = v;
         s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s);
@@ -177,6 +178,7 @@ const HomePage = () => {
               <a href="#faq" onClick={closeMenu} className="text-zinc-700 hover:text-amber-500 transition-colors">Dúvidas</a>
               <div className="h-6 w-px bg-zinc-300 hidden md:block"></div>
               
+              {/* ALTERAÇÃO 2: Lógica dos botões do header para aguardar a verificação */}
               {loading ? (
                 <Feather.Loader size={18} className="animate-spin text-zinc-500" />
               ) : user ? (
@@ -228,6 +230,8 @@ const HomePage = () => {
                   
                   <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+
+                      {/* ALTERAÇÃO 3: Lógica do botão principal para aguardar a verificação */}
                       <Link
                         to={!loading && user ? "/sistema" : "/signup"}
                         className={`w-full sm:w-auto inline-block bg-amber-500 text-white px-8 py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300 transform shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
