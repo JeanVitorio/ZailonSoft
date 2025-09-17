@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import * as Feather from 'react-feather';
-import { useAuth } from '@/auth/AuthContext';
 
 // Componente para pontos de luz animados
 const LightDotsBackground = () => {
@@ -106,20 +105,10 @@ const FaqItem = ({ question, answer, isOpen, onClick }: { question: string, answ
 };
 
 const HomePage = () => {
-  // ALTERAÇÃO 1: Adicionamos 'loading' aqui para saber o status da verificação
-  const { user, loading, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const closeMenu = () => setIsMenuOpen(false);
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-    }
-  };
 
   const staggerContainer = {
     hidden: { opacity: 0 },
@@ -178,28 +167,12 @@ const HomePage = () => {
               <a href="#faq" onClick={closeMenu} className="text-zinc-700 hover:text-amber-500 transition-colors">Dúvidas</a>
               <div className="h-6 w-px bg-zinc-300 hidden md:block"></div>
               
-              {/* ALTERAÇÃO 2: Lógica dos botões do header para aguardar a verificação */}
-              {loading ? (
-                <Feather.Loader size={18} className="animate-spin text-zinc-500" />
-              ) : user ? (
-                <motion.button
-                  onClick={handleLogout}
-                  className="text-amber-500 hover:text-amber-600 transition-all flex items-center gap-2"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Feather.LogOut size={18} /> Sair
-                </motion.button>
-              ) : (
-                <>
-                  <Link to="/login" onClick={closeMenu} className="text-amber-500 hover:text-amber-600 transition-all flex items-center gap-2">
-                    <Feather.LogIn size={18} /> Login
-                  </Link>
-                  <Link to="/signup" onClick={closeMenu} className="bg-amber-500 text-white px-5 py-2 rounded-lg font-semibold hover:bg-amber-600 transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(251,191,36,0.2)] hover:shadow-[0_0_25px_rgba(251,191,36,0.4)]">
-                    Criar Conta <Feather.UserPlus size={18} />
-                  </Link>
-                </>
-              )}
+              <Link to="/login" onClick={closeMenu} className="text-amber-500 hover:text-amber-600 transition-all flex items-center gap-2">
+                <Feather.LogIn size={18} /> Login
+              </Link>
+              <Link to="/signup" onClick={closeMenu} className="bg-amber-500 text-white px-5 py-2 rounded-lg font-semibold hover:bg-amber-600 transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(251,191,36,0.2)] hover:shadow-[0_0_25px_rgba(251,191,36,0.4)]">
+                Criar Conta <Feather.UserPlus size={18} />
+              </Link>
             </nav>
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-amber-500 focus:outline-none" aria-label="Toggle Menu">
               {isMenuOpen ? <Feather.X size={30} /> : <Feather.Menu size={30} />}
@@ -230,19 +203,11 @@ const HomePage = () => {
                   
                   <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-
-                      {/* ALTERAÇÃO 3: Lógica do botão principal para aguardar a verificação */}
                       <Link
-                        to={!loading && user ? "/sistema" : "/signup"}
-                        className={`w-full sm:w-auto inline-block bg-amber-500 text-white px-8 py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300 transform shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)] ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        onClick={(e) => { if (loading) e.preventDefault(); }}
+                        to="/login"
+                        className="w-full sm:w-auto inline-block bg-amber-500 text-white px-8 py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300 transform shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)]"
                       >
-                        {loading 
-                          ? <><Feather.Loader size={22} className="animate-spin" /> Verificando...</> 
-                          : user 
-                            ? <>Acessar Sistema <Feather.ArrowRight size={22} /></>
-                            : <>Quero Vender Mais Agora <Feather.ArrowRight size={22} /></>
-                        }
+                        Acessar Plataforma <Feather.ArrowRight size={22} />
                       </Link>
                     </motion.div>
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

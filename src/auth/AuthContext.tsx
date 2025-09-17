@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
 import { User } from '@supabase/supabase-js';
+import { QueryClient } from '@tanstack/react-query'; // Importamos o QueryClient
 
 // --- Interfaces ---
 interface Subscription {
@@ -17,59 +18,72 @@ interface AuthContextType {
 // --- Contexto ---
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// --- Provider ---
-export function AuthProvider({ children }: { children: ReactNode }) {
+// --- Provider Final com Logout "Zero Cache" ---
+export function AuthProvider({ children, queryClient }: { children: ReactNode, queryClient: QueryClient }) {
   const [user, setUser] = useState<User | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // onAuthStateChange é a ÚNICA fonte da verdade.
-    // Ele lida com o carregamento inicial, logins e logouts.
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        try {
-          setLoading(true); // Começa a carregar sempre que o estado de auth muda
-          const currentUser = session?.user ?? null;
-          setUser(currentUser);
-          
-          if (currentUser) {
-            // Se há um usuário, buscamos sua assinatura.
-            const { data: subData, error: subError } = await supabase
-              .from('subscriptions')
-              .select('status')
-              .eq('user_id', currentUser.id)
-              .maybeSingle(); // .maybeSingle() é seguro se o usuário não tiver assinatura
+    // Verificação inicial da sessão
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      setLoading(false);
+    };
 
-            if (subError) {
-              console.error('AuthContext Erro: Falha ao buscar assinatura.', subError);
-              setSubscription(null);
-            } else {
-              setSubscription(subData as Subscription | null);
-            }
-          } else {
-            // Se não houver usuário (logout), limpa a assinatura.
-            setSubscription(null);
-          }
-        } catch (error) {
-          console.error('AuthContext Erro: Ocorreu um erro inesperado.', error);
-          setUser(null);
-          setSubscription(null);
-        } finally {
-          // Garante que o estado de carregamento termine, aconteça o que acontecer.
-          setLoading(false);
-        }
-      }
-    );
+    checkSession();
 
-    // Função de limpeza
+    // Listener para mudanças de autenticação
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
     return () => {
       authListener.subscription.unsubscribe();
     };
   }, []);
 
+  // Carrega a assinatura quando o usuário muda
+  useEffect(() => {
+    const loadSubscription = async () => {
+      if (user) {
+        const { data: subData, error: subError } = await supabase
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (subError) {
+          setSubscription(null);
+        } else {
+          setSubscription(subData as Subscription | null);
+        }
+      } else {
+        setSubscription(null);
+      }
+    };
+
+    if (!loading) {
+      loadSubscription();
+    }
+  }, [user, loading]);
+
+  // A função de logout "Zero Cache"
   const logout = async () => {
+    console.log("Iniciando logout completo e limpeza de caches...");
+    
+    // Etapa 1: Desloga do Supabase (limpa o cache de autenticação)
     await supabase.auth.signOut();
+    console.log("Sessão Supabase encerrada.");
+
+    // Etapa 2: Limpa o cache do React Query (limpa os dados de dashboard, etc.)
+    queryClient.clear();
+    console.log("Cache de dados da aplicação (React Query) limpo.");
+    
+    // Etapa 3: Força o redirecionamento com recarregamento completo
+    // (limpa o estado do React e garante um início 100% limpo na tela de login)
+    window.location.href = '/login';
   };
 
   const value = { user, subscription, loading, logout };

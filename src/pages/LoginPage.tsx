@@ -1,12 +1,10 @@
-// src/pages/LoginPage.tsx
-
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Feather from 'react-feather';
 
-// --- Componentes de Background (assumindo que existem no seu projeto) ---
+// --- Componentes de Background ---
 const LightDotsBackground = () => {
   const [dots, setDots] = useState<any[]>([]);
   React.useEffect(() => {
@@ -49,24 +47,26 @@ export function LoginPage() {
     setLoading(true);
     setError(null);
 
-    // A lógica agora é mais simples: a página de login só se preocupa em autenticar.
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (authError) {
-      if (authError.message.includes('Invalid login credentials')) {
-        setError('E-mail ou senha inválidos.');
+      if (authError) {
+        if (authError.message.includes('Invalid login credentials')) {
+          setError('E-mail ou senha inválidos.');
+        } else {
+          setError('Ocorreu um erro ao tentar fazer login.');
+        }
       } else {
-        setError('Ocorreu um erro ao tentar fazer login.');
+        navigate('/sistema');
       }
+    } catch (err) {
+      setError('Ocorreu um erro inesperado durante o login.');
+      console.error('Login error:', err);
+    } finally {
       setLoading(false);
-    } else {
-      // Se o login for bem-sucedido, simplesmente mandamos o usuário para a raiz do sistema.
-      // O AuthContext e o ProtectedRoute, que já são robustos, farão o trabalho de verificar
-      // a assinatura e redirecionar para o lugar certo (/sistema ou /assinar).
-      navigate('/sistema');
     }
   };
 
