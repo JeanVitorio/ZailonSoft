@@ -13,6 +13,7 @@ interface AuthContextType {
   subscription: Subscription | null;
   loading: boolean;
   logout: () => Promise<void>;
+  refreshSubscription: () => Promise<void>;
 }
 
 // --- Contexto ---
@@ -44,30 +45,36 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode, q
     };
   }, []);
 
+  // Função para carregar ou refrescar a assinatura
+  const loadSubscription = async () => {
+    if (user) {
+      const { data: subData, error: subError } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (subError) {
+        setSubscription(null);
+      } else {
+        setSubscription(subData as Subscription | null);
+      }
+    } else {
+      setSubscription(null);
+    }
+  };
+
   // Carrega a assinatura quando o usuário muda
   useEffect(() => {
-    const loadSubscription = async () => {
-      if (user) {
-        const { data: subData, error: subError } = await supabase
-          .from('subscriptions')
-          .select('status')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (subError) {
-          setSubscription(null);
-        } else {
-          setSubscription(subData as Subscription | null);
-        }
-      } else {
-        setSubscription(null);
-      }
-    };
-
     if (!loading) {
       loadSubscription();
     }
   }, [user, loading]);
+
+  // Função para refrescar a assinatura
+  const refreshSubscription = async () => {
+    await loadSubscription();
+  };
 
   // A função de logout "Zero Cache"
   const logout = async () => {
@@ -86,7 +93,7 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode, q
     window.location.href = '/login';
   };
 
-  const value = { user, subscription, loading, logout };
+  const value = { user, subscription, loading, logout, refreshSubscription };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
@@ -13,20 +13,44 @@ const FullPageLoader = () => (
 );
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, subscription, loading } = useAuth();
+  const { user, subscription, loading, refreshSubscription } = useAuth();
   const location = useLocation();
+  const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    console.log('ProtectedRoute - Estado inicial:', { user: !!user, subscription, loading });
+
+    // Verifica a assinatura antes de decidir o redirecionamento
+    const checkSubscription = async () => {
+      if (user && !loading && subscription?.status !== 'active') {
+        setIsCheckingSubscription(true);
+        console.log('Reverificando assinatura antes de redirecionar');
+        await refreshSubscription();
+        setIsCheckingSubscription(false);
+      }
+    };
+
+    checkSubscription();
+  }, [user, loading, subscription, refreshSubscription]);
+
+  useEffect(() => {
+    console.log('ProtectedRoute - Estado atualizado:', { user: !!user, subscription, loading, isCheckingSubscription });
+  }, [user, subscription, loading, isCheckingSubscription]);
+
+  if (loading || isCheckingSubscription) {
     return <FullPageLoader />;
   }
 
   if (!user) {
+    console.log('ProtectedRoute: Nenhum usuário logado, redirecionando para /login');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   if (subscription?.status !== 'active') {
+    console.log('ProtectedRoute: Assinatura não ativa, redirecionando para /assinar');
     return <Navigate to="/assinar" replace />;
   }
 
+  console.log('ProtectedRoute: Acesso liberado para rota protegida');
   return <>{children}</>;
 }
