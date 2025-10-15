@@ -314,54 +314,6 @@ export const deleteClient = async (chatId: string) => {
     }
 };
 
-export const uploadFiles = async ({ chatId, files }: { chatId: string, files: { file: File }[] }) => {
-    try {
-        const { data: client, error: fetchError } = await supabase.from('clients').select('documents').eq('chat_id', chatId).single();
-        if (fetchError) throw new Error('Cliente não encontrado para upload de arquivos.');
-
-        const existingDocuments = client.documents || [];
-        const newDocumentUrls = [];
-
-        for (const fileObj of files) {
-            const filePath = `${chatId}/documents/${uuidv4()}-${fileObj.file.name}`;
-            const { error: uploadError } = await supabase.storage.from('client-documents').upload(filePath, fileObj.file);
-            if (uploadError) throw new Error('Falha ao enviar arquivo.');
-
-            const { data: publicURLData } = supabase.storage.from('client-documents').getPublicUrl(filePath);
-            newDocumentUrls.push(publicURLData.publicUrl);
-        }
-
-        const { data, error: dbError } = await supabase.from('clients').update({ documents: [...existingDocuments, ...newDocumentUrls] }).eq('chat_id', chatId).select();
-        if (dbError) throw new Error('Falha ao atualizar a lista de documentos no banco de dados.');
-
-        return data[0];
-    } catch (e: any) {
-        console.error('Erro ao fazer upload de arquivos:', e);
-        throw e;
-    }
-};
-
-export const deleteFiles = async ({ chatId, filePaths }: { chatId: string, filePaths: string[] }) => {
-    try {
-        const { data: client, error: fetchError } = await supabase.from('clients').select('documents').eq('chat_id', chatId).single();
-        if (fetchError) throw new Error('Cliente não encontrado para remoção de arquivos.');
-
-        const fileNames = filePaths.map(url => url.split('/client-documents/')[1]).filter(Boolean);
-        if (fileNames.length > 0) {
-            await supabase.storage.from('client-documents').remove(fileNames);
-        }
-
-        const updatedDocuments = (client.documents || []).filter((doc: string) => !filePaths.includes(doc));
-        const { data, error: dbError } = await supabase.from('clients').update({ documents: updatedDocuments }).eq('chat_id', chatId).select();
-        if (dbError) throw new Error('Falha ao atualizar a lista de documentos no banco de dados.');
-
-        return data[0];
-    } catch (e: any) {
-        console.error('Erro ao deletar arquivos:', e);
-        throw e;
-    }
-};
-
 export const uploadClientFile = async ({ chatId, file, bucketName, filePathPrefix }: { chatId: string, file: File, bucketName: string, filePathPrefix: string }) => {
     try {
         const filePath = `${chatId}/${filePathPrefix}/${uuidv4()}-${file.name}`;
@@ -461,11 +413,11 @@ export const updateStoreDetails = async ({ lojaId, updates, newLogoFile }: { loj
     }
     
     // 4. Atualiza a tabela 'lojas' com todas as informações
-    const { data, error } = await supabase.from('lojas').update(finalUpdates).eq('id', lojaId).select().single(); // Adicionado .single() para retornar um objeto
+    const { data, error } = await supabase.from('lojas').update(finalUpdates).eq('id', lojaId).select().single();
     if (error) {
         throw new Error(`Falha ao atualizar os dados da loja: ${error.message}`);
     }
-    return data; // Retorna o objeto diretamente
+    return data;
 };
 
 

@@ -15,8 +15,6 @@ const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Feather.BarChart2 },
   { id: 'catalog', label: 'Catálogo', icon: Feather.Truck },
   { id: 'crm', label: 'CRM', icon: Feather.Users },
-  { id: 'add-client', label: 'Novo Cliente', icon: Feather.UserPlus },
-  { id: 'whatsapp', label: 'WhatsApp', icon: Feather.MessageSquare },
   { id: 'add-vehicle', label: 'Novo Veículo', icon: Feather.Plus },
   { id: 'settings', label: 'Configurações', icon: Feather.Settings },
 ];
