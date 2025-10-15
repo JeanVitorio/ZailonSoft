@@ -559,18 +559,23 @@ function CRMKanbanContent() {
             const columnId = getClientColumnId(client.bot_data?.state);
             (data[columnId] = data[columnId] || []).push(client);
         });
-        return KANBAN_COLUMNS.map(col => ({ ...col, clients: data[col.id] }));
-    }, [filteredClients]);
+        // Mostrar apenas colunas com clientes quando há um termo de pesquisa
+        return KANBAN_COLUMNS
+            .map(col => ({ ...col, clients: data[col.id] || [] }))
+            .filter(col => searchTerm.trim() === '' || col.clients.length > 0);
+    }, [filteredClients, searchTerm]);
     
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= columns.length) {
             setCurrentPage(newPage);
         }
     };
+
     function handleDragStart(event) {
         const client = filteredClients.find(c => c.chat_id === event.active.id);
         setActiveClient(client);
     }
+
     function handleDragEnd(event) {
         const { active, over } = event;
         setActiveClient(null);
@@ -593,7 +598,9 @@ function CRMKanbanContent() {
             updateStatusMutation.mutate({ chatId: activeClientId, newState: destColumnId });
         }
     }
+
     const handleDeleteRequest = (chatId) => setClientToDelete(chatId);
+
     const handleConfirmDelete = () => {
         if (clientToDelete) {
             deleteMutation.mutate(clientToDelete);
@@ -625,42 +632,48 @@ function CRMKanbanContent() {
                 <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
                     <div ref={boardRef} className="w-full overflow-x-auto pb-4 scroll-smooth">
                         <div className="flex gap-4 md:gap-6 items-start">
-                            {visibleColumns.map((column) => (
-                                <div key={column.id} ref={el => columnRefs.current[column.id] = el} className="flex-shrink-0 w-[calc(100%-3rem)] sm:w-72 box-border relative">
-                                    <SortableContext id={column.id} items={column.clients.map(c => c.chat_id)} strategy={verticalListSortingStrategy}>
-                                        <div className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-[calc(100vh-18rem)] md:h-[calc(100vh-12rem)]">
-                                            <div className="flex items-center justify-between">
-                                                <h3 className="font-semibold text-sm md:text-base truncate">{column.name}</h3>
-                                                <Badge variant="secondary">{column.clients.length}</Badge>
-                                            </div>
-                                            <div className="h-full overflow-y-scroll scrollbar-width-auto touch-pan-y pr-2" style={{ WebkitOverflowScrolling: 'touch' }}>
-                                                <div className="space-y-3">
-                                                    {column.clients.length > 0 ? (
-                                                        column.clients.map((client) => (
-                                                            <ClientCard key={client.chat_id} client={client} onDelete={handleDeleteRequest} onViewDetails={() => setDetailedClient(client)} />
-                                                        ))
-                                                    ) : ( <div className="h-full flex items-center justify-center text-sm text-muted-foreground">Nenhum lead</div> )}
+                            {visibleColumns.length > 0 ? (
+                                visibleColumns.map((column) => (
+                                    <div key={column.id} ref={el => columnRefs.current[column.id] = el} className="flex-shrink-0 w-[calc(100%-3rem)] sm:w-72 box-border relative">
+                                        <SortableContext id={column.id} items={column.clients.map(c => c.chat_id)} strategy={verticalListSortingStrategy}>
+                                            <div className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-[calc(100vh-18rem)] md:h-[calc(100vh-12rem)]">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="font-semibold text-sm md:text-base truncate">{column.name}</h3>
+                                                    <Badge variant="secondary">{column.clients.length}</Badge>
+                                                </div>
+                                                <div className="h-full overflow-y-scroll scrollbar-width-auto touch-pan-y pr-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                    <div className="space-y-3">
+                                                        {column.clients.length > 0 ? (
+                                                            column.clients.map((client) => (
+                                                                <ClientCard key={client.chat_id} client={client} onDelete={handleDeleteRequest} onViewDetails={() => setDetailedClient(client)} />
+                                                            ))
+                                                        ) : (
+                                                            <div className="h-full flex items-center justify-center text-sm text-muted-foreground">Nenhum lead</div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </SortableContext>
-                                    {isMobile && (
-                                        <div className="absolute top-0 right-0 h-full flex flex-col justify-between py-12 md:hidden">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScrollColumn(column.id, 'up')}>
-                                                <ChevronUp className="h-5 w-5" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScrollColumn(column.id, 'down')}>
-                                                <ChevronDown className="h-5 w-5" />
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+                                        </SortableContext>
+                                        {isMobile && (
+                                            <div className="absolute top-0 right-0 h-full flex flex-col justify-between py-12 md:hidden">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScrollColumn(column.id, 'up')}>
+                                                    <ChevronUp className="h-5 w-5" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScrollColumn(column.id, 'down')}>
+                                                    <ChevronDown className="h-5 w-5" />
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="w-full text-center text-sm text-muted-foreground">Nenhum cliente encontrado para "{searchTerm}"</div>
+                            )}
                         </div>
                     </div>
                     <DragOverlay>{activeClient ? <ClientCard client={activeClient} onDelete={() => { }} onViewDetails={() => { }} /> : null}</DragOverlay>
                 </DndContext>
-                {isMobile && (
+                {isMobile && columns.length > 0 && (
                     <div className="flex justify-between items-center mt-4">
                         <Button variant="ghost" disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>
                             <ChevronLeft className="h-6 w-6" />
