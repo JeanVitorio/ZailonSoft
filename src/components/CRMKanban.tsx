@@ -19,7 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 // --- ÍCONES ---
 import { 
     Search, Trash2, FileText, Edit, Save, XCircle, X, Upload, AlertTriangle, ChevronLeft, ChevronRight, Loader2, Download,
-    User, Car as CarIcon, RefreshCw, Landmark, Calendar, File as FileIcon, MessageSquare, StickyNote 
+    User, Car as CarIcon, RefreshCw, Landmark, Calendar, File as FileIcon, MessageSquare, StickyNote, ChevronUp, ChevronDown 
 } from 'lucide-react';
 
 // --- Componentes Drag-and-Drop ---
@@ -601,6 +601,14 @@ function CRMKanbanContent() {
         setClientToDelete(null);
     };
 
+    const handleScrollColumn = (columnId, direction) => {
+        const columnEl = columnRefs.current[columnId]?.querySelector('.overflow-y-scroll');
+        if (columnEl) {
+            const scrollAmount = direction === 'up' ? -100 : 100;
+            columnEl.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+        }
+    };
+
     if (isLoading) return <div className="p-6">Carregando CRM...</div>;
     if (error) return <div className="p-6 text-destructive">Erro ao carregar dados: {error.message}</div>;
     
@@ -618,14 +626,14 @@ function CRMKanbanContent() {
                     <div ref={boardRef} className="w-full overflow-x-auto pb-4 scroll-smooth">
                         <div className="flex gap-4 md:gap-6 items-start">
                             {visibleColumns.map((column) => (
-                                <div key={column.id} ref={el => columnRefs.current[column.id] = el} className="flex-shrink-0 w-[calc(100%-2rem)] sm:w-72 box-border">
+                                <div key={column.id} ref={el => columnRefs.current[column.id] = el} className="flex-shrink-0 w-[calc(100%-3rem)] sm:w-72 box-border relative">
                                     <SortableContext id={column.id} items={column.clients.map(c => c.chat_id)} strategy={verticalListSortingStrategy}>
-                                        <div className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-[calc(100vh-16rem)] md:h-[calc(100vh-12rem)]">
+                                        <div className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-[calc(100vh-18rem)] md:h-[calc(100vh-12rem)]">
                                             <div className="flex items-center justify-between">
                                                 <h3 className="font-semibold text-sm md:text-base truncate">{column.name}</h3>
                                                 <Badge variant="secondary">{column.clients.length}</Badge>
                                             </div>
-                                            <div className="h-full overflow-y-scroll scrollbar-width-auto touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                            <div className="h-full overflow-y-scroll scrollbar-width-auto touch-pan-y pr-2" style={{ WebkitOverflowScrolling: 'touch' }}>
                                                 <div className="space-y-3">
                                                     {column.clients.length > 0 ? (
                                                         column.clients.map((client) => (
@@ -636,6 +644,16 @@ function CRMKanbanContent() {
                                             </div>
                                         </div>
                                     </SortableContext>
+                                    {isMobile && (
+                                        <div className="absolute top-0 right-0 h-full flex flex-col justify-between py-12 md:hidden">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScrollColumn(column.id, 'up')}>
+                                                <ChevronUp className="h-5 w-5" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScrollColumn(column.id, 'down')}>
+                                                <ChevronDown className="h-5 w-5" />
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
