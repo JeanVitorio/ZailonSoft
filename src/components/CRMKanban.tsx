@@ -281,11 +281,107 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         if (type === 'tradeInPhotos') setRemovedTradeInPhotos(prev => [...new Set([...prev, filePath])]);
     };
     
-    const handleSave = async () => { /* ... sua lógica de salvar ... */ };
-    const handleDownloadPdf = async () => { /* ... sua lógica de PDF ... */ };
-    const addInterestVehicle = (car) => { /* ... sua lógica ... */ };
-    const removeInterestVehicle = (carId) => { /* ... sua lógica ... */ };
+    const handleSave = async () => {
+        try {
+            const payload = produce(formData, draft => {});
+            
+            const newDocUrls = await Promise.all(
+                newDocs.map(f => uploadClientFile({ chatId: client.chat_id, file: f.file, bucketName: 'client-documents', filePathPrefix: 'documents' }))
+            );
+            const newTradeInUrls = await Promise.all(
+                newTradeInPhotos.map(f => uploadClientFile({ chatId: client.chat_id, file: f.file, bucketName: 'trade-in-cars', filePathPrefix: 'trade-in' }))
+            );
 
+            await Promise.all([
+                ...removedDocs.map(docUrl => deleteClientFile({ fileUrl: docUrl, bucketName: 'client-documents' })),
+                ...removedTradeInPhotos.map(photoUrl => deleteClientFile({ fileUrl: photoUrl, bucketName: 'trade-in-cars' }))
+            ]);
+
+            const finalPayload = produce(payload, draft => {
+                const currentDocs = (draft.documents || []).filter(doc => !removedDocs.includes(doc));
+                draft.documents = [...currentDocs, ...newDocUrls];
+
+                if (draft.bot_data) {
+                    draft.bot_data.documents = draft.documents; 
+                    if (draft.bot_data.trade_in_car) {
+                        const currentPhotos = (draft.bot_data.trade_in_car.photos || []).filter(p => !removedTradeInPhotos.includes(p));
+                        draft.bot_data.trade_in_car.photos = [...currentPhotos, ...newTradeInUrls];
+                    }
+                }
+                
+                if (draft.bot_data?.financing_details?.entry) draft.bot_data.financing_details.entry = parseCurrency(draft.bot_data.financing_details.entry);
+                if (draft.bot_data?.trade_in_car?.value) draft.bot_data.trade_in_car.value = parseCurrency(draft.bot_data.trade_in_car.value);
+                
+                if (draft.interested_vehicles) draft.interested_vehicles = JSON.stringify(draft.interested_vehicles);
+                if (draft.trade_in_car) draft.trade_in_car = JSON.stringify(draft.trade_in_car);
+                if (draft.financing_details) draft.financing_details = JSON.stringify(draft.financing_details);
+
+                draft.bot_data.history = [...(draft.bot_data?.history || []), { timestamp: new Date().toLocaleString("pt-BR"), updated_data: { changes: "Dados atualizados via CRM" } }];
+            });
+            
+            await updateMutation.mutateAsync({ chatId: client.chat_id, updatedData: finalPayload });
+            setIsEditing(false);
+
+        } catch (error) {
+            console.error("Falha detalhada ao salvar:", error);
+            toast({
+                title: "Falha ao Salvar",
+                description: error.message || "Ocorreu um erro inesperado. Verifique o console.",
+                variant: "destructive"
+            });
+        }
+    };
+
+    const handleDownloadPdf = async () => {
+        const content = pdfContentRef.current;
+        if (!content) return;
+
+        setIsDownloadingPdf(true);
+        toast({ title: "Gerando PDF...", description: "Por favor, aguarde um momento." });
+
+        try {
+            const canvas = await html2canvas(content, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfPageHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            const ratio = imgWidth / imgHeight;
+            const scaledImgWidth = pdfWidth;
+            const scaledImgHeight = scaledImgWidth / ratio;
+            let heightLeft = scaledImgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, scaledImgWidth, scaledImgHeight);
+            heightLeft -= pdfPageHeight;
+
+            while (heightLeft > 0) {
+                position -= pdfPageHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, scaledImgWidth, scaledImgHeight);
+                heightLeft -= pdfPageHeight;
+            }
+            
+            pdf.save(`Relatorio_${formData.name || 'Cliente'}.pdf`);
+        } catch (error) {
+            console.error("Erro ao gerar PDF:", error);
+            toast({ title: "Erro", description: "Não foi possível gerar o PDF.", variant: "destructive" });
+        } finally {
+            setIsDownloadingPdf(false);
+        }
+    };
+
+    const addInterestVehicle = (car) => {
+        const currentVehicles = formData.bot_data?.interested_vehicles || [];
+        handleDeepChange('bot_data.interested_vehicles', [...currentVehicles, car]);
+        setVehicleSearch('');
+    };
+    const removeInterestVehicle = (carId) => {
+        const currentVehicles = formData.bot_data?.interested_vehicles || [];
+        handleDeepChange('bot_data.interested_vehicles', currentVehicles.filter(v => v.id !== carId));
+    };
+    
     const dealType = formData.bot_data?.deal_type;
     const hasTradeIn = dealType === 'troca';
     const hasVisit = dealType === 'visita';
@@ -316,7 +412,18 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
             if (!vehicleSearch) return availableCars;
             return availableCars.filter(car => car.nome.toLowerCase().includes(vehicleSearch.toLowerCase()));
         }, [vehicleSearch, allCars, botData.interested_vehicles]);
-        const calculations = useMemo(() => { return {}; }, [formData]);
+        const calculations = useMemo(() => {
+            const interestedVehicles = botData.interested_vehicles || [];
+            const entryValue = hasFinancing ? parseCurrency(botData.financing_details?.entry) : 0;
+            const tradeInValue = hasTradeIn ? parseCurrency(botData.trade_in_car?.value) : 0;
+            const financingAmount = (car) => {
+                const carPrice = parseCurrency(car.preco);
+                return Math.max(0, carPrice - entryValue - tradeInValue);
+            };
+            const totalCarPrice = interestedVehicles.reduce((sum, car) => sum + parseCurrency(car.preco), 0);
+            const tradeDifference = totalCarPrice - tradeInValue;
+            return { financingAmount, tradeDifference };
+        }, [formData, hasFinancing, hasTradeIn]);
 
         switch (activeSection) {
             case 'perfil': return (<Card><CardHeader><CardTitle className="text-base">Perfil do Cliente</CardTitle></CardHeader><CardContent className="space-y-1 text-sm"><InfoRow label="Nome">{isEditing ? <Input value={formData.name || ''} onChange={e => handleDeepChange('name', e.target.value)} /> : (formData.name || 'N/A')}</InfoRow><InfoRow label="Telefone">{isEditing ? <Input value={formData.phone || ''} onChange={e => handleDeepChange('phone', e.target.value)} /> : (formData.phone || 'N/A')}</InfoRow><InfoRow label="CPF">{isEditing ? <Input value={formData.cpf || ''} onChange={e => handleDeepChange('cpf', e.target.value)} /> : (formData.cpf || 'N/A')}</InfoRow><InfoRow label="Ocupação">{isEditing ? <Input value={formData.job || ''} onChange={e => handleDeepChange('job', e.target.value)} /> : (formData.job || 'N/A')}</InfoRow><InfoRow label="Status no Funil">{isEditing ? (<Select value={formData.state || ''} onValueChange={handleStatusChange}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{KANBAN_COLUMNS.map(col => (<SelectItem key={col.id} value={col.id}>{col.name}</SelectItem>))}</SelectContent></Select>) : (KANBAN_COLUMNS.find(c => c.id === formData.state)?.name || 'Não informado')}</InfoRow></CardContent></Card>);
@@ -354,7 +461,6 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         </div>
                     </div>
                 </DialogHeader>
-                
                 <div className="p-4 border-b block md:hidden">
                     <Select value={activeSection} onValueChange={setActiveSection}>
                         <SelectTrigger><SelectValue placeholder="Navegar para uma seção..." /></SelectTrigger>
@@ -370,8 +476,6 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         </SelectContent>
                     </Select>
                 </div>
-                
-                {/* --- [CORREÇÃO APLICADA AQUI] --- */}
                 <div className="flex-1 flex min-h-0">
                     <aside className="border-r bg-muted/30 hidden md:block w-[250px] flex-shrink-0">
                          <ScrollArea className="h-full py-4">
