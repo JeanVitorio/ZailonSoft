@@ -562,15 +562,50 @@ function CRMKanbanContent() {
         return KANBAN_COLUMNS.map(col => ({ ...col, clients: data[col.id] }));
     }, [filteredClients]);
     
-    const handlePageChange = (newPage) => { /* ... */ };
-    function handleDragStart(event) { /* ... */ }
-    function handleDragEnd(event) { /* ... */ }
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= columns.length) {
+            setCurrentPage(newPage);
+        }
+    };
+    function handleDragStart(event) {
+        const client = filteredClients.find(c => c.chat_id === event.active.id);
+        setActiveClient(client);
+    }
+    function handleDragEnd(event) {
+        const { active, over } = event;
+        setActiveClient(null);
+        if (!over || active.id === over.id) return;
+
+        const activeClientId = active.id;
+        const overId = over.id;
+
+        const overClient = filteredClients.find(c => c.chat_id === overId);
+        let destColumnId;
+        if (overClient) {
+            destColumnId = getClientColumnId(overClient.bot_data?.state);
+        } else {
+            destColumnId = overId; // Assuming dropped on column
+        }
+
+        const sourceColumnId = getClientColumnId(activeClient?.bot_data?.state);
+
+        if (sourceColumnId !== destColumnId) {
+            updateStatusMutation.mutate({ chatId: activeClientId, newState: destColumnId });
+        }
+    }
     const handleDeleteRequest = (chatId) => setClientToDelete(chatId);
-    const handleConfirmDelete = () => { /* ... */ };
+    const handleConfirmDelete = () => {
+        if (clientToDelete) {
+            deleteMutation.mutate(clientToDelete);
+        }
+        setClientToDelete(null);
+    };
 
     if (isLoading) return <div className="p-6">Carregando CRM...</div>;
     if (error) return <div className="p-6 text-destructive">Erro ao carregar dados: {error.message}</div>;
     
+    const visibleColumns = isMobile ? columns.slice(currentPage - 1, currentPage) : columns;
+
     return (
         <>
             <div className="space-y-6 p-4 md:p-6">
@@ -582,7 +617,7 @@ function CRMKanbanContent() {
                 <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
                     <div ref={boardRef} className="w-full overflow-x-auto pb-4 scroll-smooth">
                         <div className="flex gap-4 md:gap-6 items-start">
-                            {columns.map((column) => (
+                            {visibleColumns.map((column) => (
                                 <div key={column.id} ref={el => columnRefs.current[column.id] = el} className="flex-shrink-0 w-[calc(100%-2rem)] sm:w-72 box-border">
                                     <SortableContext id={column.id} items={column.clients.map(c => c.chat_id)} strategy={verticalListSortingStrategy}>
                                         <div className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-full">
@@ -590,7 +625,7 @@ function CRMKanbanContent() {
                                                 <h3 className="font-semibold text-sm md:text-base truncate">{column.name}</h3>
                                                 <Badge variant="secondary">{column.clients.length}</Badge>
                                             </div>
-                                            <div className="h-[calc(100vh-22rem)] overflow-y-auto pr-2">
+                                            <div className="h-[calc(100vh-22rem)] overflow-y-scroll pr-2">
                                                 <div className="space-y-3">
                                                     {column.clients.length > 0 ? (
                                                         column.clients.map((client) => (
@@ -607,10 +642,31 @@ function CRMKanbanContent() {
                     </div>
                     <DragOverlay>{activeClient ? <ClientCard client={activeClient} onDelete={() => { }} onViewDetails={() => { }} /> : null}</DragOverlay>
                 </DndContext>
-                {/* Paginação ... */}
+                {isMobile && (
+                    <div className="flex justify-between items-center mt-4">
+                        <Button variant="ghost" disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>
+                            <ChevronLeft className="h-6 w-6" />
+                        </Button>
+                        <span className="text-sm font-medium">{currentPage} / {columns.length}</span>
+                        <Button variant="ghost" disabled={currentPage === columns.length} onClick={() => handlePageChange(currentPage + 1)}>
+                            <ChevronRight className="h-6 w-6" />
+                        </Button>
+                    </div>
+                )}
             </div>
             {detailedClient && (<ClientDetailDialog client={detailedClient} isOpen={!!detailedClient} onOpenChange={(isOpen) => !isOpen && setDetailedClient(null)} updateMutation={updateDetailsMutation}/>)}
-            <Dialog open={!!clientToDelete} onOpenChange={() => setClientToDelete(null)}>{/* ... */}</Dialog>
+            <Dialog open={!!clientToDelete} onOpenChange={() => setClientToDelete(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirmar Exclusão</DialogTitle>
+                        <DialogDescription>Tem certeza que deseja excluir este cliente? Essa ação não pode ser desfeita.</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setClientToDelete(null)}>Cancelar</Button>
+                        <Button variant="destructive" onClick={handleConfirmDelete}>Excluir</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
