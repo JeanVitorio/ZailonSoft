@@ -9,6 +9,8 @@ export interface Car {
     preco: string;
     descricao: string;
     imagens: string[];
+    // Adicionando loja_id que é essencial para as novas rotas
+    loja_id: string; 
 }
 
 export interface Client {
@@ -58,8 +60,37 @@ export const fetchAvailableCars = async (): Promise<Car[]> => {
         console.error('Erro ao buscar veículos:', error);
         throw new Error('Falha ao buscar veículos disponíveis.');
     }
-    return data;
+    // O RLS já deve filtrar por loja do usuário logado aqui
+    return data as Car[]; 
 };
+
+/**
+ * NOVO: Busca um carro pelo ID (usado na rota pública do formulário).
+ */
+export const fetchCarDetails = async (carId: string): Promise<Car> => {
+    // Nota: Esta query é pública. Certifique-se que suas RLS policies
+    // permitam SELECT de carros por `carId` para `anon` ou `authenticated`.
+    const { data, error } = await supabase.from('cars').select('*').eq('id', carId).single();
+    if (error) {
+        console.error(`Erro ao buscar veículo ${carId}:`, error);
+        throw new Error('Veículo não encontrado ou falha na busca.');
+    }
+    return data as Car;
+};
+
+/**
+ * NOVO: Busca todos os carros de uma loja específica (usado no catálogo público).
+ */
+export const fetchCarsByLojaId = async (lojaId: string): Promise<Car[]> => {
+    // Nota: Esta query é pública. Garanta que RLS permita SELECT de carros por `loja_id`.
+    const { data, error } = await supabase.from('cars').select('*').eq('loja_id', lojaId);
+    if (error) {
+        console.error(`Erro ao buscar veículos da loja ${lojaId}:`, error);
+        throw new Error('Falha ao buscar catálogo da loja.');
+    }
+    return data as Car[];
+};
+
 
 // Adicionado 'lojaId' para saber onde inserir o veículo.
 export const addVehicle = async (
@@ -168,7 +199,7 @@ export const deleteVehicleImage = async ({ carId, imageUrl }: { carId: string, i
         const { data: currentCar, error: fetchError } = await supabase.from('cars').select('imagens').eq('id', carId).single();
         if (fetchError) throw new Error('Falha ao buscar dados do veículo para atualizar imagens.');
 
-        const updatedImages = currentCar.imagens.filter((url: string) => url !== imageUrl);
+        const updatedImages = (currentCar.imagens as string[]).filter((url: string) => url !== imageUrl);
         const { error: dbError } = await supabase.from('cars').update({ imagens: updatedImages }).eq('id', carId);
         if (dbError) throw new Error('Falha ao atualizar o registro de imagens no banco de dados.');
 
@@ -184,7 +215,7 @@ export const deleteVehicleImage = async ({ carId, imageUrl }: { carId: string, i
 export const fetchClients = async (): Promise<Client[]> => {
     const { data, error } = await supabase.from('clients').select('*');
     if (error) throw new Error('Falha ao buscar clientes.');
-    return data;
+    return data as Client[];
 };
 
 export const createClient = async ({ clientPayload, files, lojaId }: { clientPayload: ClientPayload; files: Files; lojaId: string; }) => {
@@ -196,7 +227,8 @@ export const createClient = async ({ clientPayload, files, lojaId }: { clientPay
         if (files.documents && files.documents.length > 0) {
             for (const file of files.documents) {
                 const filePath = `${lojaId}/${chat_id}/documents/${uuidv4()}-${file.name}`;
-                await supabase.storage.from('client-documents').upload(filePath, file);
+                const { error: uploadError } = await supabase.storage.from('client-documents').upload(filePath, file);
+                if (uploadError) throw new Error(`Falha no upload de documento: ${uploadError.message}`);
                 const { data: publicURLData } = supabase.storage.from('client-documents').getPublicUrl(filePath);
                 documentUrls.push(publicURLData.publicUrl);
             }
@@ -205,7 +237,8 @@ export const createClient = async ({ clientPayload, files, lojaId }: { clientPay
         if (files.trade_in_photos && files.trade_in_photos.length > 0) {
             for (const file of files.trade_in_photos) {
                 const filePath = `${lojaId}/${chat_id}/trade-in/${uuidv4()}-${file.name}`;
-                await supabase.storage.from('trade-in-cars').upload(filePath, file);
+                const { error: uploadError } = await supabase.storage.from('trade-in-cars').upload(filePath, file);
+                if (uploadError) throw new Error(`Falha no upload da foto da troca: ${uploadError.message}`);
                 const { data: publicURLData } = supabase.storage.from('trade-in-cars').getPublicUrl(filePath);
                 tradeInUrls.push(publicURLData.publicUrl);
             }
@@ -356,19 +389,85 @@ export const deleteClientFile = async ({ fileUrl, bucketName }: { fileUrl: strin
     }
 }
 
+
 // --- Funções da API para Gerenciamento da Loja ---
 
 export const fetchStoreDetails = async () => {
-    const { data, error } = await supabase.from('lojas').select('*').single();
-    if (error) throw new Error('Falha ao buscar os dados da sua loja.');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        throw new Error("Usuário não autenticado. Faça o login para continuar.");
+    }
+
+    const { data, error } = await supabase
+        .from('lojas')
+        .select('*')
+        .eq('user_id', user.id)
+        .limit(1)
+        .single();
+
+    if (error) {
+        console.error("Erro do Supabase ao buscar dados da loja:", error);
+        throw new Error('Falha ao buscar os dados da sua loja.');
+    }
+    
     return data;
 };
 
-export const updateStoreDetails = async (lojaId: string, updates: any) => {
-    const { data, error } = await supabase.from('lojas').update(updates).eq('id', lojaId).select();
-    if (error) throw new Error(`Falha ao atualizar os dados da loja: ${error.message}`);
-    return data[0];
+// --- [FUNÇÃO ATUALIZADA E CORRIGIDA] ---
+export const updateStoreDetails = async ({ lojaId, updates, newLogoFile }: { lojaId: string, updates: any, newLogoFile?: File | null }) => {
+    let finalUpdates = { ...updates };
+
+    // 1. Se um novo arquivo de logo foi enviado
+    if (newLogoFile) {
+        // Busca a URL da logo antiga para poder excluí-la
+        const { data: currentLoja, error: fetchError } = await supabase
+            .from('lojas')
+            .select('logo_url')
+            .eq('id', lojaId)
+            .single();
+
+        if (fetchError) {
+            throw new Error('Não foi possível encontrar a loja para atualizar a logo.');
+        }
+
+        // Se uma logo antiga existe, remove ela do Storage
+        if (currentLoja && currentLoja.logo_url) {
+            const oldFilePath = currentLoja.logo_url.split('/logo-loja/')[1];
+            if (oldFilePath) {
+                const { error: removeError } = await supabase.storage.from('logo-loja').remove([oldFilePath]);
+                if(removeError) console.error("Erro ao remover logo antiga, mas continuando processo:", removeError);
+            }
+        }
+
+        // 2. Faz o upload da nova logo
+        const fileExt = newLogoFile.name.split('.').pop();
+        const filePath = `${lojaId}/${uuidv4()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('logo-loja') // <-- Usa o nome do seu bucket
+            .upload(filePath, newLogoFile);
+
+        if (uploadError) {
+            throw new Error(`Falha ao fazer upload da nova logo: ${uploadError.message}`);
+        }
+
+        // 3. Pega a URL pública da nova logo
+        const { data: publicURLData } = supabase.storage
+            .from('logo-loja')
+            .getPublicUrl(filePath);
+        
+        // Adiciona a nova URL aos dados que serão salvos no banco
+        finalUpdates.logo_url = publicURLData.publicUrl;
+    }
+    
+    // 4. Atualiza a tabela 'lojas' com todas as informações
+    const { data, error } = await supabase.from('lojas').update(finalUpdates).eq('id', lojaId).select().single(); // Adicionado .single() para retornar um objeto
+    if (error) {
+        throw new Error(`Falha ao atualizar os dados da loja: ${error.message}`);
+    }
+    return data; // Retorna o objeto diretamente
 };
+
 
 // --- Funções da API para Vendedores ---
 
@@ -408,4 +507,3 @@ export const deleteVendedor = async (vendedorId: string) => {
     }
     return vendedorId;
 };
-

@@ -4,7 +4,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { Dashboard } from '@/components/Dashboard';
 import { VehicleCatalog } from '@/components/VehicleCatalog';
 import { CRMKanban } from '@/components/CRMKanban';
-import { AddClient } from '@/components/AddClient';
+import AddClient from '@/components/AddClient';
 import { WhatsAppConnection } from '@/components/WhatsAppConnection';
 import { AddVehicle } from '@/components/AddVehicle';
 import { StoreSettingsPage } from '@/pages/StoreSettingsPage';

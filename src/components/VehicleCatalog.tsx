@@ -8,15 +8,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { fetchAvailableCars, updateVehicle as updateVehicleInSupabase, deleteVehicle as deleteVehicleInSupabase, deleteVehicleImage as deleteVehicleImageInSupabase, Car as SupabaseCar } from '@/services/api';
+import { Link } from 'react-router-dom';
 
 interface Vehicle extends SupabaseCar {}
 
-// ALTERAÇÃO: Função de parse mais robusta para lidar com formatos monetários brasileiros.
+// Funções de conversão
 const parsePrice = (value: string | number): number => {
   if (typeof value === 'number') return value;
   if (!value || typeof value !== 'string') return 0;
 
-  // Remove o símbolo de real, espaços, pontos de milhar e substitui a vírgula do decimal por um ponto.
   const cleaned = String(value)
     .replace(/R\$\s?/, '')
     .replace(/\./g, '')
@@ -37,6 +37,7 @@ const fadeInUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeInOut' } },
 };
 
+// CarDetailsView Component
 function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => void }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -47,7 +48,6 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
 
   useEffect(() => {
     if (vehicle) {
-      // ALTERAÇÃO: Simplificado para usar a função formatCurrency, mas sem o 'R$' para o input.
       const initialPrice = vehicle.preco ? formatCurrency(vehicle.preco).replace(/R\$\s?/, '') : '';
       setFormData({ ...vehicle, preco: initialPrice });
       setNewImages([]);
@@ -68,7 +68,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
   };
 
   const updateMutation = useMutation({
-    mutationFn: ({ carId, updatedData, newImages }: { carId: string, updatedData: Partial<Vehicle>, newImages: File[] }) => 
+    mutationFn: ({ carId, updatedData, newImages }: { carId: string, updatedData: Partial<Vehicle>, newImages: File[] }) =>
       updateVehicleInSupabase({ carId, updatedData, newImages }),
     onSuccess: () => {
       toast({ title: "Sucesso!", description: "Veículo atualizado." });
@@ -103,13 +103,12 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
       return;
     }
 
-    // ALTERAÇÃO: Converte o preço formatado para um número puro usando a função robusta.
     const priceNum = parsePrice(String(formData.preco || ''));
     if (isNaN(priceNum) || priceNum <= 0) {
       toast({ title: "Erro!", description: "O preço do veículo é inválido.", variant: "destructive" });
       return;
     }
-    
+
     if (!formData.loja_id) {
       toast({ title: "Erro!", description: "O ID da loja é obrigatório.", variant: "destructive" });
       return;
@@ -118,7 +117,6 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
     const updatedData = {
       nome: formData.nome.trim(),
       ano: Number(formData.ano),
-      // ALTERAÇÃO: Envia o preço como um NÚMERO, não mais como texto.
       preco: priceNum,
       descricao: formData.descricao || '',
       loja_id: formData.loja_id,
@@ -128,7 +126,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
   };
 
   const handleImageRemove = (index: number) => {
-    if (confirm('Tem certeza que deseja remover esta imagem?')) {
+    if (window.confirm('Tem certeza que deseja remover esta imagem?')) {
       const imageUrl = formData.imagens?.[index];
       if (imageUrl) {
         deleteImageMutation.mutate({ carId: vehicle.id, imageUrl });
@@ -318,6 +316,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
   );
 }
 
+// VehicleCatalog Component
 export function VehicleCatalog() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCar, setSelectedCar] = useState<Vehicle | null>(null);
@@ -442,6 +441,22 @@ export function VehicleCatalog() {
                     whileTap={{ scale: 0.95 }}
                   >
                     <Feather.Eye className="w-4 h-4 mr-2 inline" /> Ver Detalhes
+                  </motion.button>
+                  <motion.button
+                    className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-all"
+                    onClick={() => {
+                      const publicLink = `${window.location.origin}/form-proposta/${vehicle.id}`;
+                      navigator.clipboard.writeText(publicLink);
+                      toast({
+                        title: "Link Copiado!",
+                        description: "Link do formulário público copiado. Envie ao cliente!",
+                        className: "bg-blue-500 text-white"
+                      });
+                    }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Feather.Link className="w-4 h-4" />
                   </motion.button>
                   <motion.button
                     className="px-4 py-2 rounded-lg border border-zinc-200 text-red-500 hover:bg-red-500/10 hover:border-red-500/50 transition-all"

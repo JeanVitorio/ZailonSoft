@@ -14,6 +14,10 @@ import HomePage from './pages/HomePage';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 
+// NOVAS ROTAS PÚBLICAS
+import { PublicCarFormPage } from './pages/PublicCarFormPage'; 
+import { PublicVehicleCatalogPage } from './pages/PublicVehicleCatalogPage';
+
 // Criamos o queryClient aqui
 const queryClient = new QueryClient();
 
@@ -31,8 +35,12 @@ const App = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             
-            {/* --- Rota Única para Gerenciar Assinatura --- */}
+            {/* Rota Única para Gerenciar Assinatura */}
             <Route path="/assinar" element={<SubscribePage />} />
+
+            {/* NOVAS ROTAS PÚBLICAS SEM LOGIN NECESSÁRIO */}
+            <Route path="/form-proposta/:carId" element={<PublicCarFormPage />} /> 
+            <Route path="/catalogo-loja/:lojaId" element={<PublicVehicleCatalogPage />} />
 
             {/* --- Rota Protegida Principal --- */}
             <Route
