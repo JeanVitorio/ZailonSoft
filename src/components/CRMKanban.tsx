@@ -241,6 +241,46 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         };
     }, [newDocs, newTradeInPhotos]);
 
+    const dealType = formData.bot_data?.deal_type;
+    const hasTradeIn = dealType === 'troca';
+    const hasVisit = dealType === 'visita';
+    const hasFinancing = (dealType === 'comum' && formData.bot_data?.payment_method === 'financiamento') || 
+                         (hasTradeIn && formData.bot_data?.trade_in_car?.difference_payment_method?.type === 'financiamento');
+
+    // Mover useMemo para o escopo do componente
+    const vehicleSearchResults = useMemo(() => {
+        const botData = formData.bot_data || {};
+        const interestedVehicleIds = new Set((botData.interested_vehicles || []).map(v => v.id));
+        const availableCars = allCars.filter(car => !interestedVehicleIds.has(car.id));
+        if (!vehicleSearch) return availableCars;
+        return availableCars.filter(car => car.nome.toLowerCase().includes(vehicleSearch.toLowerCase()));
+    }, [vehicleSearch, allCars, formData.bot_data?.interested_vehicles]);
+
+    const calculations = useMemo(() => {
+        const botData = formData.bot_data || {};
+        const interestedVehicles = botData.interested_vehicles || [];
+        const entryValue = hasFinancing ? parseCurrency(botData.financing_details?.entry) : 0;
+        const tradeInValue = hasTradeIn ? parseCurrency(botData.trade_in_car?.value) : 0;
+        const financingAmount = (car) => {
+            const carPrice = parseCurrency(car.preco);
+            return Math.max(0, carPrice - entryValue - tradeInValue);
+        };
+        const totalCarPrice = interestedVehicles.reduce((sum, car) => sum + parseCurrency(car.preco), 0);
+        const tradeDifference = totalCarPrice - tradeInValue;
+        return { financingAmount, tradeDifference };
+    }, [formData, hasFinancing, hasTradeIn]);
+
+    const navSections = useMemo(() => [
+        { id: 'perfil', label: 'Perfil', icon: User, condition: () => true },
+        { id: 'interesse', label: 'Interesses', icon: CarIcon, condition: () => true },
+        { id: 'troca', label: 'Troca', icon: RefreshCw, condition: () => hasTradeIn },
+        { id: 'financiamento', label: 'Financiamento', icon: Landmark, condition: () => hasFinancing },
+        { id: 'visita', label: 'Visita', icon: Calendar, condition: () => hasVisit },
+        { id: 'documentos', label: 'Documentos', icon: FileIcon, condition: () => true },
+        { id: 'anotacoes', label: 'Anotações', icon: StickyNote, condition: () => true },
+        { id: 'historico', label: 'Histórico', icon: MessageSquare, condition: () => true },
+    ].filter(section => section.condition()), [hasTradeIn, hasFinancing, hasVisit]);
+
     const handleDeepChange = (path, value) => setFormData(produce(draft => {
         let current = draft;
         const keys = path.split('.');
@@ -377,67 +417,316 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         handleDeepChange('bot_data.interested_vehicles', [...currentVehicles, car]);
         setVehicleSearch('');
     };
+
     const removeInterestVehicle = (carId) => {
         const currentVehicles = formData.bot_data?.interested_vehicles || [];
         handleDeepChange('bot_data.interested_vehicles', currentVehicles.filter(v => v.id !== carId));
     };
-    
-    const dealType = formData.bot_data?.deal_type;
-    const hasTradeIn = dealType === 'troca';
-    const hasVisit = dealType === 'visita';
-    const hasFinancing = (dealType === 'comum' && formData.bot_data?.payment_method === 'financiamento') || 
-                         (hasTradeIn && formData.bot_data?.trade_in_car?.difference_payment_method?.type === 'financiamento');
 
-    const navSections = useMemo(() => [
-        { id: 'perfil', label: 'Perfil', icon: User, condition: () => true },
-        { id: 'interesse', label: 'Interesses', icon: CarIcon, condition: () => true },
-        { id: 'troca', label: 'Troca', icon: RefreshCw, condition: () => hasTradeIn },
-        { id: 'financiamento', label: 'Financiamento', icon: Landmark, condition: () => hasFinancing },
-        { id: 'visita', label: 'Visita', icon: Calendar, condition: () => hasVisit },
-        { id: 'documentos', label: 'Documentos', icon: FileIcon, condition: () => true },
-        { id: 'anotacoes', label: 'Anotações', icon: StickyNote, condition: () => true },
-        { id: 'historico', label: 'Histórico', icon: MessageSquare, condition: () => true },
-    ].filter(section => section.condition()), [formData.bot_data]);
-    
-    if (!client) return null;
-
-    const renderSectionContent = () => {
+    const renderSectionContent = (sectionId) => {
         const botData = formData.bot_data || {};
         const installmentOptions = [12, 24, 36, 48, 60];
         const visibleDocuments = (formData.documents || []).filter(doc => !removedDocs.includes(doc));
         const tradeInPhotos = (botData.trade_in_car?.photos || []).filter(p => !removedTradeInPhotos.includes(p));
-        const vehicleSearchResults = useMemo(() => {
-            const interestedVehicleIds = new Set((botData.interested_vehicles || []).map(v => v.id));
-            const availableCars = allCars.filter(car => !interestedVehicleIds.has(car.id));
-            if (!vehicleSearch) return availableCars;
-            return availableCars.filter(car => car.nome.toLowerCase().includes(vehicleSearch.toLowerCase()));
-        }, [vehicleSearch, allCars, botData.interested_vehicles]);
-        const calculations = useMemo(() => {
-            const interestedVehicles = botData.interested_vehicles || [];
-            const entryValue = hasFinancing ? parseCurrency(botData.financing_details?.entry) : 0;
-            const tradeInValue = hasTradeIn ? parseCurrency(botData.trade_in_car?.value) : 0;
-            const financingAmount = (car) => {
-                const carPrice = parseCurrency(car.preco);
-                return Math.max(0, carPrice - entryValue - tradeInValue);
-            };
-            const totalCarPrice = interestedVehicles.reduce((sum, car) => sum + parseCurrency(car.preco), 0);
-            const tradeDifference = totalCarPrice - tradeInValue;
-            return { financingAmount, tradeDifference };
-        }, [formData, hasFinancing, hasTradeIn]);
 
-        switch (activeSection) {
-            case 'perfil': return (<Card><CardHeader><CardTitle className="text-base">Perfil do Cliente</CardTitle></CardHeader><CardContent className="space-y-1 text-sm"><InfoRow label="Nome">{isEditing ? <Input value={formData.name || ''} onChange={e => handleDeepChange('name', e.target.value)} /> : (formData.name || 'N/A')}</InfoRow><InfoRow label="Telefone">{isEditing ? <Input value={formData.phone || ''} onChange={e => handleDeepChange('phone', e.target.value)} /> : (formData.phone || 'N/A')}</InfoRow><InfoRow label="CPF">{isEditing ? <Input value={formData.cpf || ''} onChange={e => handleDeepChange('cpf', e.target.value)} /> : (formData.cpf || 'N/A')}</InfoRow><InfoRow label="Ocupação">{isEditing ? <Input value={formData.job || ''} onChange={e => handleDeepChange('job', e.target.value)} /> : (formData.job || 'N/A')}</InfoRow><InfoRow label="Status no Funil">{isEditing ? (<Select value={formData.state || ''} onValueChange={handleStatusChange}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{KANBAN_COLUMNS.map(col => (<SelectItem key={col.id} value={col.id}>{col.name}</SelectItem>))}</SelectContent></Select>) : (KANBAN_COLUMNS.find(c => c.id === formData.state)?.name || 'Não informado')}</InfoRow></CardContent></Card>);
-            case 'interesse': return (<Card><CardHeader><CardTitle className="text-base">Veículos de Interesse</CardTitle></CardHeader><CardContent>{isEditing ? (<div className="space-y-2"><div className="flex flex-wrap gap-2 min-h-[24px]">{(botData.interested_vehicles || []).map(v => (<Badge key={v.id} variant="secondary" className="text-base py-1 pr-1">{v.nome}<button onClick={() => removeInterestVehicle(v.id)} className="ml-2 rounded-full hover:bg-destructive/80 p-0.5"><X className="h-3 w-3" /></button></Badge>))}</div><Popover><PopoverTrigger asChild><Input placeholder="Pesquisar e adicionar veículo..." value={vehicleSearch} onChange={e => setVehicleSearch(e.target.value)} /></PopoverTrigger><PopoverContent className="w-[--radix-popover-trigger-width] p-0">{isLoadingCars ? (<div className="p-4 text-center text-sm">Carregando...</div>) : vehicleSearchResults.length > 0 ? (<ScrollArea className="h-[200px]">{vehicleSearchResults.map(car => (<div key={car.id} onClick={() => addInterestVehicle(car)} className="p-2 hover:bg-accent cursor-pointer">{car.nome} - {toBRL(car.preco)}</div>))}</ScrollArea>) : (<div className="p-4 text-center text-sm">Nenhum veículo encontrado.</div>)}</PopoverContent></Popover></div>) : (botData.interested_vehicles?.length > 0 ? (<ul className="list-disc pl-5 text-sm text-muted-foreground">{botData.interested_vehicles.map(v => (<li key={v.id}>{v.nome}</li>))}</ul>) : (<p className="text-sm text-muted-foreground">Nenhum</p>))}</CardContent></Card>);
-            case 'troca': return (<div className="space-y-6"><Card><CardHeader><CardTitle className="text-base">Carro para Troca</CardTitle></CardHeader><CardContent className="text-sm"><InfoRow label="Modelo">{isEditing ? <Input value={botData.trade_in_car?.model || ''} onChange={e => handleDeepChange('bot_data.trade_in_car.model', e.target.value)} /> : (botData.trade_in_car?.model || 'N/A')}</InfoRow><InfoRow label="Ano">{isEditing ? <Input value={botData.trade_in_car?.year || ''} onChange={e => handleYearChange(e, 'bot_data.trade_in_car.year')} placeholder="AAAA" /> : (botData.trade_in_car?.year || 'N/A')}</InfoRow><InfoRow label="Valor Desejado">{isEditing ? <Input value={botData.trade_in_car?.value || ''} onChange={e => handleCurrencyChange(e, 'bot_data.trade_in_car.value')} placeholder="R$ 0,00" inputMode="numeric"/> : (toBRL(botData.trade_in_car?.value) || 'N/A')}</InfoRow></CardContent></Card><Card><CardHeader><CardTitle className="text-base">Fotos da Troca</CardTitle></CardHeader><CardContent><div className="grid grid-cols-2 md:grid-cols-3 gap-2">{tradeInPhotos.map(docPath => renderFilePreview(docPath, isEditing, () => removeExistingFile(docPath, 'tradeInPhotos')))}{newTradeInPhotos.map(file => (<div key={file.preview} className="relative group"><img src={file.preview} alt={file.file.name} className="w-full h-20 object-cover rounded border-2 border-dashed border-amber-500"/>{isEditing && (<Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'tradeInPhotos')}><X className="h-4 w-4" /></Button>)}</div>))}</div>{isEditing && (<><input type="file" multiple ref={tradeInInputRef} onChange={e => handleFileSelect(e, 'tradeInPhotos')} className="hidden"/><Button variant="outline" className="w-full mt-4" onClick={() => tradeInInputRef.current.click()}><Upload className="h-4 w-4 mr-2" />Adicionar Fotos</Button></>)}</CardContent></Card></div>);
-            case 'financiamento': return (<Card><CardHeader><CardTitle className="text-base">Detalhes de Financiamento</CardTitle></CardHeader><CardContent className="text-sm"><InfoRow label="Valor da Entrada">{isEditing ? <Input value={botData.financing_details?.entry || ''} onChange={e => handleCurrencyChange(e, 'bot_data.financing_details.entry')} placeholder="R$ 0,00" inputMode="numeric"/> : (toBRL(botData.financing_details?.entry) || 'N/A')}</InfoRow><InfoRow label="Parcelas">{isEditing ? (<Select value={String(botData.financing_details?.parcels || '12')} onValueChange={v => handleDeepChange('bot_data.financing_details.parcels', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{installmentOptions.map(opt => (<SelectItem key={opt} value={String(opt)}>{opt}x</SelectItem>))}</SelectContent></Select>) : (`${botData.financing_details?.parcels || 'N/A'}x`)}</InfoRow></CardContent></Card>);
-            case 'visita': return (<Card><CardHeader><CardTitle className="text-base">Agendamento de Visita</CardTitle></CardHeader><CardContent className="text-sm"><InfoRow label="Data">{isEditing ? <Input type="date" value={botData.visit_details?.day || ''} onChange={e => handleDeepChange('bot_data.visit_details.day', e.target.value)} /> : (botData.visit_details?.day || 'N/A')}</InfoRow><InfoRow label="Horário">{isEditing ? <Input type="time" value={botData.visit_details?.time || ''} onChange={e => handleDeepChange('bot_data.visit_details.time', e.target.value)} /> : (botData.visit_details?.time || 'N/A')}</InfoRow></CardContent></Card>);
-            case 'documentos': return (<Card><CardHeader><CardTitle className="text-base">Documentos</CardTitle></CardHeader><CardContent><div className="grid grid-cols-2 md:grid-cols-3 gap-2">{visibleDocuments.map(docPath => renderFilePreview(docPath, isEditing, () => removeExistingFile(docPath, 'documents')))}{newDocs.map(file => (<div key={file.preview} className="relative group"><div className="w-full h-20 flex items-center justify-center rounded border-2 border-dashed border-amber-500"><FileIcon className="h-10 w-10 text-amber-500" /></div>{isEditing && (<Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'documents')}><X className="h-4 w-4" /></Button>)}</div>))}</div>{isEditing && (<><input type="file" multiple ref={docInputRef} onChange={e => handleFileSelect(e, 'documents')} className="hidden"/><Button variant="outline" className="w-full mt-4" onClick={() => docInputRef.current.click()}><Upload className="h-4 w-4 mr-2" />Adicionar Documentos</Button></>)}</CardContent></Card>);
-            case 'anotacoes': return (<Card><CardHeader><CardTitle className="text-base">Anotações</CardTitle></CardHeader><CardContent>{isEditing ? (<Textarea className="min-h-[200px]" value={botData.notes || ''} onChange={e => handleDeepChange('bot_data.notes', e.target.value)} />) : (<p className="text-sm text-muted-foreground whitespace-pre-wrap">{botData.notes || 'Nenhuma.'}</p>)}</CardContent></Card>);
-            case 'historico': return (<Card><CardHeader><CardTitle className="text-base">Histórico</CardTitle></CardHeader><CardContent><ScrollArea className="h-60"><div className="space-y-3 text-xs pr-4">{(botData.history || []).slice().reverse().map((item, index) => (<div key={index} className="border-l-2 pl-3"><p className="font-semibold">{item.updated_data?.changes || Object.values(item.updated_data)[0]}</p><p className="text-muted-foreground">{item.timestamp}</p></div>))}</div></ScrollArea></CardContent></Card>);
-            default: return <div>Selecione uma seção</div>;
+        switch (sectionId) {
+            case 'perfil':
+                return (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Perfil do Cliente</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-1 text-sm">
+                            <InfoRow label="Nome">
+                                {isEditing ? (
+                                    <Input value={formData.name || ''} onChange={e => handleDeepChange('name', e.target.value)} />
+                                ) : (
+                                    formData.name || 'N/A'
+                                )}
+                            </InfoRow>
+                            <InfoRow label="Telefone">
+                                {isEditing ? (
+                                    <Input value={formData.phone || ''} onChange={e => handleDeepChange('phone', e.target.value)} />
+                                ) : (
+                                    formData.phone || 'N/A'
+                                )}
+                            </InfoRow>
+                            <InfoRow label="CPF">
+                                {isEditing ? (
+                                    <Input value={formData.cpf || ''} onChange={e => handleDeepChange('cpf', e.target.value)} />
+                                ) : (
+                                    formData.cpf || 'N/A'
+                                )}
+                            </InfoRow>
+                            <InfoRow label="Ocupação">
+                                {isEditing ? (
+                                    <Input value={formData.job || ''} onChange={e => handleDeepChange('job', e.target.value)} />
+                                ) : (
+                                    formData.job || 'N/A'
+                                )}
+                            </InfoRow>
+                            <InfoRow label="Status no Funil">
+                                {isEditing ? (
+                                    <Select value={formData.state || ''} onValueChange={handleStatusChange}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {KANBAN_COLUMNS.map(col => (
+                                                <SelectItem key={col.id} value={col.id}>{col.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    KANBAN_COLUMNS.find(c => c.id === formData.state)?.name || 'Não informado'
+                                )}
+                            </InfoRow>
+                        </CardContent>
+                    </Card>
+                );
+            case 'interesse':
+                return (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Veículos de Interesse</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {isEditing ? (
+                                <div className="space-y-2">
+                                    <div className="flex flex-wrap gap-2 min-h-[24px]">
+                                        {(botData.interested_vehicles || []).map(v => (
+                                            <Badge key={v.id} variant="secondary" className="text-base py-1 pr-1">
+                                                {v.nome}
+                                                <button onClick={() => removeInterestVehicle(v.id)} className="ml-2 rounded-full hover:bg-destructive/80 p-0.5">
+                                                    <X className="h-3 w-3" />
+                                                </button>
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Input placeholder="Pesquisar e adicionar veículo..." value={vehicleSearch} onChange={e => setVehicleSearch(e.target.value)} />
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                            {isLoadingCars ? (
+                                                <div className="p-4 text-center text-sm">Carregando...</div>
+                                            ) : vehicleSearchResults.length > 0 ? (
+                                                <ScrollArea className="h-[200px]">
+                                                    {vehicleSearchResults.map(car => (
+                                                        <div key={car.id} onClick={() => addInterestVehicle(car)} className="p-2 hover:bg-accent cursor-pointer">
+                                                            {car.nome} - {toBRL(car.preco)}
+                                                        </div>
+                                                    ))}
+                                                </ScrollArea>
+                                            ) : (
+                                                <div className="p-4 text-center text-sm">Nenhum veículo encontrado.</div>
+                                            )}
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                            ) : (
+                                botData.interested_vehicles?.length > 0 ? (
+                                    <ul className="list-disc pl-5 text-sm text-muted-foreground">
+                                        {botData.interested_vehicles.map(v => (
+                                            <li key={v.id}>{v.nome}</li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">Nenhum</p>
+                                )
+                            )}
+                        </CardContent>
+                    </Card>
+                );
+            case 'troca':
+                return (
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-base">Carro para Troca</CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-sm">
+                                <InfoRow label="Modelo">
+                                    {isEditing ? (
+                                        <Input value={botData.trade_in_car?.model || ''} onChange={e => handleDeepChange('bot_data.trade_in_car.model', e.target.value)} />
+                                    ) : (
+                                        botData.trade_in_car?.model || 'N/A'
+                                    )}
+                                </InfoRow>
+                                <InfoRow label="Ano">
+                                    {isEditing ? (
+                                        <Input value={botData.trade_in_car?.year || ''} onChange={e => handleYearChange(e, 'bot_data.trade_in_car.year')} placeholder="AAAA" />
+                                    ) : (
+                                        botData.trade_in_car?.year || 'N/A'
+                                    )}
+                                </InfoRow>
+                                <InfoRow label="Valor Desejado">
+                                    {isEditing ? (
+                                        <Input value={botData.trade_in_car?.value || ''} onChange={e => handleCurrencyChange(e, 'bot_data.trade_in_car.value')} placeholder="R$ 0,00" inputMode="numeric" />
+                                    ) : (
+                                        toBRL(botData.trade_in_car?.value) || 'N/A'
+                                    )}
+                                </InfoRow>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-base">Fotos da Troca</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                    {tradeInPhotos.map(docPath => renderFilePreview(docPath, isEditing, () => removeExistingFile(docPath, 'tradeInPhotos')))}
+                                    {newTradeInPhotos.map(file => (
+                                        <div key={file.preview} className="relative group">
+                                            <img src={file.preview} alt={file.file.name} className="w-full h-20 object-cover rounded border-2 border-dashed border-amber-500" />
+                                            {isEditing && (
+                                                <Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'tradeInPhotos')}>
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                {isEditing && (
+                                    <>
+                                        <input type="file" multiple ref={tradeInInputRef} onChange={e => handleFileSelect(e, 'tradeInPhotos')} className="hidden" />
+                                        <Button variant="outline" className="w-full mt-4" onClick={() => tradeInInputRef.current.click()}>
+                                            <Upload className="h-4 w-4 mr-2" /> Adicionar Fotos
+                                        </Button>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                );
+            case 'financiamento':
+                return (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Detalhes de Financiamento</CardTitle>
+                        </CardHeader>
+                        <CardContent className="text-sm">
+                            <InfoRow label="Valor da Entrada">
+                                {isEditing ? (
+                                    <Input value={botData.financing_details?.entry || ''} onChange={e => handleCurrencyChange(e, 'bot_data.financing_details.entry')} placeholder="R$ 0,00" inputMode="numeric" />
+                                ) : (
+                                    toBRL(botData.financing_details?.entry) || 'N/A'
+                                )}
+                            </InfoRow>
+                            <InfoRow label="Parcelas">
+                                {isEditing ? (
+                                    <Select value={String(botData.financing_details?.parcels || '12')} onValueChange={v => handleDeepChange('bot_data.financing_details.parcels', v)}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {[12, 24, 36, 48, 60].map(opt => (
+                                                <SelectItem key={opt} value={String(opt)}>{opt}x</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    `${botData.financing_details?.parcels || 'N/A'}x`
+                                )}
+                            </InfoRow>
+                        </CardContent>
+                    </Card>
+                );
+            case 'visita':
+                return (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Agendamento de Visita</CardTitle>
+                        </CardHeader>
+                        <CardContent className="text-sm">
+                            <InfoRow label="Data">
+                                {isEditing ? (
+                                    <Input type="date" value={botData.visit_details?.day || ''} onChange={e => handleDeepChange('bot_data.visit_details.day', e.target.value)} />
+                                ) : (
+                                    botData.visit_details?.day || 'N/A'
+                                )}
+                            </InfoRow>
+                            <InfoRow label="Horário">
+                                {isEditing ? (
+                                    <Input type="time" value={botData.visit_details?.time || ''} onChange={e => handleDeepChange('bot_data.visit_details.time', e.target.value)} />
+                                ) : (
+                                    botData.visit_details?.time || 'N/A'
+                                )}
+                            </InfoRow>
+                        </CardContent>
+                    </Card>
+                );
+            case 'documentos':
+                return (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Documentos</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                {visibleDocuments.map(docPath => renderFilePreview(docPath, isEditing, () => removeExistingFile(docPath, 'documents')))}
+                                {newDocs.map(file => (
+                                    <div key={file.preview} className="relative group">
+                                        <div className="w-full h-20 flex items-center justify-center rounded border-2 border-dashed border-amber-500">
+                                            <FileIcon className="h-10 w-10 text-amber-500" />
+                                        </div>
+                                        {isEditing && (
+                                            <Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'documents')}>
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                            {isEditing && (
+                                <>
+                                    <input type="file" multiple ref={docInputRef} onChange={e => handleFileSelect(e, 'documents')} className="hidden" />
+                                    <Button variant="outline" className="w-full mt-4" onClick={() => docInputRef.current.click()}>
+                                        <Upload className="h-4 w-4 mr-2" /> Adicionar Documentos
+                                    </Button>
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+                );
+            case 'anotacoes':
+                return (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Anotações</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {isEditing ? (
+                                <Textarea className="min-h-[200px]" value={botData.notes || ''} onChange={e => handleDeepChange('bot_data.notes', e.target.value)} />
+                            ) : (
+                                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{botData.notes || 'Nenhuma.'}</p>
+                            )}
+                        </CardContent>
+                    </Card>
+                );
+            case 'historico':
+                return (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Histórico</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ScrollArea className="h-60">
+                                <div className="space-y-3 text-xs pr-4">
+                                    {(botData.history || []).slice().reverse().map((item, index) => (
+                                        <div key={index} className="border-l-2 pl-3">
+                                            <p className="font-semibold">{item.updated_data?.changes || Object.values(item.updated_data)[0]}</p>
+                                            <p className="text-muted-foreground">{item.timestamp}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </ScrollArea>
+                        </CardContent>
+                    </Card>
+                );
+            default:
+                return <div>Selecione uma seção</div>;
         }
     };
-    
+
+    if (!client) return null;
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="w-full max-w-[95vw] md:max-w-6xl max-h-[90vh] p-0 flex flex-col">
@@ -445,18 +734,32 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                     <div className="flex justify-between items-center flex-wrap gap-2">
                         <DialogTitle className="text-lg md:text-xl">{formData.name || "Detalhes do Cliente"}</DialogTitle>
                         <div className="flex items-center gap-2">
-                             {!isEditing && (
+                            {!isEditing && (
                                 <Button size="sm" variant="outline" onClick={handleDownloadPdf} disabled={isDownloadingPdf}>
-                                    {isDownloadingPdf ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando...</> : <><Download className="h-4 w-4 mr-2" /> Baixar PDF</>}
+                                    {isDownloadingPdf ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Download className="h-4 w-4 mr-2" /> Baixar PDF
+                                        </>
+                                    )}
                                 </Button>
                             )}
                             {isEditing ? (
                                 <>
-                                    <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending} className="bg-amber-500 hover:bg-amber-600 text-white"><Save className="h-4 w-4 mr-2" /> Salvar</Button>
-                                    <Button size="sm" variant="outline" onClick={() => setIsEditing(false)} disabled={updateMutation.isPending}><XCircle className="h-4 w-4 mr-2" /> Cancelar</Button>
+                                    <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending} className="bg-amber-500 hover:bg-amber-600 text-white">
+                                        <Save className="h-4 w-4 mr-2" /> Salvar
+                                    </Button>
+                                    <Button size="sm" variant="outline" onClick={() => setIsEditing(false)} disabled={updateMutation.isPending}>
+                                        <XCircle className="h-4 w-4 mr-2" /> Cancelar
+                                    </Button>
                                 </>
                             ) : (
-                                <Button size="sm" onClick={() => setIsEditing(true)}><Edit className="h-4 w-4 mr-2" /> Editar</Button>
+                                <Button size="sm" onClick={() => setIsEditing(true)}>
+                                    <Edit className="h-4 w-4 mr-2" /> Editar
+                                </Button>
                             )}
                         </div>
                     </div>
@@ -478,10 +781,15 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                 </div>
                 <div className="flex-1 flex min-h-0">
                     <aside className="border-r bg-muted/30 hidden md:block w-[250px] flex-shrink-0">
-                         <ScrollArea className="h-full py-4">
-                             <nav className="px-4 space-y-1">
+                        <ScrollArea className="h-full py-4">
+                            <nav className="px-4 space-y-1">
                                 {navSections.map(section => (
-                                    <Button key={section.id} variant={activeSection === section.id ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => setActiveSection(section.id)}>
+                                    <Button
+                                        key={section.id}
+                                        variant={activeSection === section.id ? 'secondary' : 'ghost'}
+                                        className="w-full justify-start"
+                                        onClick={() => setActiveSection(section.id)}
+                                    >
                                         <section.icon className="mr-2 h-4 w-4" />
                                         {section.label}
                                     </Button>
@@ -491,11 +799,20 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                     </aside>
                     <main className="flex-1 min-w-0">
                         <ScrollArea className="h-full">
-                            <div ref={pdfContentRef} className="p-6 bg-white space-y-6">
-                                {renderSectionContent()}
+                            <div className="p-6 bg-white space-y-6">
+                                {renderSectionContent(activeSection)}
                             </div>
                         </ScrollArea>
                     </main>
+                </div>
+                <div ref={pdfContentRef} className="absolute -left-[9999px] top-0 bg-white space-y-6 p-6 w-[800px]">
+                    <h1 className="text-2xl font-bold">{formData.name || "Detalhes do Cliente"}</h1>
+                    {navSections.map(section => (
+                        <div key={section.id} className="space-y-4">
+                            <h2 className="text-xl font-semibold">{section.label}</h2>
+                            {renderSectionContent(section.id)}
+                        </div>
+                    ))}
                 </div>
             </DialogContent>
         </Dialog>
@@ -526,7 +843,10 @@ function CRMKanbanContent() {
 
     const updateStatusMutation = useMutation({
         mutationFn: updateClientStatus,
-        onSuccess: () => { toast({ title: "Sucesso", description: "Cliente movido." }); queryClient.invalidateQueries({ queryKey: ['clients'] }); },
+        onSuccess: () => {
+            toast({ title: "Sucesso", description: "Cliente movido." });
+            queryClient.invalidateQueries({ queryKey: ['clients'] });
+        },
         onError: (err) => toast({ title: "Erro", description: err.message, variant: 'destructive' }),
     });
 
@@ -559,12 +879,11 @@ function CRMKanbanContent() {
             const columnId = getClientColumnId(client.bot_data?.state);
             (data[columnId] = data[columnId] || []).push(client);
         });
-        // Mostrar apenas colunas com clientes quando há um termo de pesquisa
         return KANBAN_COLUMNS
             .map(col => ({ ...col, clients: data[col.id] || [] }))
             .filter(col => searchTerm.trim() === '' || col.clients.length > 0);
     }, [filteredClients, searchTerm]);
-    
+
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= columns.length) {
             setCurrentPage(newPage);
@@ -618,7 +937,7 @@ function CRMKanbanContent() {
 
     if (isLoading) return <div className="p-6">Carregando CRM...</div>;
     if (error) return <div className="p-6 text-destructive">Erro ao carregar dados: {error.message}</div>;
-    
+
     const visibleColumns = isMobile ? columns.slice(currentPage - 1, currentPage) : columns;
 
     return (
@@ -627,7 +946,7 @@ function CRMKanbanContent() {
                 <h1 className="text-2xl md:text-3xl font-bold">CRM - Funil de Vendas</h1>
                 <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                    <Input placeholder="Buscar clientes..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 focus-visible:ring-amber-500/20"/>
+                    <Input placeholder="Buscar clientes..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 focus-visible:ring-amber-500/20" />
                 </div>
                 <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
                     <div ref={boardRef} className="w-full overflow-x-auto pb-4 scroll-smooth">
@@ -671,7 +990,7 @@ function CRMKanbanContent() {
                             )}
                         </div>
                     </div>
-                    <DragOverlay>{activeClient ? <ClientCard client={activeClient} onDelete={() => { }} onViewDetails={() => { }} /> : null}</DragOverlay>
+                    <DragOverlay>{activeClient ? <ClientCard client={activeClient} onDelete={() => {}} onViewDetails={() => {}} /> : null}</DragOverlay>
                 </DndContext>
                 {isMobile && columns.length > 0 && (
                     <div className="flex justify-between items-center mt-4">
@@ -685,7 +1004,9 @@ function CRMKanbanContent() {
                     </div>
                 )}
             </div>
-            {detailedClient && (<ClientDetailDialog client={detailedClient} isOpen={!!detailedClient} onOpenChange={(isOpen) => !isOpen && setDetailedClient(null)} updateMutation={updateDetailsMutation}/>)}
+            {detailedClient && (
+                <ClientDetailDialog client={detailedClient} isOpen={!!detailedClient} onOpenChange={(isOpen) => !isOpen && setDetailedClient(null)} updateMutation={updateDetailsMutation} />
+            )}
             <Dialog open={!!clientToDelete} onOpenChange={() => setClientToDelete(null)}>
                 <DialogContent>
                     <DialogHeader>
