@@ -608,7 +608,7 @@ function CRMKanbanContent() {
 
     return (
         <>
-            <div className="space-y-6 p-4 md:p-6">
+            <div className="space-y-6 p-4 md:p-6 h-screen overflow-y-hidden">
                 <h1 className="text-2xl md:text-3xl font-bold">CRM - Funil de Vendas</h1>
                 <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -620,12 +620,12 @@ function CRMKanbanContent() {
                             {visibleColumns.map((column) => (
                                 <div key={column.id} ref={el => columnRefs.current[column.id] = el} className="flex-shrink-0 w-[calc(100%-2rem)] sm:w-72 box-border">
                                     <SortableContext id={column.id} items={column.clients.map(c => c.chat_id)} strategy={verticalListSortingStrategy}>
-                                        <div className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-full">
+                                        <div className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-[calc(100vh-16rem)] md:h-[calc(100vh-12rem)]">
                                             <div className="flex items-center justify-between">
                                                 <h3 className="font-semibold text-sm md:text-base truncate">{column.name}</h3>
                                                 <Badge variant="secondary">{column.clients.length}</Badge>
                                             </div>
-                                            <div className="h-[calc(100vh-22rem)] overflow-y-scroll pr-2">
+                                            <div className="h-full overflow-y-scroll scrollbar-width-auto touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
                                                 <div className="space-y-3">
                                                     {column.clients.length > 0 ? (
                                                         column.clients.map((client) => (
