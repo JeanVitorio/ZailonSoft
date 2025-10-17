@@ -168,7 +168,9 @@ const HomePage = () => {
                         <Link to="/" className="text-2xl font-bold tracking-wider text-amber-400">
                             Zailon<span className="text-white">Soft</span>
                         </Link>
-                        <nav className={`${isMenuOpen ? 'active' : ''} md:flex flex-col md:flex-row absolute md:static top-16 left-0 w-full md:w-auto bg-zinc-900/95 md:bg-transparent items-center gap-4 md:gap-6 p-4 md:p-0`}>
+
+                        {/* CORREÇÃO AQUI: As classes foram ajustadas para o menu mobile funcionar corretamente */}
+                        <nav className={`${isMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row absolute md:static top-16 left-0 w-full md:w-auto bg-zinc-900/95 md:bg-transparent items-center gap-4 md:gap-6 p-4 md:p-0`}>
                             <a href="#solucao" onClick={closeMenu} className="text-zinc-300 hover:text-amber-400 transition-colors">A Solução</a>
                             <a href="#crm" onClick={closeMenu} className="text-zinc-300 hover:text-amber-400 transition-colors">Como Funciona</a>
                             <a href="#planos" onClick={closeMenu} className="text-zinc-300 hover:text-amber-400 transition-colors">Preços</a>
@@ -191,6 +193,7 @@ const HomePage = () => {
                                 </>
                             )}
                         </nav>
+                        
                         <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-amber-400 focus:outline-none" aria-label="Toggle Menu">
                             {isMenuOpen ? <Feather.X size={30} /> : <Feather.Menu size={30} />}
                         </button>
@@ -234,12 +237,12 @@ const HomePage = () => {
                                             src="/video-formulario.mp4" 
                                             alt="Vídeo do Formulário de proposta ZailonSoft" 
                                             className="rounded-xl shadow-2xl shadow-black/50 w-full ring-1 ring-white/10"
-                                            controls={false} // Remover controles padrão para um visual mais limpo
+                                            controls={false}
                                             loop 
                                             muted 
-                                            autoplay 
+                                            autoPlay 
                                             playsInline
-                                            preload="auto" // Precarregar o vídeo
+                                            preload="auto"
                                         />
                                     </motion.div>
                                     <motion.div variants={fadeInUp}>
@@ -263,7 +266,7 @@ const HomePage = () => {
                                             controls={false} 
                                             loop 
                                             muted 
-                                            autoplay 
+                                            autoPlay 
                                             playsInline
                                             preload="auto"
                                         />
@@ -289,7 +292,7 @@ const HomePage = () => {
                                             controls={false} 
                                             loop 
                                             muted 
-                                            autoplay 
+                                            autoPlay 
                                             playsInline
                                             preload="auto"
                                         />
@@ -325,7 +328,7 @@ const HomePage = () => {
                                         controls={false} 
                                         loop 
                                         muted 
-                                        autoplay 
+                                        autoPlay 
                                         playsInline
                                         preload="auto"
                                     />
