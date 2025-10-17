@@ -15,7 +15,7 @@ import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 
 // NOVAS ROTAS PÚBLICAS
-import { PublicCarFormPage } from './pages/PublicCarFormPage'; 
+import PublicCarFormPage from './pages/PublicCarFormPage'; 
 import { PublicVehicleCatalogPage } from './pages/PublicVehicleCatalogPage';
 
 // Criamos o queryClient aqui
