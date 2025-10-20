@@ -169,11 +169,11 @@ const renderFilePreview = (docPath, isEditing, onRemove) => {
     const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(docPath);
     return (
         <div key={docPath} className="relative group">
-            <a href={docPath} target="_blank" rel="noopener noreferrer" className="block w-full h-20 rounded overflow-hidden bg-zinc-100">
+            <a href={docPath} target="_blank" rel="noopener noreferrer" className="block w-full h-32 rounded overflow-hidden bg-zinc-100 flex items-center justify-center">
                 {isImage ? (
-                    <img src={docPath} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={docPath} alt="Preview" className="w-full h-full object-contain" />
                 ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-center text-zinc-500 hover:bg-zinc-200">
+                    <div className="w-full h-full flex flex-col items-center justify-center text-center text-zinc-500 hover:bg-zinc-200 p-2">
                         <FileIcon className="h-8 w-8" />
                         <span className="text-xs mt-1 px-1 break-all">{docPath.split('/').pop().split('?')[0].slice(37)}</span>
                     </div>
@@ -202,7 +202,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
     const [removedTradeInPhotos, setRemovedTradeInPhotos] = useState([]);
     const docInputRef = useRef(null);
     const tradeInInputRef = useRef(null);
-    const pdfContentRef = useRef(null);
+    const pdfInfoRef = useRef(null); // Ref para o conteúdo de texto do PDF
     const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
     const [activeSection, setActiveSection] = useState('perfil');
 
@@ -247,7 +247,6 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
     const hasFinancing = (dealType === 'comum' && formData.bot_data?.payment_method === 'financiamento') || 
                          (hasTradeIn && formData.bot_data?.trade_in_car?.difference_payment_method?.type === 'financiamento');
 
-    // Mover useMemo para o escopo do componente
     const vehicleSearchResults = useMemo(() => {
         const botData = formData.bot_data || {};
         const interestedVehicleIds = new Set((botData.interested_vehicles || []).map(v => v.id));
@@ -255,21 +254,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         if (!vehicleSearch) return availableCars;
         return availableCars.filter(car => car.nome.toLowerCase().includes(vehicleSearch.toLowerCase()));
     }, [vehicleSearch, allCars, formData.bot_data?.interested_vehicles]);
-
-    const calculations = useMemo(() => {
-        const botData = formData.bot_data || {};
-        const interestedVehicles = botData.interested_vehicles || [];
-        const entryValue = hasFinancing ? parseCurrency(botData.financing_details?.entry) : 0;
-        const tradeInValue = hasTradeIn ? parseCurrency(botData.trade_in_car?.value) : 0;
-        const financingAmount = (car) => {
-            const carPrice = parseCurrency(car.preco);
-            return Math.max(0, carPrice - entryValue - tradeInValue);
-        };
-        const totalCarPrice = interestedVehicles.reduce((sum, car) => sum + parseCurrency(car.preco), 0);
-        const tradeDifference = totalCarPrice - tradeInValue;
-        return { financingAmount, tradeDifference };
-    }, [formData, hasFinancing, hasTradeIn]);
-
+    
     const navSections = useMemo(() => [
         { id: 'perfil', label: 'Perfil', icon: User, condition: () => true },
         { id: 'interesse', label: 'Interesses', icon: CarIcon, condition: () => true },
@@ -277,8 +262,6 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         { id: 'financiamento', label: 'Financiamento', icon: Landmark, condition: () => hasFinancing },
         { id: 'visita', label: 'Visita', icon: Calendar, condition: () => hasVisit },
         { id: 'documentos', label: 'Documentos', icon: FileIcon, condition: () => true },
-        { id: 'anotacoes', label: 'Anotações', icon: StickyNote, condition: () => true },
-        { id: 'historico', label: 'Histórico', icon: MessageSquare, condition: () => true },
     ].filter(section => section.condition()), [hasTradeIn, hasFinancing, hasVisit]);
 
     const handleDeepChange = (path, value) => setFormData(produce(draft => {
@@ -373,37 +356,93 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
     };
 
     const handleDownloadPdf = async () => {
-        const content = pdfContentRef.current;
-        if (!content) return;
-
+        const infoContent = pdfInfoRef.current;
+        if (!infoContent) return;
+    
         setIsDownloadingPdf(true);
         toast({ title: "Gerando PDF...", description: "Por favor, aguarde um momento." });
-
+    
         try {
-            const canvas = await html2canvas(content, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-            const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfPageHeight = pdf.internal.pageSize.getHeight();
-            const imgWidth = canvas.width;
-            const imgHeight = canvas.height;
-            const ratio = imgWidth / imgHeight;
-            const scaledImgWidth = pdfWidth;
-            const scaledImgHeight = scaledImgWidth / ratio;
-            let heightLeft = scaledImgHeight;
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const margin = 15;
+            const contentWidth = pdfWidth - margin * 2;
+    
+            // --- PARTE 1: Informações do Cliente ---
+            const canvas = await html2canvas(infoContent, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+            const imgData = canvas.toDataURL('image/png');
+            const canvasRatio = canvas.width / canvas.height;
+            const infoImgHeight = pdfWidth / canvasRatio;
+            
+            let heightLeft = infoImgHeight;
             let position = 0;
-
-            pdf.addImage(imgData, 'PNG', 0, position, scaledImgWidth, scaledImgHeight);
-            heightLeft -= pdfPageHeight;
-
+    
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, infoImgHeight);
+            heightLeft -= pdfHeight;
+    
             while (heightLeft > 0) {
-                position -= pdfPageHeight;
+                position -= pdfHeight;
                 pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, scaledImgWidth, scaledImgHeight);
-                heightLeft -= pdfPageHeight;
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, infoImgHeight);
+                heightLeft -= pdfHeight;
+            }
+    
+            // --- PARTE 2: Imagens ---
+            const docUrls = (formData.documents || []).filter(doc => !removedDocs.includes(doc) && /\.(jpg|jpeg|png|gif|webp)$/i.test(doc));
+            const tradeInUrls = (formData.bot_data?.trade_in_car?.photos || []).filter(p => !removedTradeInPhotos.includes(p));
+    
+            if (docUrls.length > 0 || tradeInUrls.length > 0) {
+                pdf.addPage();
+                let yPosition = margin;
+    
+                const addImageToPage = (imgUrl) => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.crossOrigin = 'Anonymous';
+                        img.onload = () => {
+                            const imgRatio = img.width / img.height;
+                            const imgHeight = contentWidth / imgRatio;
+                            if (yPosition + imgHeight > pdfHeight - margin) {
+                                pdf.addPage();
+                                yPosition = margin;
+                            }
+                            pdf.addImage(img, 'PNG', margin, yPosition, contentWidth, imgHeight);
+                            yPosition += imgHeight + 5; // Espaçamento de 5mm
+                            resolve(yPosition);
+                        };
+                        img.onerror = (err) => reject(err);
+                        img.src = imgUrl;
+                    });
+                };
+    
+                // Processar Documentos
+                if (docUrls.length > 0) {
+                    pdf.setFontSize(18);
+                    pdf.text("Documentos do Cliente", margin, yPosition);
+                    yPosition += 15;
+                    for (const url of docUrls) {
+                        yPosition = await addImageToPage(url);
+                    }
+                }
+    
+                // Processar Fotos da Troca
+                if (tradeInUrls.length > 0) {
+                    if (yPosition + 30 > pdfHeight - margin) { // Heurística para evitar título órfão
+                         pdf.addPage();
+                         yPosition = margin;
+                    }
+                    pdf.setFontSize(18);
+                    pdf.text("Fotos do Veículo de Troca", margin, yPosition);
+                    yPosition += 15;
+                    for (const url of tradeInUrls) {
+                        yPosition = await addImageToPage(url);
+                    }
+                }
             }
             
             pdf.save(`Relatorio_${formData.name || 'Cliente'}.pdf`);
+    
         } catch (error) {
             console.error("Erro ao gerar PDF:", error);
             toast({ title: "Erro", description: "Não foi possível gerar o PDF.", variant: "destructive" });
@@ -423,77 +462,39 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         handleDeepChange('bot_data.interested_vehicles', currentVehicles.filter(v => v.id !== carId));
     };
 
-    const renderSectionContent = (sectionId) => {
+    const renderSectionContent = (sectionId, isForPdf = false) => {
         const botData = formData.bot_data || {};
-        const installmentOptions = [12, 24, 36, 48, 60];
         const visibleDocuments = (formData.documents || []).filter(doc => !removedDocs.includes(doc));
         const tradeInPhotos = (botData.trade_in_car?.photos || []).filter(p => !removedTradeInPhotos.includes(p));
 
         switch (sectionId) {
             case 'perfil':
-                return (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Perfil do Cliente</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-1 text-sm">
-                            <InfoRow label="Nome">
-                                {isEditing ? (
-                                    <Input value={formData.name || ''} onChange={e => handleDeepChange('name', e.target.value)} />
-                                ) : (
-                                    formData.name || 'N/A'
-                                )}
-                            </InfoRow>
-                            <InfoRow label="Telefone">
-                                {isEditing ? (
-                                    <Input value={formData.phone || ''} onChange={e => handleDeepChange('phone', e.target.value)} />
-                                ) : (
-                                    formData.phone || 'N/A'
-                                )}
-                            </InfoRow>
-                            <InfoRow label="CPF">
-                                {isEditing ? (
-                                    <Input value={formData.cpf || ''} onChange={e => handleDeepChange('cpf', e.target.value)} />
-                                ) : (
-                                    formData.cpf || 'N/A'
-                                )}
-                            </InfoRow>
-                            <InfoRow label="Ocupação">
-                                {isEditing ? (
-                                    <Input value={formData.job || ''} onChange={e => handleDeepChange('job', e.target.value)} />
-                                ) : (
-                                    formData.job || 'N/A'
-                                )}
-                            </InfoRow>
-                            <InfoRow label="Status no Funil">
-                                {isEditing ? (
-                                    <Select value={formData.state || ''} onValueChange={handleStatusChange}>
-                                        <SelectTrigger><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            {KANBAN_COLUMNS.map(col => (
-                                                <SelectItem key={col.id} value={col.id}>{col.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                ) : (
-                                    KANBAN_COLUMNS.find(c => c.id === formData.state)?.name || 'Não informado'
-                                )}
-                            </InfoRow>
-                        </CardContent>
-                    </Card>
+                return ( <Card>
+                    <CardHeader><CardTitle className="text-base">Perfil do Cliente</CardTitle></CardHeader>
+                    <CardContent className="space-y-1 text-sm">
+                        <InfoRow label="Nome">{isEditing && !isForPdf ? <Input value={formData.name || ''} onChange={e => handleDeepChange('name', e.target.value)} /> : formData.name || 'N/A'}</InfoRow>
+                        <InfoRow label="Telefone">{isEditing && !isForPdf ? <Input value={formData.phone || ''} onChange={e => handleDeepChange('phone', e.target.value)} /> : formData.phone || 'N/A'}</InfoRow>
+                        <InfoRow label="CPF">{isEditing && !isForPdf ? <Input value={formData.cpf || ''} onChange={e => handleDeepChange('cpf', e.target.value)} /> : formData.cpf || 'N/A'}</InfoRow>
+                        <InfoRow label="Ocupação">{isEditing && !isForPdf ? <Input value={formData.job || ''} onChange={e => handleDeepChange('job', e.target.value)} /> : formData.job || 'N/A'}</InfoRow>
+                        <InfoRow label="Status no Funil">{isEditing && !isForPdf ? (
+                            <Select value={formData.state || ''} onValueChange={handleStatusChange}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>{KANBAN_COLUMNS.map(col => (<SelectItem key={col.id} value={col.id}>{col.name}</SelectItem>))}</SelectContent>
+                            </Select>
+                        ) : KANBAN_COLUMNS.find(c => c.id === formData.state)?.name || 'Não informado'}</InfoRow>
+                    </CardContent>
+                </Card>
                 );
             case 'interesse':
                 return (
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Veículos de Interesse</CardTitle>
-                        </CardHeader>
+                        <CardHeader><CardTitle className="text-base">Veículos de Interesse</CardTitle></CardHeader>
                         <CardContent>
-                            {isEditing ? (
+                            {isEditing && !isForPdf ? (
                                 <div className="space-y-2">
                                     <div className="flex flex-wrap gap-2 min-h-[24px]">
                                         {(botData.interested_vehicles || []).map(v => (
-                                            <Badge key={v.id} variant="secondary" className="text-base py-1 pr-1">
+                                            <Badge key={v.id} variant="secondary" className="text-base py-1 pr-1 h-auto">
                                                 {v.nome}
                                                 <button onClick={() => removeInterestVehicle(v.id)} className="ml-2 rounded-full hover:bg-destructive/80 p-0.5">
                                                     <X className="h-3 w-3" />
@@ -502,226 +503,101 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                                         ))}
                                     </div>
                                     <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Input placeholder="Pesquisar e adicionar veículo..." value={vehicleSearch} onChange={e => setVehicleSearch(e.target.value)} />
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                            {isLoadingCars ? (
-                                                <div className="p-4 text-center text-sm">Carregando...</div>
-                                            ) : vehicleSearchResults.length > 0 ? (
-                                                <ScrollArea className="h-[200px]">
-                                                    {vehicleSearchResults.map(car => (
-                                                        <div key={car.id} onClick={() => addInterestVehicle(car)} className="p-2 hover:bg-accent cursor-pointer">
-                                                            {car.nome} - {toBRL(car.preco)}
-                                                        </div>
-                                                    ))}
-                                                </ScrollArea>
-                                            ) : (
-                                                <div className="p-4 text-center text-sm">Nenhum veículo encontrado.</div>
-                                            )}
-                                        </PopoverContent>
+                                        <PopoverTrigger asChild><Input placeholder="Pesquisar e adicionar veículo..." value={vehicleSearch} onChange={e => setVehicleSearch(e.target.value)} /></PopoverTrigger>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">{isLoadingCars ? <div className="p-4 text-center text-sm">Carregando...</div> : vehicleSearchResults.length > 0 ? (
+                                            <ScrollArea className="h-[200px]">{vehicleSearchResults.map(car => (<div key={car.id} onClick={() => addInterestVehicle(car)} className="p-2 hover:bg-accent cursor-pointer">{car.nome} - {toBRL(car.preco)}</div>))}</ScrollArea>
+                                        ) : <div className="p-4 text-center text-sm">Nenhum veículo encontrado.</div>}</PopoverContent>
                                     </Popover>
                                 </div>
-                            ) : (
-                                botData.interested_vehicles?.length > 0 ? (
-                                    <ul className="list-disc pl-5 text-sm text-muted-foreground">
-                                        {botData.interested_vehicles.map(v => (
-                                            <li key={v.id}>{v.nome}</li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p className="text-sm text-muted-foreground">Nenhum</p>
-                                )
-                            )}
+                            ) : botData.interested_vehicles?.length > 0 ? (
+                                <div className="space-y-4">
+                                    {(botData.interested_vehicles || []).map(v => (
+                                        <div key={v.id} className="p-3 border rounded-md">
+                                            <h4 className="font-semibold text-base mb-2">{v.nome}</h4>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                                                <div className="text-muted-foreground">Ano:</div><div>{v.ano || 'N/A'}</div>
+                                                <div className="text-muted-foreground">Preço:</div><div>{toBRL(v.preco) || 'N/A'}</div>
+                                                <div className="text-muted-foreground">KM:</div><div>{v.km ? new Intl.NumberFormat('pt-BR').format(v.km) : 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : <p className="text-sm text-muted-foreground">Nenhum veículo de interesse.</p>}
                         </CardContent>
                     </Card>
                 );
             case 'troca':
                 return (
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Carro para Troca</CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-sm">
-                                <InfoRow label="Modelo">
-                                    {isEditing ? (
-                                        <Input value={botData.trade_in_car?.model || ''} onChange={e => handleDeepChange('bot_data.trade_in_car.model', e.target.value)} />
-                                    ) : (
-                                        botData.trade_in_car?.model || 'N/A'
-                                    )}
-                                </InfoRow>
-                                <InfoRow label="Ano">
-                                    {isEditing ? (
-                                        <Input value={botData.trade_in_car?.year || ''} onChange={e => handleYearChange(e, 'bot_data.trade_in_car.year')} placeholder="AAAA" />
-                                    ) : (
-                                        botData.trade_in_car?.year || 'N/A'
-                                    )}
-                                </InfoRow>
-                                <InfoRow label="Valor Desejado">
-                                    {isEditing ? (
-                                        <Input value={botData.trade_in_car?.value || ''} onChange={e => handleCurrencyChange(e, 'bot_data.trade_in_car.value')} placeholder="R$ 0,00" inputMode="numeric" />
-                                    ) : (
-                                        toBRL(botData.trade_in_car?.value) || 'N/A'
-                                    )}
-                                </InfoRow>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Fotos da Troca</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                    {tradeInPhotos.map(docPath => renderFilePreview(docPath, isEditing, () => removeExistingFile(docPath, 'tradeInPhotos')))}
-                                    {newTradeInPhotos.map(file => (
-                                        <div key={file.preview} className="relative group">
-                                            <img src={file.preview} alt={file.file.name} className="w-full h-20 object-cover rounded border-2 border-dashed border-amber-500" />
-                                            {isEditing && (
-                                                <Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'tradeInPhotos')}>
-                                                    <X className="h-4 w-4" />
-                                                </Button>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                                {isEditing && (
-                                    <>
-                                        <input type="file" multiple ref={tradeInInputRef} onChange={e => handleFileSelect(e, 'tradeInPhotos')} className="hidden" />
-                                        <Button variant="outline" className="w-full mt-4" onClick={() => tradeInInputRef.current.click()}>
-                                            <Upload className="h-4 w-4 mr-2" /> Adicionar Fotos
-                                        </Button>
-                                    </>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
+                    <Card>
+                        <CardHeader><CardTitle className="text-base">Carro para Troca</CardTitle></CardHeader>
+                        <CardContent className="text-sm">
+                             <InfoRow label="Modelo">{isEditing && !isForPdf ? <Input value={botData.trade_in_car?.model || ''} onChange={e => handleDeepChange('bot_data.trade_in_car.model', e.target.value)} /> : botData.trade_in_car?.model || 'N/A'}</InfoRow>
+                             <InfoRow label="Ano">{isEditing && !isForPdf ? <Input value={botData.trade_in_car?.year || ''} onChange={e => handleYearChange(e, 'bot_data.trade_in_car.year')} placeholder="AAAA" /> : botData.trade_in_car?.year || 'N/A'}</InfoRow>
+                             <InfoRow label="Valor Desejado">{isEditing && !isForPdf ? <Input value={botData.trade_in_car?.value || ''} onChange={e => handleCurrencyChange(e, 'bot_data.trade_in_car.value')} placeholder="R$ 0,00" inputMode="numeric" /> : toBRL(botData.trade_in_car?.value) || 'N/A'}</InfoRow>
+                            {!isForPdf && (
+                                <>
+                                    <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] mt-4">
+                                        {tradeInPhotos.map(docPath => renderFilePreview(docPath, isEditing, () => removeExistingFile(docPath, 'tradeInPhotos')))}
+                                        {newTradeInPhotos.map(file => (
+                                            <div key={file.preview} className="relative group">
+                                                <img src={file.preview} alt={file.file.name} className="w-full h-32 object-contain rounded border-2 border-dashed border-amber-500" />
+                                                {isEditing && (<Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'tradeInPhotos')}><X className="h-4 w-4" /></Button>)}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {isEditing && (<><input type="file" multiple ref={tradeInInputRef} onChange={e => handleFileSelect(e, 'tradeInPhotos')} className="hidden" /><Button variant="outline" className="w-full mt-4" onClick={() => tradeInInputRef.current.click()}><Upload className="h-4 w-4 mr-2" /> Adicionar Fotos</Button></>)}
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
                 );
             case 'financiamento':
                 return (
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Detalhes de Financiamento</CardTitle>
-                        </CardHeader>
+                        <CardHeader><CardTitle className="text-base">Detalhes de Financiamento</CardTitle></CardHeader>
                         <CardContent className="text-sm">
-                            <InfoRow label="Valor da Entrada">
-                                {isEditing ? (
-                                    <Input value={botData.financing_details?.entry || ''} onChange={e => handleCurrencyChange(e, 'bot_data.financing_details.entry')} placeholder="R$ 0,00" inputMode="numeric" />
-                                ) : (
-                                    toBRL(botData.financing_details?.entry) || 'N/A'
-                                )}
-                            </InfoRow>
-                            <InfoRow label="Parcelas">
-                                {isEditing ? (
-                                    <Select value={String(botData.financing_details?.parcels || '12')} onValueChange={v => handleDeepChange('bot_data.financing_details.parcels', v)}>
-                                        <SelectTrigger><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            {[12, 24, 36, 48, 60].map(opt => (
-                                                <SelectItem key={opt} value={String(opt)}>{opt}x</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                ) : (
-                                    `${botData.financing_details?.parcels || 'N/A'}x`
-                                )}
-                            </InfoRow>
+                            <InfoRow label="Valor da Entrada">{isEditing && !isForPdf ? <Input value={botData.financing_details?.entry || ''} onChange={e => handleCurrencyChange(e, 'bot_data.financing_details.entry')} placeholder="R$ 0,00" inputMode="numeric" /> : toBRL(botData.financing_details?.entry) || 'N/A'}</InfoRow>
+                            <InfoRow label="Parcelas">{isEditing && !isForPdf ? (
+                                <Select value={String(botData.financing_details?.parcels || '12')} onValueChange={v => handleDeepChange('bot_data.financing_details.parcels', v)}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>{[12, 24, 36, 48, 60].map(opt => (<SelectItem key={opt} value={String(opt)}>{opt}x</SelectItem>))}</SelectContent>
+                                </Select>
+                            ) : `${botData.financing_details?.parcels || 'N/A'}x`}</InfoRow>
                         </CardContent>
                     </Card>
                 );
             case 'visita':
                 return (
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Agendamento de Visita</CardTitle>
-                        </CardHeader>
+                        <CardHeader><CardTitle className="text-base">Agendamento de Visita</CardTitle></CardHeader>
                         <CardContent className="text-sm">
-                            <InfoRow label="Data">
-                                {isEditing ? (
-                                    <Input type="date" value={botData.visit_details?.day || ''} onChange={e => handleDeepChange('bot_data.visit_details.day', e.target.value)} />
-                                ) : (
-                                    botData.visit_details?.day || 'N/A'
-                                )}
-                            </InfoRow>
-                            <InfoRow label="Horário">
-                                {isEditing ? (
-                                    <Input type="time" value={botData.visit_details?.time || ''} onChange={e => handleDeepChange('bot_data.visit_details.time', e.target.value)} />
-                                ) : (
-                                    botData.visit_details?.time || 'N/A'
-                                )}
-                            </InfoRow>
+                            <InfoRow label="Data">{isEditing && !isForPdf ? <Input type="date" value={botData.visit_details?.day || ''} onChange={e => handleDeepChange('bot_data.visit_details.day', e.target.value)} /> : botData.visit_details?.day || 'N/A'}</InfoRow>
+                            <InfoRow label="Horário">{isEditing && !isForPdf ? <Input type="time" value={botData.visit_details?.time || ''} onChange={e => handleDeepChange('bot_data.visit_details.time', e.target.value)} /> : botData.visit_details?.time || 'N/A'}</InfoRow>
                         </CardContent>
                     </Card>
                 );
             case 'documentos':
+                 if (isForPdf) return null; // Não renderiza esta seção no modo PDF, pois as imagens são tratadas separadamente
                 return (
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Documentos</CardTitle>
-                        </CardHeader>
+                        <CardHeader><CardTitle className="text-base">Documentos</CardTitle></CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(8rem,1fr))]">
                                 {visibleDocuments.map(docPath => renderFilePreview(docPath, isEditing, () => removeExistingFile(docPath, 'documents')))}
                                 {newDocs.map(file => (
                                     <div key={file.preview} className="relative group">
-                                        <div className="w-full h-20 flex items-center justify-center rounded border-2 border-dashed border-amber-500">
-                                            <FileIcon className="h-10 w-10 text-amber-500" />
+                                        <div className="w-full h-32 flex items-center justify-center rounded border-2 border-dashed border-amber-500 bg-amber-500/10">
+                                            <img src={file.preview} alt={file.file.name} className="w-full h-full object-contain" />
                                         </div>
-                                        {isEditing && (
-                                            <Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'documents')}>
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        )}
+                                        {isEditing && (<Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'documents')}><X className="h-4 w-4" /></Button>)}
                                     </div>
                                 ))}
                             </div>
-                            {isEditing && (
-                                <>
-                                    <input type="file" multiple ref={docInputRef} onChange={e => handleFileSelect(e, 'documents')} className="hidden" />
-                                    <Button variant="outline" className="w-full mt-4" onClick={() => docInputRef.current.click()}>
-                                        <Upload className="h-4 w-4 mr-2" /> Adicionar Documentos
-                                    </Button>
-                                </>
-                            )}
+                            {isEditing && (<><input type="file" multiple ref={docInputRef} onChange={e => handleFileSelect(e, 'documents')} className="hidden" /><Button variant="outline" className="w-full mt-4" onClick={() => docInputRef.current.click()}><Upload className="h-4 w-4 mr-2" /> Adicionar Documentos</Button></>)}
                         </CardContent>
                     </Card>
                 );
-            case 'anotacoes':
-                return (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Anotações</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {isEditing ? (
-                                <Textarea className="min-h-[200px]" value={botData.notes || ''} onChange={e => handleDeepChange('bot_data.notes', e.target.value)} />
-                            ) : (
-                                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{botData.notes || 'Nenhuma.'}</p>
-                            )}
-                        </CardContent>
-                    </Card>
-                );
-            case 'historico':
-                return (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Histórico</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ScrollArea className="h-60">
-                                <div className="space-y-3 text-xs pr-4">
-                                    {(botData.history || []).slice().reverse().map((item, index) => (
-                                        <div key={index} className="border-l-2 pl-3">
-                                            <p className="font-semibold">{item.updated_data?.changes || Object.values(item.updated_data)[0]}</p>
-                                            <p className="text-muted-foreground">{item.timestamp}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </ScrollArea>
-                        </CardContent>
-                    </Card>
-                );
-            default:
-                return <div>Selecione uma seção</div>;
+            default: return <div>Selecione uma seção</div>;
         }
     };
 
@@ -736,30 +612,16 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         <div className="flex items-center gap-2">
                             {!isEditing && (
                                 <Button size="sm" variant="outline" onClick={handleDownloadPdf} disabled={isDownloadingPdf}>
-                                    {isDownloadingPdf ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Download className="h-4 w-4 mr-2" /> Baixar PDF
-                                        </>
-                                    )}
+                                    {isDownloadingPdf ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando...</>) : (<><Download className="h-4 w-4 mr-2" /> Baixar PDF</>)}
                                 </Button>
                             )}
                             {isEditing ? (
                                 <>
-                                    <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending} className="bg-amber-500 hover:bg-amber-600 text-white">
-                                        <Save className="h-4 w-4 mr-2" /> Salvar
-                                    </Button>
-                                    <Button size="sm" variant="outline" onClick={() => setIsEditing(false)} disabled={updateMutation.isPending}>
-                                        <XCircle className="h-4 w-4 mr-2" /> Cancelar
-                                    </Button>
+                                    <Button size="sm" onClick={handleSave} disabled={updateMutation.isPending} className="bg-amber-500 hover:bg-amber-600 text-white"><Save className="h-4 w-4 mr-2" /> Salvar</Button>
+                                    <Button size="sm" variant="outline" onClick={() => setIsEditing(false)} disabled={updateMutation.isPending}><XCircle className="h-4 w-4 mr-2" /> Cancelar</Button>
                                 </>
                             ) : (
-                                <Button size="sm" onClick={() => setIsEditing(true)}>
-                                    <Edit className="h-4 w-4 mr-2" /> Editar
-                                </Button>
+                                <Button size="sm" onClick={() => setIsEditing(true)}><Edit className="h-4 w-4 mr-2" /> Editar</Button>
                             )}
                         </div>
                     </div>
@@ -767,50 +629,33 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                 <div className="p-4 border-b block md:hidden">
                     <Select value={activeSection} onValueChange={setActiveSection}>
                         <SelectTrigger><SelectValue placeholder="Navegar para uma seção..." /></SelectTrigger>
-                        <SelectContent>
-                            {navSections.map(section => (
-                                <SelectItem key={section.id} value={section.id}>
-                                    <div className="flex items-center gap-2">
-                                        <section.icon className="h-4 w-4" />
-                                        <span>{section.label}</span>
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
+                        <SelectContent>{navSections.map(section => (<SelectItem key={section.id} value={section.id}><div className="flex items-center gap-2"><section.icon className="h-4 w-4" /><span>{section.label}</span></div></SelectItem>))}</SelectContent>
                     </Select>
                 </div>
                 <div className="flex-1 flex min-h-0">
                     <aside className="border-r bg-muted/30 hidden md:block w-[250px] flex-shrink-0">
-                        <ScrollArea className="h-full py-4">
-                            <nav className="px-4 space-y-1">
-                                {navSections.map(section => (
-                                    <Button
-                                        key={section.id}
-                                        variant={activeSection === section.id ? 'secondary' : 'ghost'}
-                                        className="w-full justify-start"
-                                        onClick={() => setActiveSection(section.id)}
-                                    >
-                                        <section.icon className="mr-2 h-4 w-4" />
-                                        {section.label}
-                                    </Button>
-                                ))}
-                            </nav>
-                        </ScrollArea>
+                        <ScrollArea className="h-full py-4"><nav className="px-4 space-y-1">{navSections.map(section => (<Button key={section.id} variant={activeSection === section.id ? 'secondary' : 'ghost'} className="w-full justify-start" onClick={() => setActiveSection(section.id)}><section.icon className="mr-2 h-4 w-4" />{section.label}</Button>))}</nav></ScrollArea>
                     </aside>
                     <main className="flex-1 min-w-0">
                         <ScrollArea className="h-full">
-                            <div className="p-6 bg-white space-y-6">
+                            <div className="p-6 space-y-6">
                                 {renderSectionContent(activeSection)}
                             </div>
                         </ScrollArea>
                     </main>
                 </div>
-                <div ref={pdfContentRef} className="absolute -left-[9999px] top-0 bg-white space-y-6 p-6 w-[800px]">
-                    <h1 className="text-2xl font-bold">{formData.name || "Detalhes do Cliente"}</h1>
-                    {navSections.map(section => (
-                        <div key={section.id} className="space-y-4">
-                            <h2 className="text-xl font-semibold">{section.label}</h2>
-                            {renderSectionContent(section.id)}
+
+                {/* Div oculta para gerar o conteúdo de INFORMAÇÕES do PDF */}
+                <div ref={pdfInfoRef} className="absolute -left-[9999px] top-0 bg-white space-y-8 p-12 w-[800px] text-black">
+                    <div className="text-center mb-8 border-b pb-4">
+                        <h1 className="text-3xl font-bold">{formData.name || "Relatório do Cliente"}</h1>
+                        <p className="text-sm text-gray-500 mt-1">Gerado em: {new Date().toLocaleString('pt-BR')}</p>
+                    </div>
+                    {navSections
+                        .filter(section => section.id !== 'documentos' && section.id !== 'troca')
+                        .map(section => (
+                        <div key={`pdf-info-${section.id}`} style={{ breakInside: 'avoid' }}>
+                             {renderSectionContent(section.id, true)}
                         </div>
                     ))}
                 </div>
@@ -818,6 +663,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         </Dialog>
     );
 }
+
 
 // --- Componente Principal do CRM ---
 function CRMKanbanContent() {
@@ -975,12 +821,8 @@ function CRMKanbanContent() {
                                         </SortableContext>
                                         {isMobile && (
                                             <div className="absolute top-0 right-0 h-full flex flex-col justify-between py-12 md:hidden">
-                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScrollColumn(column.id, 'up')}>
-                                                    <ChevronUp className="h-5 w-5" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScrollColumn(column.id, 'down')}>
-                                                    <ChevronDown className="h-5 w-5" />
-                                                </Button>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScrollColumn(column.id, 'up')}><ChevronUp className="h-5 w-5" /></Button>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScrollColumn(column.id, 'down')}><ChevronDown className="h-5 w-5" /></Button>
                                             </div>
                                         )}
                                     </div>
@@ -994,13 +836,9 @@ function CRMKanbanContent() {
                 </DndContext>
                 {isMobile && columns.length > 0 && (
                     <div className="flex justify-between items-center mt-4">
-                        <Button variant="ghost" disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>
-                            <ChevronLeft className="h-6 w-6" />
-                        </Button>
+                        <Button variant="ghost" disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}><ChevronLeft className="h-6 w-6" /></Button>
                         <span className="text-sm font-medium">{currentPage} / {columns.length}</span>
-                        <Button variant="ghost" disabled={currentPage === columns.length} onClick={() => handlePageChange(currentPage + 1)}>
-                            <ChevronRight className="h-6 w-6" />
-                        </Button>
+                        <Button variant="ghost" disabled={currentPage === columns.length} onClick={() => handlePageChange(currentPage + 1)}><ChevronRight className="h-6 w-6" /></Button>
                     </div>
                 )}
             </div>
