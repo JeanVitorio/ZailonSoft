@@ -242,10 +242,11 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
     }, [newDocs, newTradeInPhotos]);
 
     const dealType = formData.bot_data?.deal_type;
+    const paymentMethod = formData.bot_data?.payment_method; // <-- **CORREÇÃO 1: Buscar paymentMethod**
     const hasTradeIn = dealType === 'troca';
     const hasVisit = dealType === 'visita';
-    const hasFinancing = (dealType === 'comum' && formData.bot_data?.payment_method === 'financiamento') || 
-                         (hasTradeIn && formData.bot_data?.trade_in_car?.difference_payment_method?.type === 'financiamento');
+    // <-- **CORREÇÃO 2: Lógica de 'hasFinancing' ajustada**
+    const hasFinancing = (dealType === 'financiamento') || (hasTradeIn && paymentMethod === 'financiamento');
 
     const vehicleSearchResults = useMemo(() => {
         const botData = formData.bot_data || {};
@@ -652,7 +653,8 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         <p className="text-sm text-gray-500 mt-1">Gerado em: {new Date().toLocaleString('pt-BR')}</p>
                     </div>
                     {navSections
-                        .filter(section => section.id !== 'documentos' && section.id !== 'troca')
+                        // <-- **CORREÇÃO 3: Lógica do filtro do PDF ajustada para incluir 'troca'**
+                        .filter(section => section.id !== 'documentos') 
                         .map(section => (
                         <div key={`pdf-info-${section.id}`} style={{ breakInside: 'avoid' }}>
                              {renderSectionContent(section.id, true)}

@@ -10,9 +10,10 @@ import { Progress } from '@/components/ui/progress';
 
 // Importe os componentes e tipos necessários
 import {
-    StepPersonalData, StepFileUpload, StepPaymentType, StepFinancing, StepSummary,
+    StepPersonalData, StepFileUpload, StepPaymentType, StepFinancing,
     StepTradeDetails, StepVisitDetails,
     FormData, ClientPayload, Car, Files
+    // O 'StepSummary' foi removido daqui pois criamos uma versão local corrigida
 } from '../components/AddClient'; // Ajuste o caminho se necessário
 
 // Importe as funções da API
@@ -149,6 +150,100 @@ const StepDealType = ({ setDealType, nextStep }: { setDealType: (type: 'comum' |
     );
 };
 
+// --- [INÍCIO] COMPONENTE DE SUMMARY CORRIGIDO ---
+// (Substitui o 'StepSummary' importado que estava faltando informações)
+function StepSummary({ formData, files, dealType, paymentType }: { formData: FormData; files: Files; dealType: string; paymentType: string; }) {
+    const interestedCar = formData.interested_vehicles[0]; // Assumindo que sempre há um
+
+    const renderFinancingDetails = () => (
+        <>
+            <h4 className="font-semibold text-zinc-800 mt-2">Detalhes do Financiamento:</h4>
+            <p className="text-zinc-600">Entrada: <span className="font-medium">{formatCurrency(formData.financing_details.entry)}</span></p>
+            <p className="text-zinc-600">Parcelas: <span className="font-medium">{formData.financing_details.parcels}x</span></p>
+        </>
+    );
+
+    const renderTradeInDetails = () => (
+        <>
+            <h4 className="font-semibold text-zinc-800 mt-2">Veículo da Troca:</h4>
+            <p className="text-zinc-600">Modelo: <span className="font-medium">{formData.trade_in_car.model}</span></p>
+            <p className="text-zinc-600">Ano: <span className="font-medium">{formData.trade_in_car.year}</span></p>
+            <p className="text-zinc-600">Valor Desejado: <span className="font-medium">{formatCurrency(formData.trade_in_car.value)}</span></p>
+        </>
+    );
+
+    const renderVisitDetails = () => (
+         <>
+            <h4 className="font-semibold text-zinc-800 mt-2">Agendamento:</h4>
+            <p className="text-zinc-600">Data: <span className="font-medium">{formData.visit_details.day}</span></p>
+            <p className="text-zinc-600">Horário: <span className="font-medium">{formData.visit_details.time}</span></p>
+        </>
+    );
+
+    return (
+        <div className="space-y-6 bg-white border border-zinc-200 p-6 rounded-lg">
+            <h2 className="text-xl font-semibold text-zinc-900">Revise sua Proposta</h2>
+            
+            {/* Dados Pessoais */}
+            <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-amber-600">Seus Dados</h3>
+                <p className="text-zinc-600">Nome: <span className="font-medium">{formData.name}</span></p>
+                <p className="text-zinc-600">Telefone: <span className="font-medium">{formData.phone}</span></p>
+                <p className="text-zinc-600">CPF: <span className="font-medium">{formData.cpf}</span></p>
+                <p className="text-zinc-600">Profissão: <span className="font-medium">{formData.job}</span></p>
+            </div>
+
+            {/* Veículo de Interesse */}
+            {interestedCar && (
+                <div className="border-b pb-4">
+                    <h3 className="text-lg font-semibold text-amber-600">Veículo de Interesse</h3>
+                    <p className="text-zinc-600">Modelo: <span className="font-medium">{interestedCar.nome} ({interestedCar.ano})</span></p>
+                    <p className="text-zinc-600">Preço: <span className="font-medium">{formatCurrency(interestedCar.preco)}</span></p>
+                </div>
+            )}
+
+            {/* Detalhes da Negociação */}
+            <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-amber-600">Detalhes da Negociação</h3>
+                
+                {dealType === 'visita' && (
+                    <>
+                        <p className="text-zinc-600">Tipo: <span className="font-medium">Agendamento de Visita</span></p>
+                        {renderVisitDetails()}
+                    </>
+                )}
+                
+                {dealType === 'comum' && (
+                    <>
+                        <p className="text-zinc-600">Tipo: <span className="font-medium">Proposta de Compra</span></p>
+                        <p className="text-zinc-600">Pagamento: <span className="font-medium">{paymentType === 'a_vista' ? 'À Vista' : 'Financiamento'}</span></p>
+                        {paymentType === 'financiamento' && renderFinancingDetails()}
+                    </>
+                )}
+
+                {dealType === 'troca' && (
+                    <>
+                        <p className="text-zinc-600">Tipo: <span className="font-medium">Proposta de Troca</span></p>
+                        {renderTradeInDetails()}
+                        <h4 className="font-semibold text-zinc-800 mt-2">Pagamento da Diferença:</h4>
+                         <p className="text-zinc-600">Método: <span className="font-medium">{paymentType === 'a_vista' ? 'À Vista' : 'Financiamento'}</span></p>
+                        {paymentType === 'financiamento' && renderFinancingDetails()}
+                    </>
+                )}
+            </div>
+
+            {/* Arquivos */}
+            <div>
+                 <h3 className="text-lg font-semibold text-amber-600">Arquivos Enviados (Opcional)</h3>
+                 <p className="text-zinc-600">Documentos: <span className="font-medium">{files.documents.length > 0 ? `${files.documents.length} arquivo(s)` : 'Nenhum'}</span></p>
+                 <p className="text-zinc-600">Fotos da Troca: <span className="font-medium">{files.trade_in_photos.length > 0 ? `${files.trade_in_photos.length} arquivo(s)` : 'Nenhum'}</span></p>
+            </div>
+        </div>
+    );
+}
+// --- [FIM] COMPONENTE DE SUMMARY CORRIGIDO ---
+
+
 // --- ESTADO INICIAL DO FORMULÁRIO ---
 const initialFormData: FormData = {
     name: '', phone: '', cpf: '', job: '', state: 'inicial',
@@ -247,10 +342,6 @@ export function PublicCarFormPage() {
                 break;
             case 'documents':
                 // Validação de documentos removida (não é mais obrigatório)
-                // if (files.documents.length === 0) {
-                //     setValidationError("É necessário enviar as fotos dos documentos (RG e CPF).");
-                //     return false;
-                // }
                 break;
             case 'trade_details':
                 if (!formData.trade_in_car.model.trim()) {
@@ -268,10 +359,6 @@ export function PublicCarFormPage() {
                 break;
             case 'trade_photos':
                  // Validação de fotos da troca removida (não é mais obrigatório)
-                // if (files.trade_in_photos.length === 0) {
-                //     setValidationError("É necessário enviar as fotos do carro de troca.");
-                //     return false;
-                // }
                 break;
             case 'financing':
                 const entryValue = parseCurrency(formData.financing_details.entry);
@@ -347,14 +434,19 @@ export function PublicCarFormPage() {
 
         const finalDealType = dealType === 'comum' ? paymentType : dealType;
 
+        // O payload aqui já estava correto, enviando todos os dados.
+        // Se o PDF está errado, o problema é no backend.
         const payload: ClientPayload = {
             name: formData.name, phone: formData.phone, cpf: formData.cpf, job: formData.job,
             state: 'proposta_web', deal_type: finalDealType, payment_method: paymentType,
-            interested_vehicles: formData.interested_vehicles, trade_in_car: formData.trade_in_car,
-            financing_details: formData.financing_details, visit_details: formData.visit_details,
+            interested_vehicles: formData.interested_vehicles,
+            trade_in_car: formData.trade_in_car, // Já estava sendo enviado
+            financing_details: formData.financing_details, // Já estava sendo enviado
+            visit_details: formData.visit_details, // Já estava sendo enviado
             bot_data: {
                 state: 'proposta_web', deal_type: finalDealType, interested_vehicles: formData.interested_vehicles,
-                financing_details: formData.financing_details, visit_details: formData.visit_details,
+                financing_details: formData.financing_details,
+                visit_details: formData.visit_details,
                 trade_in_car: { ...formData.trade_in_car, photos: [] },
             }
         };
@@ -378,7 +470,8 @@ export function PublicCarFormPage() {
             case 'payment_type': return <StepPaymentType setPaymentType={(type) => { setPaymentType(type); nextStep(); }} nextStep={nextStep} />;
             case 'troca_payment_type': return <StepPaymentType setPaymentType={(type) => { setPaymentType(type); nextStep(); }} nextStep={nextStep} title="Como será pago o valor restante (diferença)?" />;
             case 'financing': return <StepFinancing formData={formData} handleInputChange={handleInputChange} carPrice={parseCurrency(interestedCar.preco)} tradeInValue={tradeInValue} />;
-            case 'summary': return <StepSummary formData={formData} files={files} dealType={dealType} paymentType={paymentType} />;
+            // Esta linha agora usa o componente local 'StepSummary' que criamos acima
+            case 'summary': return <StepSummary formData={formData} files={files} dealType={dealType!} paymentType={paymentType!} />;
             default: return null;
         }
     };
