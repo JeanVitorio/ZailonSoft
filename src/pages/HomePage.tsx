@@ -5,6 +5,14 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import * as Feather from 'react-feather';
 import { useAuth } from '@/auth/AuthContext';
 
+// --- IMPORTAÇÃO DOS VÍDEOS ---
+// (Assumindo que eles estão na MESMA pasta que este arquivo HomePage.tsx)
+import formularioVideo from './Formulario.mp4';
+import relatorioVideo from './Relatorio.mp4';
+import crmVideo from './CRMKanban.mp4';
+import dashboardVideo from './dash.mp4'; // <- VÍDEO DO DASHBOARD ADICIONADO
+
+
 // Componente para pontos de luz animados (fundo dinâmico)
 const LightDotsBackground = () => {
     const [dots, setDots] = useState<any[]>([]);
@@ -30,15 +38,15 @@ const LightDotsBackground = () => {
             <style>
                 {`
                   @keyframes move-dots {
-                    from { transform: translateY(0px); }
-                    to { transform: translateY(-1500px); }
+                      from { transform: translateY(0px); }
+                      to { transform: translateY(-1500px); }
                   }
                   .light-dot {
-                    animation: move-dots linear infinite;
-                    position: absolute;
-                    background-color: #a1a1aa;
-                    border-radius: 50%;
-                    z-index: -20;
+                      animation: move-dots linear infinite;
+                      position: absolute;
+                      background-color: #a1a1aa;
+                      border-radius: 50%;
+                      z-index: -20;
                   }
                 `}
             </style>
@@ -153,7 +161,8 @@ const HomePage = () => {
                     <meta name="description" content="Otimize a captação de leads e propostas de financiamento com formulários inteligentes. Entregue negociações prontas para seus vendedores e acelere suas vendas." />
                     <meta property="og:title" content="ZailonSoft - Formulários Inteligentes para Concessionárias" />
                     <meta property="og:description" content="Capte propostas de financiamento completas, com dados de troca e informações do cliente, e gerencie tudo em um CRM visual." />
-                    <link rel="icon" type="image/png" href="/assets/favicon/favicon-32x32.png" sizes="32x32" />
+                    {/* Imagens na pasta PUBLIC ainda são chamadas com / */}
+                    <link rel="icon" type="image/x-icon" href="/Favicon.ico" /> 
                     <link rel="preload" href="/BannerCamaro.png" as="image" media="(min-width: 1024px)" />
                     <link rel="preload" href="/CamaroBranco.png" as="image" media="(max-width: 1023px)" />
                     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -169,7 +178,6 @@ const HomePage = () => {
                             Zailon<span className="text-white">Soft</span>
                         </Link>
 
-                        {/* CORREÇÃO AQUI: As classes foram ajustadas para o menu mobile funcionar corretamente */}
                         <nav className={`${isMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row absolute md:static top-16 left-0 w-full md:w-auto bg-zinc-900/95 md:bg-transparent items-center gap-4 md:gap-6 p-4 md:p-0`}>
                             <a href="#solucao" onClick={closeMenu} className="text-zinc-300 hover:text-amber-400 transition-colors">A Solução</a>
                             <a href="#crm" onClick={closeMenu} className="text-zinc-300 hover:text-amber-400 transition-colors">Como Funciona</a>
@@ -234,7 +242,7 @@ const HomePage = () => {
                                 <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid md:grid-cols-2 gap-12 items-center mb-20 text-left">
                                     <motion.div variants={fadeInUp}>
                                         <video 
-                                            src="/video-formulario.mp4" 
+                                            src={formularioVideo} 
                                             alt="Vídeo do Formulário de proposta ZailonSoft" 
                                             className="rounded-xl shadow-2xl shadow-black/50 w-full ring-1 ring-white/10"
                                             controls={false}
@@ -256,11 +264,12 @@ const HomePage = () => {
                                     </motion.div>
                                 </motion.div>
 
-                                {/* Feature 2: Dashboard (com vídeo) */}
+                                {/* Feature 2: Dashboard (CORRIGIDO PARA VÍDEO) */}
                                 <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid md:grid-cols-2 gap-12 items-center mb-20 text-left">
                                     <motion.div variants={fadeInUp} className="md:order-last">
+                                        {/* --- TAG <img> TROCADA PARA <video> E SRC CORRIGIDO --- */}
                                         <video 
-                                            src="/video-dashboard.mp4" 
+                                            src={dashboardVideo} 
                                             alt="Vídeo do Dashboard de gestão ZailonSoft" 
                                             className="rounded-xl shadow-2xl shadow-black/50 w-full ring-1 ring-white/10"
                                             controls={false} 
@@ -286,7 +295,7 @@ const HomePage = () => {
                                 <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid md:grid-cols-2 gap-12 items-center text-left">
                                     <motion.div variants={fadeInUp}>
                                         <video 
-                                            src="/video-relatorio.mp4" 
+                                            src={relatorioVideo} 
                                             alt="Vídeo do Relatório detalhado do cliente ZailonSoft" 
                                             className="rounded-xl shadow-2xl shadow-black/50 w-full ring-1 ring-white/10"
                                             controls={false} 
@@ -322,7 +331,7 @@ const HomePage = () => {
                                 </motion.div>
                                 <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, delay: 0.2 }}>
                                     <video 
-                                        src="/video-crm-kanban.mp4" 
+                                        src={crmVideo} 
                                         alt="Vídeo do CRM Visual com funil Kanban da ZailonSoft" 
                                         className="rounded-xl shadow-2xl shadow-black/50 w-full ring-1 ring-white/10"
                                         controls={false} 
