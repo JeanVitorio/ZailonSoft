@@ -161,10 +161,34 @@ const HomePage = () => {
                     <meta name="description" content="Otimize a captação de leads e propostas de financiamento com formulários inteligentes. Entregue negociações prontas para seus vendedores e acelere suas vendas." />
                     <meta property="og:title" content="ZailonSoft - Formulários Inteligentes para Concessionárias" />
                     <meta property="og:description" content="Capte propostas de financiamento completas, com dados de troca e informações do cliente, e gerencie tudo em um CRM visual." />
-                    {/* Imagens na pasta PUBLIC ainda são chamadas com / */}
                     <link rel="icon" type="image/x-icon" href="/Favicon.ico" /> 
-                    <link rel="preload" href="/BannerCamaro.png" as="image" media="(min-width: 1024px)" />
+                    
+                    {/* --- OTIMIZAÇÃO DE CARREGAMENTO DA IMAGEM --- */}
+                    {/* Adiciona fetchpriority="high" para priorizar a imagem de desktop */}
+                    <link rel="preload" href="/BannerCamaro.png" as="image" media="(min-width: 1024px)" fetchpriority="high" />
+                    {/* Mantém o preload da imagem de mobile */}
                     <link rel="preload" href="/CamaroBranco.png" as="image" media="(max-width: 1023px)" />
+                    
+                    {/* Estilos para carregar o background condicionalmente via Media Query */}
+                    <style>
+                    {`
+                      .hero-section {
+                        /* Mobile-first: Carrega a imagem mais leve por padrão */
+                        /* Lembre-se de trocar para .webp se você otimizar a imagem! */
+                        background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(/CamaroBranco.png);
+                      }
+
+                      @media (min-width: 1024px) {
+                        /* Desktop: Troca pela imagem maior */
+                        /* Lembre-se de trocar para .webp se você otimizar a imagem! */
+                        .hero-section {
+                          background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(/BannerCamaro.png);
+                        }
+                      }
+                    `}
+                    </style>
+                    {/* --- FIM DA OTIMIZAÇÃO --- */}
+
                     <link rel="preconnect" href="https://fonts.googleapis.com" />
                     <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap" rel="stylesheet" />
@@ -209,7 +233,8 @@ const HomePage = () => {
                 </header>
 
                 <main>
-                    <section id="inicio" className="hero-section relative w-full min-h-screen flex items-center justify-center pt-20 bg-cover bg-center" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(/BannerCamaro.png)` }}>
+                    {/* A tag 'style' inline foi removida. O CSS do <Helmet> agora controla o background */}
+                    <section id="inicio" className="hero-section relative w-full min-h-screen flex items-center justify-center pt-20 bg-cover bg-center">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-20">
                             <motion.div variants={staggerContainer} initial="hidden" animate="visible">
                                 <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight text-white">
@@ -267,7 +292,6 @@ const HomePage = () => {
                                 {/* Feature 2: Dashboard (CORRIGIDO PARA VÍDEO) */}
                                 <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid md:grid-cols-2 gap-12 items-center mb-20 text-left">
                                     <motion.div variants={fadeInUp} className="md:order-last">
-                                        {/* --- TAG <img> TROCADA PARA <video> E SRC CORRIGIDO --- */}
                                         <video 
                                             src={dashboardVideo} 
                                             alt="Vídeo do Dashboard de gestão ZailonSoft" 
