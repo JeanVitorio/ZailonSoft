@@ -246,10 +246,11 @@ export function PublicCarFormPage() {
                 }
                 break;
             case 'documents':
-                if (files.documents.length === 0) {
-                    setValidationError("É necessário enviar as fotos dos documentos (RG e CPF).");
-                    return false;
-                }
+                // Validação de documentos removida (não é mais obrigatório)
+                // if (files.documents.length === 0) {
+                //     setValidationError("É necessário enviar as fotos dos documentos (RG e CPF).");
+                //     return false;
+                // }
                 break;
             case 'trade_details':
                 if (!formData.trade_in_car.model.trim()) {
@@ -266,10 +267,11 @@ export function PublicCarFormPage() {
                 }
                 break;
             case 'trade_photos':
-                if (files.trade_in_photos.length === 0) {
-                    setValidationError("É necessário enviar as fotos do carro de troca.");
-                    return false;
-                }
+                 // Validação de fotos da troca removida (não é mais obrigatório)
+                // if (files.trade_in_photos.length === 0) {
+                //     setValidationError("É necessário enviar as fotos do carro de troca.");
+                //     return false;
+                // }
                 break;
             case 'financing':
                 const entryValue = parseCurrency(formData.financing_details.entry);
@@ -304,9 +306,9 @@ export function PublicCarFormPage() {
     const flowSteps = useMemo(() => {
         if (!interestedCar) return [];
         const personal = { id: 'personal', title: 'Seus Dados', icon: Feather.UserPlus };
-        const documents = { id: 'documents', title: 'Envio de Documentos', icon: Feather.FileText };
+        const documents = { id: 'documents', title: 'Envio de Documentos (Opcional)', icon: Feather.FileText };
         const tradeDetails = { id: 'trade_details', title: 'Detalhes da Troca', icon: Feather.RefreshCw };
-        const tradePhotos = { id: 'trade_photos', title: 'Fotos da Troca', icon: Feather.Upload };
+        const tradePhotos = { id: 'trade_photos', title: 'Fotos da Troca (Opcional)', icon: Feather.Upload };
         const paymentTypeStep = { id: 'payment_type', title: 'Forma de Pagamento', icon: Feather.DollarSign };
         const financing = { id: 'financing', title: 'Financiamento', icon: Feather.DollarSign };
         const visitDetails = { id: 'visit_details', title: 'Agendar Visita', icon: Feather.Calendar };
@@ -369,9 +371,9 @@ export function PublicCarFormPage() {
         const tradeInValue = dealType === 'troca' ? parseCurrency(formData.trade_in_car.value) : 0;
         switch (currentStepConfig.id) {
             case 'personal': return <StepPersonalData formData={formData} handleInputChange={handleInputChange} />;
-            case 'documents': return <StepFileUpload fileKey="documents" files={files.documents} handleFileChange={handleFileChange} description="Envie fotos dos documentos (RG, CPF/CNH) para análise de crédito." />;
+            case 'documents': return <StepFileUpload fileKey="documents" files={files.documents} handleFileChange={handleFileChange} description="Envie fotos dos documentos (RG, CPF/CNH) para análise de crédito. (Opcional)" />;
             case 'trade_details': return <StepTradeDetails formData={formData} handleInputChange={handleInputChange} />;
-            case 'trade_photos': return <StepFileUpload fileKey="trade_in_photos" files={files.trade_in_photos} handleFileChange={handleFileChange} description="Envie fotos do seu veículo para avaliação (Troca)." />;
+            case 'trade_photos': return <StepFileUpload fileKey="trade_in_photos" files={files.trade_in_photos} handleFileChange={handleFileChange} description="Envie fotos do seu veículo para avaliação (Troca). (Opcional)" />;
             case 'visit_details': return <StepVisitDetails formData={formData} handleInputChange={handleInputChange} />;
             case 'payment_type': return <StepPaymentType setPaymentType={(type) => { setPaymentType(type); nextStep(); }} nextStep={nextStep} />;
             case 'troca_payment_type': return <StepPaymentType setPaymentType={(type) => { setPaymentType(type); nextStep(); }} nextStep={nextStep} title="Como será pago o valor restante (diferença)?" />;
