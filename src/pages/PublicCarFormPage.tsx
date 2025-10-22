@@ -158,7 +158,7 @@ function StepSummary({ formData, files, dealType, paymentType }: { formData: For
     const renderFinancingDetails = () => (
         <>
             <h4 className="font-semibold text-zinc-800 mt-2">Detalhes do Financiamento:</h4>
-            <p className="text-zinc-600">Entrada: <span className="font-medium">{formatCurrency(formData.financing_details.entry)}</span></p>
+            <p className="text-zinc-600">Entrada: <span className="font-medium">{formData.financing_details.entry ? formatCurrency(formData.financing_details.entry) : 'Não informado'}</span></p>
             <p className="text-zinc-600">Parcelas: <span className="font-medium">{formData.financing_details.parcels}x</span></p>
         </>
     );
@@ -173,7 +173,7 @@ function StepSummary({ formData, files, dealType, paymentType }: { formData: For
     );
 
     const renderVisitDetails = () => (
-         <>
+       <>
             <h4 className="font-semibold text-zinc-800 mt-2">Agendamento:</h4>
             <p className="text-zinc-600">Data: <span className="font-medium">{formData.visit_details.day}</span></p>
             <p className="text-zinc-600">Horário: <span className="font-medium">{formData.visit_details.time}</span></p>
@@ -363,10 +363,17 @@ export function PublicCarFormPage() {
             case 'financing':
                 const entryValue = parseCurrency(formData.financing_details.entry);
                 const carPrice = interestedCar ? parseCurrency(interestedCar.preco) : 0;
-                if (formData.financing_details.entry.trim() === '') {
+                
+                // --- [ALTERAÇÃO AQUI] ---
+                // A verificação de "entrada obrigatória" foi removida.
+                /* if (formData.financing_details.entry.trim() === '') {
                     setValidationError("O valor de entrada é obrigatório.");
                     return false;
                 }
+                */
+                // --- [FIM DA ALTERAÇÃO] ---
+
+                // Esta validação continua: a entrada (se houver) não pode ser maior que o preço do carro.
                 if (entryValue >= carPrice && carPrice > 0) {
                     setValidationError("A entrada não pode ser maior ou igual ao valor do veículo.");
                     return false;
