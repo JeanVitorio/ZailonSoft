@@ -3,13 +3,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Stripe from 'https://esm.sh/stripe@14.5.0';
-
-// Configuração dos cabeçalhos CORS
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://zailonsoft.com.br', // Substitua por sua origem específica
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-};
+import { corsHeaders } from '../_shared/cors.ts';
 
 // Inicializa o cliente Stripe
 const stripeSecretKey = Deno.env.get('STRIPE_SECRET_KEY');
@@ -18,17 +12,13 @@ if (!stripeSecretKey) {
 }
 const stripe = new Stripe(stripeSecretKey);
 
-// Função principal do servidor
 serve(async (req) => {
   // Responde à requisição OPTIONS (preflight)
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204, // Status 204 é mais apropriado para preflight
-      headers: corsHeaders,
-    });
+    return new Response('ok', { headers: corsHeaders, status: 200 });
   }
 
-  // Apenas aceitar requisições POST para a lógica principal
+  // Verifica se a requisição é POST
   if (req.method !== 'POST') {
     return new Response(
       JSON.stringify({ error: 'Método não permitido. Use POST.' }),
