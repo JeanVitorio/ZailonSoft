@@ -18,47 +18,54 @@ import NotFound from './pages/NotFound';
 import PublicCarFormPage from './pages/PublicCarFormPage'; 
 import { PublicVehicleCatalogPage } from './pages/PublicVehicleCatalogPage';
 
+// --- [NOVA IMPORTAÇÃO AQUI] ---
+import ActivateAccountPage from './pages/ActivateAccountPage'; 
+
 // Criamos o queryClient aqui
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        {/* Passamos o queryClient para o AuthProvider */}
-        <AuthProvider queryClient={queryClient}>
-          <Routes>
-            {/* --- Rotas Públicas --- */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignUpPage />} />
-            
-            {/* Rota Única para Gerenciar Assinatura */}
-            <Route path="/assinar" element={<SubscribePage />} />
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        {/* Passamos o queryClient para o AuthProvider */}
+        <AuthProvider queryClient={queryClient}>
+          <Routes>
+            {/* --- Rotas Públicas --- */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            
+            {/* Rota para Gerenciar Assinatura (falha na renovação) */}
+            <Route path="/assinar" element={<SubscribePage />} />
 
-            {/* NOVAS ROTAS PÚBLICAS SEM LOGIN NECESSÁRIO */}
-            <Route path="/form-proposta/:carId" element={<PublicCarFormPage />} /> 
-            <Route path="/catalogo-loja/:lojaId" element={<PublicVehicleCatalogPage />} />
+            {/* --- [NOVA ROTA AQUI] --- */}
+            {/* Rota para Novo Pagamento (primeira vez) */}
+            <Route path="/ativar-conta" element={<ActivateAccountPage />} />
 
-            {/* --- Rota Protegida Principal --- */}
-            <Route
-              path="/sistema/*"
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              }
-            />
+            {/* NOVAS ROTAS PÚBLICAS SEM LOGIN NECESSÁRIO */}
+            <Route path="/form-proposta/:carId" element={<PublicCarFormPage />} /> 
+            <Route path="/catalogo-loja/:lojaId" element={<PublicVehicleCatalogPage />} />
 
-            {/* --- Rota para Página Não Encontrada --- */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+            {/* --- Rota Protegida Principal --- */}
+            <Route
+              path="/sistema/*"
+              element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* --- Rota para Página Não Encontrada --- */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
 );
 
 export default App;

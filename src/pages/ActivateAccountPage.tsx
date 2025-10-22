@@ -1,43 +1,42 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../auth/AuthContext';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2, CreditCard } from 'lucide-react'; // Ícone de Cartão
 
-// Página APENAS para regularizar pagamentos de renovação que falharam (status 'unpaid')
-export function SubscribePage() {
+// Página para o primeiro pagamento / reativação de conta cancelada
+export function ActivateAccountPage() {
   const { logout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Esta função é SÓ para abrir o Portal do Cliente
-  const handleOpenPortal = async () => {
+  // Esta função é SÓ para criar uma NOVA assinatura
+  const handleCreateSubscription = async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: functionError } = await supabase.functions.invoke('create-customer-portal-link');
+      const { data, error: functionError } = await supabase.functions.invoke('create-checkout-link');
       if (functionError) throw functionError;
       
-      if (data?.portalUrl) {
-        window.location.href = data.portalUrl;
-        return; // Navega para o Portal do Cliente
+      if (data?.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return; // Navega para o Stripe
       }
-      setError(data?.error || 'Não foi possível abrir o portal de pagamento.');
+      setError(data?.error || 'Não foi possível gerar o link de pagamento.');
     } catch (e: any) {
       setError(e.message || 'Ocorreu um erro desconhecido.');
     }
     setLoading(false);
   };
-  
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-100 text-center p-4 font-poppins">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
         
-        <AlertTriangle className="w-16 h-16 mx-auto text-amber-500 mb-4" />
+        <CreditCard className="w-16 h-16 mx-auto text-amber-500 mb-4" />
         
-        <h1 className="text-2xl font-bold text-zinc-800 mb-3">Pagamento Recusado</h1>
-        
+        <h1 className="text-2xl font-bold text-zinc-800 mb-3">Ative sua Conta</h1>
         <p className="text-md text-zinc-600 mb-6">
-          Não foi possível cobrar sua mensalidade e seu acesso está suspenso. Por favor, clique no botão abaixo para atualizar seu cartão e pagar a fatura pendente.
+          Para ter acesso à plataforma, é preciso pagar a primeira mensalidade para ativar sua conta.
         </p>
 
         {error && (
@@ -45,7 +44,7 @@ export function SubscribePage() {
         )}
 
         <button
-          onClick={handleOpenPortal}
+          onClick={handleCreateSubscription}
           disabled={loading}
           className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -55,7 +54,7 @@ export function SubscribePage() {
               Aguarde...
             </>
           ) : (
-            'Regularizar Pagamento'
+            'Pagar Mensalidade e Ativar'
           )}
         </button>
 
@@ -66,3 +65,5 @@ export function SubscribePage() {
     </div>
   );
 }
+
+export default ActivateAccountPage; // Adicione o export default

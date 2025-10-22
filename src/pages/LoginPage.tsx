@@ -10,9 +10,13 @@ const LightDotsBackground = () => {
   React.useEffect(() => {
     const generateDots = () => {
       const newDots = Array.from({ length: 70 }).map(() => ({
-        id: Math.random(), top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`,
-        animationDuration: `${Math.random() * 8 + 8}s`, animationDelay: `${Math.random() * 8}s`,
-        size: `${Math.random() * 2 + 1}px`, opacity: `${Math.random() * 0.4 + 0.3}`,
+        id: Math.random(),
+        top: `${Math.random() * 100}%`,
+        left: `${Math.random() * 100}%`,
+        animationDuration: `${Math.random() * 8 + 8}s`,
+        animationDelay: `${Math.random() * 8}s`,
+        size: `${Math.random() * 2 + 1}px`,
+        opacity: `${Math.random() * 0.4 + 0.3}`,
       }));
       setDots(newDots);
     };
@@ -22,11 +26,26 @@ const LightDotsBackground = () => {
     <>
       <style>{`@keyframes move-dots { from { transform: translateY(0px); } to { transform: translateY(-1500px); } } .light-dot { animation: move-dots linear infinite; position: absolute; background-color: #a1a1aa; border-radius: 50%; z-index: -20; }`}</style>
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        {dots.map(dot => (<div key={dot.id} className="light-dot" style={{ top: dot.top, left: dot.left, animationDuration: dot.animationDuration, animationDelay: dot.animationDelay, width: dot.size, height: dot.size, opacity: dot.opacity, }}/>))}
+        {dots.map(dot => (
+          <div
+            key={dot.id}
+            className="light-dot"
+            style={{
+              top: dot.top,
+              left: dot.left,
+              animationDuration: dot.animationDuration,
+              animationDelay: dot.animationDelay,
+              width: dot.size,
+              height: dot.size,
+              opacity: dot.opacity,
+            }}
+          />
+        ))}
       </div>
     </>
   );
 };
+
 const AnimatedBackground = () => (
   <div className="absolute inset-0 -z-10 h-full w-full pointer-events-none">
     <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] bg-[size:14px_24px]"></div>
@@ -59,13 +78,13 @@ export function LoginPage() {
         } else {
           setError('Ocorreu um erro ao tentar fazer login.');
         }
+        setLoading(false);
       } else {
         navigate('/sistema');
       }
     } catch (err) {
       setError('Ocorreu um erro inesperado durante o login.');
       console.error('Login error:', err);
-    } finally {
       setLoading(false);
     }
   };
@@ -107,8 +126,11 @@ export function LoginPage() {
               <div className="grid gap-2">
                 <label htmlFor="email" className="text-zinc-800 font-medium">E-mail</label>
                 <input
-                  id="email" type="email" placeholder="seu@email.com"
-                  value={email} onChange={(e) => setEmail(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-lg border border-zinc-200 px-4 py-2 text-zinc-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
                   required
                 />
@@ -116,12 +138,18 @@ export function LoginPage() {
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="password" className="text-zinc-800 font-medium">Senha</label>
-                  <Link to="/forgot-password" className="text-sm text-amber-500 hover:text-amber-600 transition-colors">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-amber-500 hover:text-amber-600 transition-colors"
+                  >
                     Esqueceu a sua senha?
                   </Link>
                 </div>
                 <input
-                  id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full rounded-lg border border-zinc-200 px-4 py-2 text-zinc-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
                   required
                 />
@@ -142,14 +170,22 @@ export function LoginPage() {
                 type="submit"
                 className="w-full bg-amber-500 text-white px-8 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all duration-300 shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)]"
                 disabled={loading}
-                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                {loading ? 'Verificando...' : <><Feather.LogIn size={18} /> Entrar no Painel</>}
+                {loading ? 'Verificando...' : (
+                  <>
+                    <Feather.LogIn size={18} /> Entrar no Painel
+                  </>
+                )}
               </motion.button>
             </form>
             <div className="mt-4 text-center text-sm text-zinc-600">
               Não tem uma conta?{' '}
-              <Link to="/signup" className="text-amber-500 font-semibold hover:text-amber-600 transition-colors">
+              <Link
+                to="/signup"
+                className="text-amber-500 font-semibold hover:text-amber-600 transition-colors"
+              >
                 Crie uma agora
               </Link>
             </div>
