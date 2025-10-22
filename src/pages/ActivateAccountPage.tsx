@@ -36,7 +36,7 @@ export function ActivateAccountPage() {
         
         <h1 className="text-2xl font-bold text-zinc-800 mb-3">Ative sua Conta</h1>
         <p className="text-md text-zinc-600 mb-6">
-          Para ter acesso à plataforma, é preciso pagar a primeira mensalidade para ativar sua conta.
+          Para ter acesso à plataforma, é preciso pagar a mensalidade para ativar sua conta.
         </p>
 
         {error && (
