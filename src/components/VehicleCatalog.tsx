@@ -8,20 +8,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { fetchAvailableCars, updateVehicle as updateVehicleInSupabase, deleteVehicle as deleteVehicleInSupabase, deleteVehicleImage as deleteVehicleImageInSupabase, Car as SupabaseCar } from '@/services/api';
-import { Link } from 'react-router-dom';
+import { useAuth } from '@/auth/AuthContext'; 
 
 interface Vehicle extends SupabaseCar {}
 
-// Funções de conversão
+// Funções de conversão (sem alterações)
 const parsePrice = (value: string | number): number => {
   if (typeof value === 'number') return value;
   if (!value || typeof value !== 'string') return 0;
-
   const cleaned = String(value)
     .replace(/R\$\s?/, '')
     .replace(/\./g, '')
     .replace(',', '.');
-
   const number = parseFloat(cleaned);
   return isNaN(number) ? 0 : number;
 };
@@ -31,13 +29,13 @@ const formatCurrency = (value: string | number): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
 };
 
-// Animações
+// Animações (sem alterações)
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeInOut' } },
 };
 
-// CarDetailsView Component
+// CarDetailsView Component (sem alterações)
 function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => void }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -237,6 +235,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
                   <img
                     src={img}
                     onClick={() => setCurrentImageIndex(index)}
+                    alt={`Thumbnail ${index+1}`}
                     className={`w-full aspect-square object-cover rounded-md cursor-pointer border-2 ${currentImageIndex === index ? 'border-amber-500' : 'border-transparent'}`}
                   />
                   {isEditing && (
@@ -316,12 +315,13 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
   );
 }
 
-// VehicleCatalog Component
+// VehicleCatalog Component (Componente Principal)
 export function VehicleCatalog() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCar, setSelectedCar] = useState<Vehicle | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth(); // Pega o usuário logado (que é o objeto 'loja')
 
   const { data: vehicles = [], isLoading, error } = useQuery<Vehicle[]>({
     queryKey: ['vehicles'],
@@ -363,6 +363,43 @@ export function VehicleCatalog() {
       vehicle.ano.toString().includes(searchTerm)
     ), [vehicles, searchTerm]);
 
+  // --- [FUNÇÃO CORRIGIDA] ---
+  // Pega o ID da loja do primeiro carro da lista, que é o ID correto.
+  const handleCopyPublicLink = () => {
+    let lojaIdToUse: string | undefined = undefined;
+
+    // 1. Tenta pegar o ID da loja a partir do primeiro veículo na lista
+    //    (Este ID é o que comprovadamente funciona na página de formulário)
+    if (vehicles.length > 0) {
+        lojaIdToUse = vehicles[0].loja_id;
+    } 
+    // 2. Se não houver veículos, usa o ID da loja do usuário logado como fallback
+    else if (user && user.id) {
+        lojaIdToUse = user.id;
+    }
+
+    // 3. Se nenhum ID foi encontrado, mostra um erro
+    if (!lojaIdToUse) {
+        toast({ 
+            title: "Erro!", 
+            description: "Não foi possível encontrar o ID da loja. Adicione um veículo ao catálogo primeiro.", 
+            variant: "destructive" 
+        });
+        return;
+    }
+
+    // Usa a URL correta do seu App.tsx: /catalogo-loja/
+    const publicUrl = `${window.location.origin}/catalogo-loja/${lojaIdToUse}`;
+
+    navigator.clipboard.writeText(publicUrl).then(() => {
+        toast({ title: "Link Copiado!", description: "O link do catálogo público foi copiado." });
+    }).catch(err => {
+        console.error('Falha ao copiar link: ', err);
+        toast({ title: "Erro", description: "Falha ao copiar o link.", variant: "destructive" });
+    });
+  };
+  // --- [FIM DA CORREÇÃO] ---
+
   return (
     <div className="space-y-6 p-6 relative z-10">
       <motion.div
@@ -375,6 +412,17 @@ export function VehicleCatalog() {
           <h1 className="text-3xl font-bold text-zinc-900">Catálogo de Veículos</h1>
           <p className="text-zinc-600">Gerencie seu estoque de veículos</p>
         </div>
+        
+        <motion.button
+          onClick={handleCopyPublicLink}
+          className="flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 transition-all group shadow-sm"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Feather.Copy className="w-4 h-4 mr-2" />
+          Copiar Link do Catálogo
+        </motion.button>
+        
       </motion.div>
       <motion.div
         className="relative max-w-md"
@@ -445,6 +493,7 @@ export function VehicleCatalog() {
                   <motion.button
                     className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-all"
                     onClick={() => {
+                      // Este é o link do FORMULÁRIO PÚBLICO (individual)
                       const publicLink = `${window.location.origin}/form-proposta/${vehicle.id}`;
                       navigator.clipboard.writeText(publicLink);
                       toast({

@@ -13,6 +13,15 @@ export interface Car {
     loja_id: string; 
 }
 
+// --- [CORREÇÃO AQUI] ---
+// Interface para os dados públicos da loja (nome e logo)
+export interface LojaDetails {
+  id: string;
+  nome: string; // Corrigido de 'nome_loja' para 'nome'
+  logo_url: string;
+}
+// --- [FIM DA CORREÇÃO] ---
+
 export interface Client {
     chat_id: string;
     name: string;
@@ -90,6 +99,33 @@ export const fetchCarsByLojaId = async (lojaId: string): Promise<Car[]> => {
     }
     return data as Car[];
 };
+
+// --- [FUNÇÃO CORRIGIDA ADICIONADA AQUI] ---
+/**
+ * NOVO: Busca os detalhes públicos de uma loja (nome, logo) pelo ID.
+ */
+export const fetchLojaDetails = async (lojaId: string): Promise<LojaDetails> => {
+  const { data, error } = await supabase
+    .from('lojas') // Tabela 'lojas' (correto)
+    .select('id, nome, logo_url') // Coluna 'nome' (corrigido)
+    .eq('id', lojaId)
+    .single();
+
+  if (error) {
+    console.error('Erro ao buscar detalhes da loja:', error);
+    throw new Error('Não foi possível carregar os dados da loja.');
+  }
+
+  if (!data) {
+    throw new Error('Loja não encontrada.');
+  }
+
+  // Renomeia 'nome' para 'nome_loja' no objeto de retorno para corresponder ao que o componente espera
+  // (Opcional, mas boa prática se o componente já espera 'nome_loja')
+  // Na verdade, vamos manter simples. A interface LojaDetails agora espera 'nome'.
+  return data as LojaDetails;
+};
+// --- [FIM DA ADIÇÃO] ---
 
 
 // Adicionado 'lojaId' para saber onde inserir o veículo.

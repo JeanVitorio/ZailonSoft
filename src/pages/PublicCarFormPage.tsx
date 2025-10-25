@@ -1,22 +1,19 @@
 // src/pages/PublicCarFormPage.tsx
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Feather from 'react-feather';
 import { useToast } from '@/components/ui/use-toast';
 import { Progress } from '@/components/ui/progress';
 
-// Importe os componentes e tipos necessários
 import {
     StepPersonalData, StepFileUpload, StepPaymentType, StepFinancing,
     StepTradeDetails, StepVisitDetails,
     FormData, ClientPayload, Car, Files
-    // O 'StepSummary' foi removido daqui pois criamos uma versão local corrigida
-} from '../components/AddClient'; // Ajuste o caminho se necessário
+} from '../components/AddClient'; 
 
-// Importe as funções da API
 import { fetchCarDetails, createClient } from '@/services/api';
 
 const fadeInUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeInOut' } } };
@@ -150,10 +147,9 @@ const StepDealType = ({ setDealType, nextStep }: { setDealType: (type: 'comum' |
     );
 };
 
-// --- [INÍCIO] COMPONENTE DE SUMMARY CORRIGIDO ---
-// (Substitui o 'StepSummary' importado que estava faltando informações)
+// --- COMPONENTE DE SUMMARY CORRIGIDO ---
 function StepSummary({ formData, files, dealType, paymentType }: { formData: FormData; files: Files; dealType: string; paymentType: string; }) {
-    const interestedCar = formData.interested_vehicles[0]; // Assumindo que sempre há um
+    const interestedCar = formData.interested_vehicles[0]; 
 
     const renderFinancingDetails = () => (
         <>
@@ -184,7 +180,6 @@ function StepSummary({ formData, files, dealType, paymentType }: { formData: For
         <div className="space-y-6 bg-white border border-zinc-200 p-6 rounded-lg">
             <h2 className="text-xl font-semibold text-zinc-900">Revise sua Proposta</h2>
             
-            {/* Dados Pessoais */}
             <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-amber-600">Seus Dados</h3>
                 <p className="text-zinc-600">Nome: <span className="font-medium">{formData.name}</span></p>
@@ -193,7 +188,6 @@ function StepSummary({ formData, files, dealType, paymentType }: { formData: For
                 <p className="text-zinc-600">Profissão: <span className="font-medium">{formData.job}</span></p>
             </div>
 
-            {/* Veículo de Interesse */}
             {interestedCar && (
                 <div className="border-b pb-4">
                     <h3 className="text-lg font-semibold text-amber-600">Veículo de Interesse</h3>
@@ -202,7 +196,6 @@ function StepSummary({ formData, files, dealType, paymentType }: { formData: For
                 </div>
             )}
 
-            {/* Detalhes da Negociação */}
             <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-amber-600">Detalhes da Negociação</h3>
                 
@@ -232,7 +225,6 @@ function StepSummary({ formData, files, dealType, paymentType }: { formData: For
                 )}
             </div>
 
-            {/* Arquivos */}
             <div>
                  <h3 className="text-lg font-semibold text-amber-600">Arquivos Enviados (Opcional)</h3>
                  <p className="text-zinc-600">Documentos: <span className="font-medium">{files.documents.length > 0 ? `${files.documents.length} arquivo(s)` : 'Nenhum'}</span></p>
@@ -241,8 +233,6 @@ function StepSummary({ formData, files, dealType, paymentType }: { formData: For
         </div>
     );
 }
-// --- [FIM] COMPONENTE DE SUMMARY CORRIGIDO ---
-
 
 // --- ESTADO INICIAL DO FORMULÁRIO ---
 const initialFormData: FormData = {
@@ -284,11 +274,21 @@ export function PublicCarFormPage() {
     const mutation = useMutation({
         mutationFn: ({ clientPayload, files, lojaId }: { clientPayload: ClientPayload; files: Files; lojaId: string }) =>
             createClient({ clientPayload, files, lojaId }),
+        
+        // --- [CORREÇÃO AQUI] ---
+        // Redireciona para a rota correta: '/catalogo-loja/'
         onSuccess: () => {
             toast({ title: "Sucesso!", description: "Proposta enviada com sucesso." });
             queryClient.invalidateQueries({ queryKey: ['carDetails', carId] });
-            navigate('/');
+            
+            if (interestedCar && interestedCar.loja_id) {
+                navigate(`/catalogo-loja/${interestedCar.loja_id}`); // Rota CORRIGIDA
+            } else {
+                navigate('/'); // Fallback
+            }
         },
+        // --- [FIM DA CORREÇÃO] ---
+
         onError: (error: Error) => {
             console.error('Erro ao enviar proposta:', error);
             toast({ title: "Erro!", description: error.message || "Falha ao enviar a proposta.", variant: "destructive" });
@@ -314,6 +314,7 @@ export function PublicCarFormPage() {
         setFiles(prev => ({ ...prev, [type]: fileList ? Array.from(fileList) : [] }));
     };
 
+    // Validação (sem alterações, mas mantida)
     const validateStep = (): boolean => {
         const currentStepId = flowSteps[step - 1]?.id;
         if (!currentStepId) return true;
@@ -323,71 +324,26 @@ export function PublicCarFormPage() {
 
         switch (currentStepId) {
             case 'personal':
-                if (!formData.name.trim()) {
-                    setValidationError("Nome é obrigatório.");
-                    return false;
-                }
-                if (!formData.job.trim()) {
-                    setValidationError("Profissão é obrigatória.");
-                    return false;
-                }
-                if (!phoneRegex.test(formData.phone)) {
-                    setValidationError("Telefone inválido. Formato esperado: (99) 99999-9999.");
-                    return false;
-                }
-                if (!cpfRegex.test(formData.cpf)) {
-                    setValidationError("CPF inválido. Formato esperado: 999.999.999-99.");
-                    return false;
-                }
+                if (!formData.name.trim()) { setValidationError("Nome é obrigatório."); return false; }
+                if (!formData.job.trim()) { setValidationError("Profissão é obrigatória."); return false; }
+                if (!phoneRegex.test(formData.phone)) { setValidationError("Telefone inválido. Formato: (99) 99999-9999."); return false; }
+                if (!cpfRegex.test(formData.cpf)) { setValidationError("CPF inválido. Formato: 999.999.999-99."); return false; }
                 break;
-            case 'documents':
-                // Validação de documentos removida (não é mais obrigatório)
-                break;
+            case 'documents': break;
             case 'trade_details':
-                if (!formData.trade_in_car.model.trim()) {
-                    setValidationError("Modelo do carro de troca é obrigatório.");
-                    return false;
-                }
-                if (!/^\d{4}$/.test(formData.trade_in_car.year)) {
-                    setValidationError("Ano do carro de troca inválido (use 4 dígitos).");
-                    return false;
-                }
-                if (!formData.trade_in_car.value.trim()) {
-                    setValidationError("O valor desejado na troca é obrigatório.");
-                    return false;
-                }
+                if (!formData.trade_in_car.model.trim()) { setValidationError("Modelo do carro de troca é obrigatório."); return false; }
+                if (!/^\d{4}$/.test(formData.trade_in_car.year)) { setValidationError("Ano do carro de troca inválido (use 4 dígitos)."); return false; }
+                if (!formData.trade_in_car.value.trim()) { setValidationError("O valor desejado na troca é obrigatório."); return false; }
                 break;
-            case 'trade_photos':
-                 // Validação de fotos da troca removida (não é mais obrigatório)
-                break;
+            case 'trade_photos': break;
             case 'financing':
                 const entryValue = parseCurrency(formData.financing_details.entry);
                 const carPrice = interestedCar ? parseCurrency(interestedCar.preco) : 0;
-                
-                // --- [ALTERAÇÃO AQUI] ---
-                // A verificação de "entrada obrigatória" foi removida.
-                /* if (formData.financing_details.entry.trim() === '') {
-                    setValidationError("O valor de entrada é obrigatório.");
-                    return false;
-                }
-                */
-                // --- [FIM DA ALTERAÇÃO] ---
-
-                // Esta validação continua: a entrada (se houver) não pode ser maior que o preço do carro.
-                if (entryValue >= carPrice && carPrice > 0) {
-                    setValidationError("A entrada não pode ser maior ou igual ao valor do veículo.");
-                    return false;
-                }
-                if (!formData.financing_details.parcels) {
-                    setValidationError("Selecione o número de parcelas.");
-                    return false;
-                }
+                if (entryValue >= carPrice && carPrice > 0) { setValidationError("A entrada não pode ser maior ou igual ao valor do veículo."); return false; }
+                if (!formData.financing_details.parcels) { setValidationError("Selecione o número de parcelas."); return false; }
                 break;
             case 'visit_details':
-                if (!formData.visit_details.day || !formData.visit_details.time) {
-                    setValidationError("Data e horário da visita são obrigatórios.");
-                    return false;
-                }
+                if (!formData.visit_details.day || !formData.visit_details.time) { setValidationError("Data e horário da visita são obrigatórios."); return false; }
                 break;
         }
         setValidationError(null);
@@ -397,6 +353,7 @@ export function PublicCarFormPage() {
     const nextStep = () => { if (validateStep()) setStep(prev => prev + 1); };
     const prevStep = () => { setStep(prev => prev - 1); setValidationError(null); };
 
+    // flowSteps (sem alterações)
     const flowSteps = useMemo(() => {
         if (!interestedCar) return [];
         const personal = { id: 'personal', title: 'Seus Dados', icon: Feather.UserPlus };
@@ -432,24 +389,21 @@ export function PublicCarFormPage() {
         return dealType ? [...steps, summary] : [];
     }, [dealType, paymentType, formData.trade_in_car.value, interestedCar]);
 
+    // handleSubmit (sem alterações)
     const handleSubmit = () => {
         if (!validateStep()) return;
         if (!interestedCar?.loja_id) {
             toast({ title: "Erro", description: "O ID da loja não foi carregado. Tente novamente.", variant: 'destructive' });
             return;
         }
-
         const finalDealType = dealType === 'comum' ? paymentType : dealType;
-
-        // O payload aqui já estava correto, enviando todos os dados.
-        // Se o PDF está errado, o problema é no backend.
         const payload: ClientPayload = {
             name: formData.name, phone: formData.phone, cpf: formData.cpf, job: formData.job,
             state: 'proposta_web', deal_type: finalDealType, payment_method: paymentType,
             interested_vehicles: formData.interested_vehicles,
-            trade_in_car: formData.trade_in_car, // Já estava sendo enviado
-            financing_details: formData.financing_details, // Já estava sendo enviado
-            visit_details: formData.visit_details, // Já estava sendo enviado
+            trade_in_car: formData.trade_in_car,
+            financing_details: formData.financing_details,
+            visit_details: formData.visit_details,
             bot_data: {
                 state: 'proposta_web', deal_type: finalDealType, interested_vehicles: formData.interested_vehicles,
                 financing_details: formData.financing_details,
@@ -463,6 +417,7 @@ export function PublicCarFormPage() {
     if (isLoadingCar) return <div className="text-center py-20 text-zinc-600">Carregando detalhes do veículo...</div>;
     if (errorCar || !interestedCar) return <div className="text-center py-20 text-red-500">Veículo não encontrado ou link inválido.</div>;
 
+    // renderCurrentStep (sem alterações)
     const renderCurrentStep = () => {
         if (step === 0) return <StepDealType setDealType={(type) => { setDealType(type); setStep(1); }} nextStep={() => {}} />;
         const currentStepConfig = flowSteps[step - 1];
@@ -477,7 +432,6 @@ export function PublicCarFormPage() {
             case 'payment_type': return <StepPaymentType setPaymentType={(type) => { setPaymentType(type); nextStep(); }} nextStep={nextStep} />;
             case 'troca_payment_type': return <StepPaymentType setPaymentType={(type) => { setPaymentType(type); nextStep(); }} nextStep={nextStep} title="Como será pago o valor restante (diferença)?" />;
             case 'financing': return <StepFinancing formData={formData} handleInputChange={handleInputChange} carPrice={parseCurrency(interestedCar.preco)} tradeInValue={tradeInValue} />;
-            // Esta linha agora usa o componente local 'StepSummary' que criamos acima
             case 'summary': return <StepSummary formData={formData} files={files} dealType={dealType!} paymentType={paymentType!} />;
             default: return null;
         }
@@ -492,12 +446,25 @@ export function PublicCarFormPage() {
             animate="visible"
             variants={fadeInUp}
         >
-            <div className="space-y-3 p-4 border-b border-zinc-200">
+            <div className="relative space-y-3 p-4 border-b border-zinc-200">
+                
+                {/* --- [LINK CORRIGIDO AQUI] --- */}
+                {/* O 'Link' agora aponta para '/catalogo-loja/' */}
+                <Link
+                    to={`/catalogo-loja/${interestedCar.loja_id}`} 
+                    className="absolute top-4 right-4 flex items-center px-3 py-2 rounded-lg text-sm font-medium text-amber-600 hover:bg-amber-50 transition-all group"
+                >
+                    <Feather.BookOpen className="w-4 h-4 mr-2 group-hover:text-amber-700 transition-colors" />
+                    <span className="group-hover:text-amber-700 transition-colors">Ver Catálogo da Loja</span>
+                </Link>
+                {/* --- [FIM DA CORREÇÃO] --- */}
+
                 <h1 className="text-3xl font-bold text-zinc-900">Proposta de Interesse</h1>
                 <h2 className="text-xl font-semibold text-zinc-800">
                     Veículo: <span className="text-amber-600">{interestedCar.nome} ({interestedCar.ano})</span>
                 </h2>
             </div>
+
 
             <div className="p-4">
                 <CarDetailsDisplay vehicle={interestedCar} />
