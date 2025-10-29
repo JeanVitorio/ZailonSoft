@@ -1,12 +1,18 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import * as Feather from 'react-feather';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogTitle,
+  DialogDescription
+} from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { fetchAvailableCars, updateVehicle as updateVehicleInSupabase, deleteVehicle as deleteVehicleInSupabase, deleteVehicleImage as deleteVehicleImageInSupabase, Car as SupabaseCar } from '@/services/api';
 import { useAuth } from '@/auth/AuthContext'; 
 
@@ -35,7 +41,7 @@ const fadeInUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeInOut' } },
 };
 
-// CarDetailsView Component (sem alterações)
+// CarDetailsView Component
 function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => void }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -156,48 +162,66 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
             formData.nome
           )}
         </h1>
+        
         <div className="flex gap-2">
-          {!isEditing ? (
-            <>
-              <motion.button
-                className="px-4 py-2 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-zinc-100 hover:border-amber-400/50 transition-all"
-                onClick={onBack}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+          <AnimatePresence mode="wait">
+            {!isEditing ? (
+              <motion.div
+                key="view-buttons"
+                className="flex gap-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.1 }}
               >
-                <Feather.ArrowLeft className="w-4 h-4 mr-2 inline" /> Fechar
-              </motion.button>
-              <motion.button
-                className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all"
-                onClick={() => setIsEditing(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                <motion.button
+                  className="px-4 py-2 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-zinc-100 hover:border-amber-400/50 transition-all"
+                  onClick={onBack}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Feather.ArrowLeft className="w-4 h-4 mr-2 inline" /> Fechar
+                </motion.button>
+                <motion.button
+                  className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all"
+                  onClick={() => setIsEditing(true)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Feather.Edit className="w-4 h-4 mr-2 inline" /> Editar
+                </motion.button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="edit-buttons"
+                className="flex gap-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.1 }}
               >
-                <Feather.Edit className="w-4 h-4 mr-2 inline" /> Editar
-              </motion.button>
-            </>
-          ) : (
-            <>
-              <motion.button
-                className="px-4 py-2 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-zinc-100 hover:border-amber-400/50 transition-all"
-                onClick={() => setIsEditing(false)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Feather.X className="w-4 h-4 mr-2 inline" /> Cancelar
-              </motion.button>
-              <motion.button
-                className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all"
-                onClick={handleSave}
-                disabled={updateMutation.isPending}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Feather.Save className="w-4 h-4 mr-2 inline" /> {updateMutation.isPending ? 'Salvando...' : 'Salvar'}
-              </motion.button>
-            </>
-          )}
+                <motion.button
+                  className="px-4 py-2 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-zinc-100 hover:border-amber-400/50 transition-all"
+                  onClick={() => setIsEditing(false)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Feather.X className="w-4 h-4 mr-2 inline" /> Cancelar
+                </motion.button>
+                <motion.button
+                  className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all"
+                  onClick={handleSave}
+                  disabled={updateMutation.isPending}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Feather.Save className="w-4 h-4 mr-2 inline" /> {updateMutation.isPending ? 'Salvando...' : 'Salvar'}
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
+
       </div>
       <div className="bg-white/70 p-6 rounded-lg border border-zinc-200 shadow-sm">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -538,6 +562,13 @@ export function VehicleCatalog() {
 
       <Dialog open={!!selectedCar} onOpenChange={(isOpen) => { if (!isOpen) { setSelectedCar(null); } }}>
         <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-white/70 border border-zinc-200 overflow-y-auto">
+          <VisuallyHidden>
+            <DialogTitle>Detalhes do Veículo</DialogTitle>
+            <DialogDescription>
+              Veja ou edite os detalhes do veículo selecionado.
+            </DialogDescription>
+          </VisuallyHidden>
+          
           {selectedCar && (
             <div className="p-6">
               <CarDetailsView vehicle={selectedCar} onBack={() => setSelectedCar(null)} />
@@ -545,6 +576,7 @@ export function VehicleCatalog() {
           )}
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }

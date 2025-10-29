@@ -166,19 +166,41 @@ export function LoginPage() {
                   </motion.p>
                 )}
               </AnimatePresence>
+
+              {/* --- [INÍCIO DA CORREÇÃO] --- */}
               <motion.button
                 type="submit"
-                className="w-full bg-amber-500 text-white px-8 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all duration-300 shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)]"
+                className="w-full bg-amber-500 text-white px-8 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all duration-300 shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)] h-[44px]" // Altura fixa para não "pular"
                 disabled={loading}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {loading ? 'Verificando...' : (
-                  <>
-                    <Feather.LogIn size={18} /> Entrar no Painel
-                  </>
-                )}
+                <AnimatePresence mode="wait" initial={false}>
+                  {loading ? (
+                    <motion.span
+                      key="loading"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center justify-center"
+                    >
+                      Verificando...
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="default"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center justify-center gap-2"
+                    >
+                      <Feather.LogIn size={18} /> Entrar no Painel
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </motion.button>
+              {/* --- [FIM DA CORREÇÃO] --- */}
+
             </form>
             <div className="mt-4 text-center text-sm text-zinc-600">
               Não tem uma conta?{' '}
