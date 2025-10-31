@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+// O <Select> PODE SER REMOVIDO SE NÃO FOR USADO EM OUTRO LUGAR DESTE ARQUIVO
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -206,6 +207,11 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
     const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
     const [activeSection, setActiveSection] = useState('perfil');
 
+    // --- CORREÇÃO: Estados para controlar os Popovers ---
+    const [statusOpen, setStatusOpen] = useState(false);
+    const [parcelsOpen, setParcelsOpen] = useState(false);
+    const [navOpen, setNavOpen] = useState(false);
+
     useEffect(() => {
         if (isOpen) {
             setActiveSection('perfil');
@@ -242,10 +248,9 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
     }, [newDocs, newTradeInPhotos]);
 
     const dealType = formData.bot_data?.deal_type;
-    const paymentMethod = formData.bot_data?.payment_method; // <-- **CORREÇÃO 1: Buscar paymentMethod**
+    const paymentMethod = formData.bot_data?.payment_method;
     const hasTradeIn = dealType === 'troca';
     const hasVisit = dealType === 'visita';
-    // <-- **CORREÇÃO 2: Lógica de 'hasFinancing' ajustada**
     const hasFinancing = (dealType === 'financiamento') || (hasTradeIn && paymentMethod === 'financiamento');
 
     const vehicleSearchResults = useMemo(() => {
@@ -467,6 +472,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         const botData = formData.bot_data || {};
         const visibleDocuments = (formData.documents || []).filter(doc => !removedDocs.includes(doc));
         const tradeInPhotos = (botData.trade_in_car?.photos || []).filter(p => !removedTradeInPhotos.includes(p));
+        const parcelOptions = [12, 24, 36, 48, 60];
 
         switch (sectionId) {
             case 'perfil':
@@ -478,10 +484,30 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         <InfoRow label="CPF">{isEditing && !isForPdf ? <Input value={formData.cpf || ''} onChange={e => handleDeepChange('cpf', e.target.value)} /> : formData.cpf || 'N/A'}</InfoRow>
                         <InfoRow label="Ocupação">{isEditing && !isForPdf ? <Input value={formData.job || ''} onChange={e => handleDeepChange('job', e.target.value)} /> : formData.job || 'N/A'}</InfoRow>
                         <InfoRow label="Status no Funil">{isEditing && !isForPdf ? (
-                            <Select value={formData.state || ''} onValueChange={handleStatusChange}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>{KANBAN_COLUMNS.map(col => (<SelectItem key={col.id} value={col.id}>{col.name}</SelectItem>))}</SelectContent>
-                            </Select>
+                            // --- CORREÇÃO (Dropdown 1): Trocado Select por Popover ---
+                            <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="w-full justify-start font-normal">
+                                        {KANBAN_COLUMNS.find(c => c.id === (formData.state || ''))?.name || "Selecione..."}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <ScrollArea className="h-48">
+                                        {KANBAN_COLUMNS.map(col => (
+                                            <div
+                                                key={col.id}
+                                                className="p-2 hover:bg-accent cursor-pointer text-sm"
+                                                onClick={() => {
+                                                    handleStatusChange(col.id);
+                                                    setStatusOpen(false);
+                                                }}
+                                            >
+                                                {col.name}
+                                            </div>
+                                        ))}
+                                    </ScrollArea>
+                                </PopoverContent>
+                            </Popover>
                         ) : KANBAN_COLUMNS.find(c => c.id === formData.state)?.name || 'Não informado'}</InfoRow>
                     </CardContent>
                 </Card>
@@ -559,10 +585,30 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         <CardContent className="text-sm">
                             <InfoRow label="Valor da Entrada">{isEditing && !isForPdf ? <Input value={botData.financing_details?.entry || ''} onChange={e => handleCurrencyChange(e, 'bot_data.financing_details.entry')} placeholder="R$ 0,00" inputMode="numeric" /> : toBRL(botData.financing_details?.entry) || 'N/A'}</InfoRow>
                             <InfoRow label="Parcelas">{isEditing && !isForPdf ? (
-                                <Select value={String(botData.financing_details?.parcels || '12')} onValueChange={v => handleDeepChange('bot_data.financing_details.parcels', v)}>
-                                    <SelectTrigger><SelectValue /></SelectTrigger>
-                                    <SelectContent>{[12, 24, 36, 48, 60].map(opt => (<SelectItem key={opt} value={String(opt)}>{opt}x</SelectItem>))}</SelectContent>
-                                </Select>
+                                // --- CORREÇÃO (Dropdown 2): Trocado Select por Popover ---
+                                <Popover open={parcelsOpen} onOpenChange={setParcelsOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="outline" className="w-full justify-start font-normal">
+                                            {String(botData.financing_details?.parcels || '12') + 'x' || "Selecione..."}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                        <ScrollArea className="h-auto">
+                                            {parcelOptions.map(opt => (
+                                                <div
+                                                    key={opt}
+                                                    className="p-2 hover:bg-accent cursor-pointer text-sm"
+                                                    onClick={() => {
+                                                        handleDeepChange('bot_data.financing_details.parcels', String(opt));
+                                                        setParcelsOpen(false);
+                                                    }}
+                                                >
+                                                    {opt}x
+                                                </div>
+                                            ))}
+                                        </ScrollArea>
+                                    </PopoverContent>
+                                </Popover>
                             ) : `${botData.financing_details?.parcels || 'N/A'}x`}</InfoRow>
                         </CardContent>
                     </Card>
@@ -610,6 +656,11 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                 <DialogHeader className="px-6 pt-6 pb-4 border-b">
                     <div className="flex justify-between items-center flex-wrap gap-2">
                         <DialogTitle className="text-lg md:text-xl">{formData.name || "Detalhes do Cliente"}</DialogTitle>
+                        
+                        <DialogDescription className="sr-only">
+                            Visualize ou edite os detalhes do cliente e suas interações.
+                        </DialogDescription>
+
                         <div className="flex items-center gap-2">
                             {!isEditing && (
                                 <Button size="sm" variant="outline" onClick={handleDownloadPdf} disabled={isDownloadingPdf}>
@@ -628,10 +679,33 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                     </div>
                 </DialogHeader>
                 <div className="p-4 border-b block md:hidden">
-                    <Select value={activeSection} onValueChange={setActiveSection}>
-                        <SelectTrigger><SelectValue placeholder="Navegar para uma seção..." /></SelectTrigger>
-                        <SelectContent>{navSections.map(section => (<SelectItem key={section.id} value={section.id}><div className="flex items-center gap-2"><section.icon className="h-4 w-4" /><span>{section.label}</span></div></SelectItem>))}</SelectContent>
-                    </Select>
+                    {/* --- CORREÇÃO (Dropdown 3): Trocado Select por Popover --- */}
+                    <Popover open={navOpen} onOpenChange={setNavOpen}>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start">
+                                <span className="truncate">
+                                    {navSections.find(s => s.id === activeSection)?.label || "Navegar..."}
+                                </span>
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                            <ScrollArea className="h-48">
+                                {navSections.map(section => (
+                                    <div
+                                        key={section.id}
+                                        className="p-2 hover:bg-accent cursor-pointer text-sm flex items-center gap-2"
+                                        onClick={() => {
+                                            setActiveSection(section.id);
+                                            setNavOpen(false);
+                                        }}
+                                    >
+                                        <section.icon className="h-4 w-4" />
+                                        <span>{section.label}</span>
+                                    </div>
+                                ))}
+                            </ScrollArea>
+                        </PopoverContent>
+                    </Popover>
                 </div>
                 <div className="flex-1 flex min-h-0">
                     <aside className="border-r bg-muted/30 hidden md:block w-[250px] flex-shrink-0">
@@ -653,7 +727,6 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         <p className="text-sm text-gray-500 mt-1">Gerado em: {new Date().toLocaleString('pt-BR')}</p>
                     </div>
                     {navSections
-                        // <-- **CORREÇÃO 3: Lógica do filtro do PDF ajustada para incluir 'troca'**
                         .filter(section => section.id !== 'documentos') 
                         .map(section => (
                         <div key={`pdf-info-${section.id}`} style={{ breakInside: 'avoid' }}>
@@ -703,8 +776,6 @@ function CRMKanbanContent() {
         onSuccess: async (data, variables) => {
             toast({ title: "Sucesso!", description: "Dados do cliente atualizados." });
             await queryClient.invalidateQueries({ queryKey: ['clients'] });
-            const updatedClient = (queryClient.getQueryData(['clients']) || []).find(c => c.chat_id === variables.chatId);
-            if (updatedClient) setDetailedClient(updatedClient);
         },
         onError: (err) => toast({ title: "Erro ao Salvar", description: err.message, variant: "destructive" }),
     });

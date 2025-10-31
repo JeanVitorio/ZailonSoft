@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import InputMask from 'react-input-mask';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,11 +14,13 @@ import { supabase } from '@/supabaseClient';
 // --- Funções Auxiliares ---
 const parseCurrency = (value: string): number => {
     if (!value) return 0;
-    return Number(String(value).replace(/[^0-9,]/g, '').replace(',', '.')) || 0;
+    // Corrigido para lidar com entradas de usuário (ex: 10000) e valores formatados (ex: R$ 10.000,00)
+    const cleaned = String(value).replace(/R\$\s?/, '').replace(/\./g, '').replace(',', '.');
+    return Number(cleaned) || 0;
 };
 const formatCurrency = (value: string): string => {
     const num = parseCurrency(value);
-    return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(num);
 };
 
 // --- Estado Inicial ---
@@ -153,7 +154,12 @@ export function AddVehicle() {
             
             {validationError && <p className="text-sm font-medium text-red-500 bg-red-500/10 p-3 rounded-md text-center">{validationError}</p>}
             
-            <Card className="bg-white/70 border-zinc-200 shadow-sm">
+            {/* --- CORREÇÃO APLICADA AQUI ---
+                Adicionando key={step} ao <Card>
+                Isso força o React a recriar o Card inteiro a cada etapa,
+                evitando o erro de DOM ao trocar o ícone e o conteúdo ao mesmo tempo.
+            */}
+            <Card key={step} className="bg-white/70 border-zinc-200 shadow-sm">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-zinc-900">
                         {currentStepInfo?.icon && React.createElement(currentStepInfo.icon, { className: "h-5 w-5" })}
@@ -161,65 +167,101 @@ export function AddVehicle() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {step === 1 && (
-                        <div className="space-y-2">
-                            <Label htmlFor="name" className="text-zinc-600">Nome / Título do Anúncio *</Label>
-                            <Input id="name" placeholder="Ex: Honda Civic 2.0 EXL Automático" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20" />
-                        </div>
-                    )}
-                    {step === 2 && (
-                        <div className="space-y-2">
-                            <Label htmlFor="year" className="text-zinc-600">Ano de Fabricação *</Label>
-                            <InputMask mask="9999" value={formData.year} onChange={e => handleInputChange('year', e.target.value)}>
-                                {(inputProps: any) => <Input {...inputProps} id="year" placeholder="Ex: 2021" className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20" />}
-                            </InputMask>
-                        </div>
-                    )}
-                    {step === 3 && (
-                        <div className="space-y-2">
-                            <Label htmlFor="price" className="text-zinc-600">Preço *</Label>
-                            <Input id="price" placeholder="R$ 0,00" value={formData.price} onChange={e => handleInputChange('price', e.target.value)} className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20" />
-                        </div>
-                    )}
-                    {step === 4 && (
-                        <div className="space-y-2">
-                            <Label htmlFor="description" className="text-zinc-600">Descrição</Label>
-                            <Textarea id="description" placeholder="Descreva opcionais, estado de conservação, etc." value={formData.description} onChange={e => handleInputChange('description', e.target.value)} rows={5} className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20" />
-                        </div>
-                    )}
-                    {step === 5 && (
-                        <div>
-                            <Label htmlFor="image-upload" className="p-6 border-2 border-dashed border-zinc-200 rounded-lg text-center cursor-pointer hover:border-amber-400/50 transition-colors block">
-                                <Upload className="mx-auto h-12 w-12 text-zinc-400" />
-                                <p className="mt-2 text-sm text-zinc-600">Clique para selecionar ou arraste as imagens</p>
-                            </Label>
-                            <Input id="image-upload" type="file" multiple className="sr-only" onChange={handleImageChange} accept="image/*"/>
-                            {images.length > 0 && (
-                                <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {images.map((file, index) => (
-                                        <div key={index} className="relative aspect-video">
-                                            <img src={URL.createObjectURL(file)} alt={file.name} className="w-full h-full object-cover rounded-md" />
-                                            <Button className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 hover:bg-red-600" size="icon" onClick={() => removeImage(index)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    ))}
+                    {/* A key foi REMOVIDA daqui e movida para o Card-pai */}
+                    <div>
+                        {step === 1 && (
+                            <div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="name" className="text-zinc-600">Nome / Título do Anúncio *</Label>
+                                    <Input id="name" placeholder="Ex: Honda Civic 2.0 EXL Automático" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20" />
                                 </div>
-                            )}
-                        </div>
-                    )}
-                    {step === 6 && (
-                        <div className="space-y-4 text-sm">
-                            <div className="p-4 bg-zinc-100 rounded-lg space-y-2">
-                                <h3 className="font-semibold text-zinc-900">Resumo do Veículo</h3>
-                                <p><span className="text-zinc-600">Nome:</span> {formData.name}</p>
-                                <p><span className="text-zinc-600">Ano:</span> {formData.year}</p>
-                                <p><span className="text-zinc-600">Preço:</span> {formData.price}</p>
-                                <p><span className="text-zinc-600">Descrição:</span> {formData.description || "N/A"}</p>
-                                <p><span className="text-zinc-600">Imagens:</span> {images.length} foto(s)</p>
                             </div>
-                        </div>
-                    )}
+                        )}
+                        
+                        {step === 2 && (
+                            <div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="year" className="text-zinc-600">Ano de Fabricação *</Label>
+                                    <Input
+                                        id="year"
+                                        placeholder="Ex: 2021"
+                                        value={formData.year}
+                                        onChange={e => {
+                                            const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                                            if (numericValue.length <= 4) {
+                                                handleInputChange('year', numericValue);
+                                            }
+                                        }}
+                                        type="tel"
+                                        maxLength={4}
+                                        className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 3 && (
+                                <div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="price" className="text-zinc-600">Preço *</Label>
+                                        <Input 
+                                            id="price" 
+                                            placeholder="R$ 0,00" 
+                                            value={formData.price} 
+                                            onChange={e => handleInputChange('price', e.target.value)} 
+                                            type="text"
+                                            inputMode="decimal" 
+                                            className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20" 
+                                        />
+                                    </div>
+                                </div>
+                        )}
+                        {step === 4 && (
+                            <div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="description" className="text-zinc-600">Descrição</Label>
+                                    <Textarea id="description" placeholder="Descreva opcionais, estado de conservação, etc." value={formData.description} onChange={e => handleInputChange('description', e.target.value)} rows={5} className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20" />
+                                </div>
+                            </div>
+                        )}
+                        {step === 5 && (
+                            <div>
+                                <div>
+                                    <Label htmlFor="image-upload" className="p-6 border-2 border-dashed border-zinc-200 rounded-lg text-center cursor-pointer hover:border-amber-400/50 transition-colors block">
+                                        <Upload className="mx-auto h-12 w-12 text-zinc-400" />
+                                        <p className="mt-2 text-sm text-zinc-600">Clique para selecionar ou arraste as imagens</p>
+                                    </Label>
+                                    <Input id="image-upload" type="file" multiple className="sr-only" onChange={handleImageChange} accept="image/*"/>
+                                    {images.length > 0 && (
+                                        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {images.map((file, index) => (
+                                                <div key={index} className="relative aspect-video">
+                                                    <img src={URL.createObjectURL(file)} alt={file.name} className="w-full h-full object-cover rounded-md" />
+                                                    <Button className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 hover:bg-red-600" size="icon" onClick={() => removeImage(index)}>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        {step === 6 && (
+                            <div>
+                                <div className="space-y-4 text-sm">
+                                    <div className="p-4 bg-zinc-100 rounded-lg space-y-2">
+                                        <h3 className="font-semibold text-zinc-900">Resumo do Veículo</h3>
+                                        <p><span className="text-zinc-600">Nome:</span> {formData.name}</p>
+                                        <p><span className="text-zinc-600">Ano:</span> {formData.year}</p>
+                                        <p><span className="text-zinc-600">Preço:</span> {formatCurrency(formData.price)}</p>
+                                        <p><span className="text-zinc-600">Descrição:</span> {formData.description || "N/A"}</p>
+                                        <p><span className="text-zinc-600">Imagens:</span> {images.length} foto(s)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </CardContent>
             </Card>
 
