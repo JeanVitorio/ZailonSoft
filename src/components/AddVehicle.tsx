@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import imageCompression from 'browser-image-compression'; // 👈 NOVO IMPORT!
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,18 +12,14 @@ import { ArrowLeft, ArrowRight, Car, Upload, DollarSign, Check, FileText, Calend
 import { addVehicle as addVehicleToSupabase } from '@/services/api';
 import { supabase } from '@/supabaseClient';
 
-// --- Funções Auxiliares ---
+// --- Funções Auxiliares de Formatação ---
 const parseCurrency = (value: string): number => {
     if (!value) return 0;
-    // Corrigido para lidar com entradas de usuário (ex: 10000) e valores formatados (ex: R$ 10.000,00)
     const cleaned = String(value).replace(/R\$\s?/, '').replace(/\./g, '').replace(',', '.');
     return Number(cleaned) || 0;
 };
-
-// 💡 Mantive a lógica de formatação de currency mais simples para usar no onBlur
 const formatCurrency = (value: string): string => {
     const num = parseCurrency(value);
-    // Garante que o número formatado retorne "R$ 0,00" se for 0, ou o valor formatado
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(num);
 };
 
@@ -46,10 +43,11 @@ export function AddVehicle() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
 
-    // 💡 Melhoria: Busca do LojaId com tratamento de loading
+    // Lógica para buscar lojaId
     useEffect(() => {
         const fetchLojaData = async () => {
             setIsLoadingLoja(true);
+            // ... (sua lógica de busca de lojaId) ...
             try {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
@@ -64,13 +62,7 @@ export function AddVehicle() {
                         setLojaId(null);
                     } else if (lojaData) {
                         setLojaId(lojaData.id);
-                    } else {
-                        toast({
-                            title: "Loja Não Encontrada",
-                            description: "Você não tem uma loja cadastrada. Não é possível adicionar veículos.",
-                            variant: "destructive"
-                        });
-                    }
+                    } 
                 }
             } catch (e) {
                 console.error("Erro geral na busca da loja:", e);
@@ -81,6 +73,7 @@ export function AddVehicle() {
         fetchLojaData();
     }, [toast]);
 
+    // Mutação para o TanStack Query
     const mutation = useMutation({
         mutationFn: ({ vehicleData, images, lojaId }: { vehicleData: typeof initialFormData; images: File[]; lojaId: string }) =>
             addVehicleToSupabase(vehicleData, images, lojaId),
@@ -96,25 +89,62 @@ export function AddVehicle() {
             console.error("Erro na Mutação:", error);
             toast({
                 title: "Erro ao cadastrar veículo 😕",
-                description: `Falha: ${error.message}. Tente novamente. (Se estiver no celular, o upload de fotos pode ser lento.)`,
+                description: `Falha: ${error.message}. O upload das fotos falhou. Tente novamente!`,
                 variant: 'destructive',
                 duration: 8000,
             });
         },
     });
+    
+    // --- FUNÇÕES DE COMPRESSÃO E UPLOAD (NOVAS) ---
+    const compressImage = async (imageFile: File): Promise<File> => {
+        const options = {
+            maxSizeMB: 1,           
+            maxWidthOrHeight: 1920, 
+            useWebWorker: true,     
+            initialQuality: 0.9      
+        };
+        try {
+            const compressedFile = await imageCompression(imageFile, options);
+            return compressedFile as File;
+        } catch (error) {
+            console.error("Erro ao comprimir imagem, enviando original:", error);
+            return imageFile; 
+        }
+    };
+    
+    // 💡 Handler de Imagem com Compressão
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        setValidationError(null);
+        if (e.target.files) {
+            const filesToCompress = Array.from(e.target.files);
+            
+            toast({
+                title: "Preparando imagens...",
+                description: `Comprimindo ${filesToCompress.length} arquivo(s) para upload rápido...`,
+                duration: filesToCompress.length * 1500 // Aumenta a duração conforme o número de arquivos
+            });
+
+            const compressedImagesPromises = filesToCompress.map(file => compressImage(file));
+            const compressedImages = await Promise.all(compressedImagesPromises);
+            
+            setImages(prev => [...prev, ...compressedImages]);
+            
+            toast({
+                title: "Imagens prontas!",
+                description: "Imagens otimizadas e adicionadas à lista.",
+                duration: 3000
+            });
+        }
+    };
+    // ---------------------------------------------
+
 
     const handleInputChange = (field: keyof typeof initialFormData, value: string) => {
         setValidationError(null);
         setFormData(prev => ({ ...prev, [field]: value }));
     };
     
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setValidationError(null);
-        if (e.target.files) {
-            setImages(prev => [...prev, ...Array.from(e.target.files!)]);
-        }
-    };
-
     const removeImage = (index: number) => {
         setImages(prev => prev.filter((_, i) => i !== index));
     };
@@ -182,7 +212,6 @@ export function AddVehicle() {
             <div className="container mx-auto p-4 md:p-8 space-y-6 max-w-2xl font-poppins text-center mt-20">
                 <Loader2 className="mx-auto h-8 w-8 text-amber-500 animate-spin" />
                 <h1 className="text-xl font-semibold text-zinc-900">Aguardando dados da sua loja...</h1>
-                <p className="text-zinc-600">Verificando sua permissão para cadastrar veículos.</p>
                 <Progress value={25} className="w-full h-2 bg-zinc-200 [&>div]:bg-amber-500 animate-pulse" />
             </div>
         );
@@ -194,7 +223,7 @@ export function AddVehicle() {
             <div className="container mx-auto p-4 md:p-8 space-y-6 max-w-2xl font-poppins text-center mt-20">
                 <Car className="mx-auto h-8 w-8 text-red-500" />
                 <h1 className="text-xl font-semibold text-red-700">Acesso Negado ou Loja Não Encontrada</h1>
-                <p className="text-zinc-600">Você não tem permissão ou sua loja não está cadastrada. Por favor, entre em contato com o suporte ou refaça seu login.</p>
+                <p className="text-zinc-600">Você não tem permissão ou sua loja não está cadastrada.</p>
             </div>
         );
     }
@@ -260,12 +289,10 @@ export function AddVehicle() {
                                     placeholder="R$ 0,00"
                                     value={formData.price}
                                     onChange={e => {
-                                        // Permite digitação contínua (só números e separadores)
                                         const rawValue = e.target.value.replace(/[^0-9,.]/g, '');
                                         handleInputChange('price', rawValue);
                                     }}
                                     onBlur={e => {
-                                        // Aplica a formatação R$ 1.000,00 ao sair do campo
                                         handleInputChange('price', formatCurrency(e.target.value));
                                     }}
                                     type="text"
