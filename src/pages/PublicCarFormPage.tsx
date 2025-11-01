@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Feather from 'react-feather';
 import { useToast } from '@/components/ui/use-toast';
 import { Progress } from '@/components/ui/progress';
+import imageCompression from 'browser-image-compression'; // 💡 NOVO IMPORT
 
 import {
     StepPersonalData, StepFileUpload, StepPaymentType, StepFinancing,
@@ -18,8 +19,9 @@ import { fetchCarDetails, createClient } from '@/services/api';
 
 const fadeInUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeInOut' } } };
 
-// --- FUNÇÕES AUXILIARES ---
+// --- FUNÇÕES AUXILIARES DE FORMATACÃO ---
 const parseCurrency = (value: string | number): number => {
+    // ... (função original sem alterações)
     if (typeof value === 'number') return value;
     if (!value || typeof value !== 'string') return 0;
     const cleaned = String(value).replace(/R\$\s?/, '').replace(/\./g, '').replace(',', '.');
@@ -28,12 +30,14 @@ const parseCurrency = (value: string | number): number => {
 };
 
 const formatCurrency = (value: string | number): string => {
+    // ... (função original sem alterações)
     const number = parseCurrency(value);
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
 };
 
 // --- COMPONENTE INTEGRADO DE DETALHES DO VEÍCULO ---
 function CarDetailsDisplay({ vehicle }: { vehicle: Car }) {
+    // ... (componente original sem alterações)
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
@@ -129,6 +133,7 @@ function CarDetailsDisplay({ vehicle }: { vehicle: Car }) {
 
 // --- COMPONENTE LOCAL DE TIPO DE NEGÓCIO ---
 const StepDealType = ({ setDealType, nextStep }: { setDealType: (type: 'comum' | 'troca' | 'visita') => void; nextStep: () => void }) => {
+    // ... (componente original sem alterações)
     return (
         <div className="space-y-4">
             <h2 className="text-xl font-semibold text-zinc-900">Selecione o Tipo de Negócio</h2>
@@ -149,6 +154,7 @@ const StepDealType = ({ setDealType, nextStep }: { setDealType: (type: 'comum' |
 
 // --- COMPONENTE DE SUMMARY CORRIGIDO ---
 function StepSummary({ formData, files, dealType, paymentType }: { formData: FormData; files: Files; dealType: string; paymentType: string; }) {
+    // ... (componente original sem alterações)
     const interestedCar = formData.interested_vehicles[0]; 
 
     const renderFinancingDetails = () => (
@@ -258,6 +264,7 @@ export function PublicCarFormPage() {
     const [formData, setFormData] = useState<FormData>(initialFormData);
     const [files, setFiles] = useState<Files>(initialFiles);
     const [validationError, setValidationError] = useState<string | null>(null);
+    const [isCompressing, setIsCompressing] = useState(false); // 💡 NOVO ESTADO
 
     const { data: interestedCar, isLoading: isLoadingCar, error: errorCar } = useQuery<Car>({
         queryKey: ['carDetails', carId],
@@ -275,27 +282,43 @@ export function PublicCarFormPage() {
         mutationFn: ({ clientPayload, files, lojaId }: { clientPayload: ClientPayload; files: Files; lojaId: string }) =>
             createClient({ clientPayload, files, lojaId }),
         
-        // --- [CORREÇÃO AQUI] ---
-        // Redireciona para a rota correta: '/catalogo-loja/'
         onSuccess: () => {
+            // ... (função original sem alterações)
             toast({ title: "Sucesso!", description: "Proposta enviada com sucesso." });
             queryClient.invalidateQueries({ queryKey: ['carDetails', carId] });
             
             if (interestedCar && interestedCar.loja_id) {
-                navigate(`/catalogo-loja/${interestedCar.loja_id}`); // Rota CORRIGIDA
+                navigate(`/catalogo-loja/${interestedCar.loja_id}`); 
             } else {
                 navigate('/'); // Fallback
             }
         },
-        // --- [FIM DA CORREÇÃO] ---
-
         onError: (error: Error) => {
+             // ... (função original sem alterações)
             console.error('Erro ao enviar proposta:', error);
             toast({ title: "Erro!", description: error.message || "Falha ao enviar a proposta.", variant: "destructive" });
         },
     });
 
+    // 💡 NOVA FUNÇÃO AUXILIAR DE COMPRESSÃO
+    const compressImage = async (imageFile: File): Promise<File> => {
+        const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+            initialQuality: 0.9
+        };
+        try {
+            const compressedFile = await imageCompression(imageFile, options);
+            return compressedFile as File;
+        } catch (error) {
+            console.error("Erro ao comprimir imagem, enviando original:", error);
+            return imageFile;
+        }
+    };
+
     const handleInputChange = (path: keyof FormData | string, value: any) => {
+         // ... (função original sem alterações)
         setValidationError(null);
         setFormData(prev => {
             const keys = path.split('.');
@@ -309,12 +332,50 @@ export function PublicCarFormPage() {
         });
     };
 
-    const handleFileChange = (type: keyof Files, fileList: FileList | null) => {
+    // 💡 FUNÇÃO DE UPLOAD MODIFICADA PARA COMPRESSÃO
+    const handleFileChange = async (type: keyof Files, fileList: FileList | null) => {
         setValidationError(null);
-        setFiles(prev => ({ ...prev, [type]: fileList ? Array.from(fileList) : [] }));
+        if (!fileList || fileList.length === 0) {
+            setFiles(prev => ({ ...prev, [type]: [] }));
+            return;
+        }
+
+        const filesToCompress = Array.from(fileList);
+        setIsCompressing(true); // Liga o carregamento
+        
+        const fileTypeDescription = type === 'documents' ? 'documentos' : 'fotos da troca';
+
+        toast({
+            title: "Preparando arquivos...",
+            description: `Comprimindo ${filesToCompress.length} ${fileTypeDescription}...`,
+            duration: filesToCompress.length * 1500
+        });
+
+        try {
+            // Comprime todos os arquivos em paralelo
+            const compressedImagesPromises = filesToCompress.map(file => compressImage(file));
+            const compressedImages = await Promise.all(compressedImagesPromises);
+            
+            // Atualiza o estado com os arquivos comprimidos
+            setFiles(prev => ({ ...prev, [type]: compressedImages }));
+            
+            toast({
+                title: "Arquivos prontos!",
+                description: "Arquivos otimizados e adicionados.",
+                duration: 3000
+            });
+        } catch (error) {
+             toast({
+                title: "Erro ao processar arquivos",
+                description: "Alguns arquivos podem não ter sido processados.",
+                variant: 'destructive',
+            });
+        } finally {
+            setIsCompressing(false); // Desliga o carregamento
+        }
     };
 
-    // Validação (sem alterações, mas mantida)
+    // Validação (sem alterações)
     const validateStep = (): boolean => {
         const currentStepId = flowSteps[step - 1]?.id;
         if (!currentStepId) return true;
@@ -329,13 +390,19 @@ export function PublicCarFormPage() {
                 if (!phoneRegex.test(formData.phone)) { setValidationError("Telefone inválido. Formato: (99) 99999-9999."); return false; }
                 if (!cpfRegex.test(formData.cpf)) { setValidationError("CPF inválido. Formato: 999.999.999-99."); return false; }
                 break;
-            case 'documents': break;
+            case 'documents':
+                 // 💡 Adiciona bloqueio se a compressão estiver em andamento
+                if (isCompressing) { setValidationError("Aguarde o processamento dos arquivos..."); return false; }
+                break;
             case 'trade_details':
                 if (!formData.trade_in_car.model.trim()) { setValidationError("Modelo do carro de troca é obrigatório."); return false; }
                 if (!/^\d{4}$/.test(formData.trade_in_car.year)) { setValidationError("Ano do carro de troca inválido (use 4 dígitos)."); return false; }
                 if (!formData.trade_in_car.value.trim()) { setValidationError("O valor desejado na troca é obrigatório."); return false; }
                 break;
-            case 'trade_photos': break;
+            case 'trade_photos':
+                // 💡 Adiciona bloqueio se a compressão estiver em andamento
+                if (isCompressing) { setValidationError("Aguarde o processamento das fotos..."); return false; }
+                break;
             case 'financing':
                 const entryValue = parseCurrency(formData.financing_details.entry);
                 const carPrice = interestedCar ? parseCurrency(interestedCar.preco) : 0;
@@ -418,6 +485,9 @@ export function PublicCarFormPage() {
     if (errorCar || !interestedCar) return <div className="text-center py-20 text-red-500">Veículo não encontrado ou link inválido.</div>;
 
     // renderCurrentStep (sem alterações)
+    // NOTA: Para o spinner aparecer DENTRO do StepFileUpload, 
+    // você precisaria passar 'isCompressing={isCompressing}' como prop
+    // e modificar o componente 'StepFileUpload' para usá-lo.
     const renderCurrentStep = () => {
         if (step === 0) return <StepDealType setDealType={(type) => { setDealType(type); setStep(1); }} nextStep={() => {}} />;
         const currentStepConfig = flowSteps[step - 1];
@@ -448,8 +518,6 @@ export function PublicCarFormPage() {
         >
             <div className="relative space-y-3 p-4 border-b border-zinc-200">
                 
-                {/* --- [LINK CORRIGIDO AQUI] --- */}
-                {/* O 'Link' agora aponta para '/catalogo-loja/' */}
                 <Link
                     to={`/catalogo-loja/${interestedCar.loja_id}`} 
                     className="absolute top-4 right-4 flex items-center px-3 py-2 rounded-lg text-sm font-medium text-amber-600 hover:bg-amber-50 transition-all group"
@@ -457,7 +525,6 @@ export function PublicCarFormPage() {
                     <Feather.BookOpen className="w-4 h-4 mr-2 group-hover:text-amber-700 transition-colors" />
                     <span className="group-hover:text-amber-700 transition-colors">Ver Catálogo da Loja</span>
                 </Link>
-                {/* --- [FIM DA CORREÇÃO] --- */}
 
                 <h1 className="text-3xl font-bold text-zinc-900">Proposta de Interesse</h1>
                 <h2 className="text-xl font-semibold text-zinc-800">
@@ -501,9 +568,25 @@ export function PublicCarFormPage() {
                     </motion.button>
                 ) : <div />}
 
+                {/* 💡 BOTÃO "AVANÇAR" MODIFICADO */}
                 {step > 0 && step < flowSteps.length && (
-                    <motion.button className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all flex items-center" onClick={nextStep} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        Avançar <Feather.ArrowRight className="ml-2 h-4 w-4" />
+                    <motion.button 
+                        className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all flex items-center disabled:bg-amber-300 disabled:cursor-not-allowed" 
+                        onClick={nextStep} 
+                        disabled={isCompressing || mutation.isPending} // Desabilita durante compressão
+                        whileHover={isCompressing ? {} : { scale: 1.05 }} // Remove animação se desabilitado
+                        whileTap={isCompressing ? {} : { scale: 0.95 }}
+                    >
+                        {isCompressing ? (
+                            <>
+                                <Feather.Loader className="mr-2 h-4 w-4 animate-spin" />
+                                Processando...
+                            </>
+                        ) : (
+                            <>
+                                Avançar <Feather.ArrowRight className="ml-2 h-4 w-4" />
+                            </>
+                        )}
                     </motion.button>
                 )}
 

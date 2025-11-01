@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import imageCompression from 'browser-image-compression'; // 👈 NOVO IMPORT!
+import imageCompression from 'browser-image-compression';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
-import { ArrowLeft, ArrowRight, Car, Upload, DollarSign, Check, FileText, Calendar, Trash2, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Car, Upload, DollarSign, Check, FileText, Calendar, Trash2, Loader2, Image as ImageIcon } from 'lucide-react';
 import { addVehicle as addVehicleToSupabase } from '@/services/api';
 import { supabase } from '@/supabaseClient';
 
@@ -39,6 +39,7 @@ export function AddVehicle() {
     const [validationError, setValidationError] = useState<string | null>(null);
     const [lojaId, setLojaId] = useState<string | null>(null);
     const [isLoadingLoja, setIsLoadingLoja] = useState(true);
+    const [isCompressing, setIsCompressing] = useState(false); // 💡 NOVO ESTADO
 
     const { toast } = useToast();
     const queryClient = useQueryClient();
@@ -47,7 +48,6 @@ export function AddVehicle() {
     useEffect(() => {
         const fetchLojaData = async () => {
             setIsLoadingLoja(true);
-            // ... (sua lógica de busca de lojaId) ...
             try {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
@@ -82,7 +82,7 @@ export function AddVehicle() {
                 title: "Veículo cadastrado com sucesso! 🎉",
                 description: `Adicionado ao catálogo da sua loja.`,
             });
-            queryClient.invalidateQueries({ queryKey: ['availableCars'] });
+            queryClient.refetchQueries({ queryKey: ['availableCars'] });
             resetForm();
         },
         onError: (error: Error) => {
@@ -96,7 +96,7 @@ export function AddVehicle() {
         },
     });
     
-    // --- FUNÇÕES DE COMPRESSÃO E UPLOAD (NOVAS) ---
+    // --- FUNÇÕES DE COMPRESSÃO E UPLOAD ---
     const compressImage = async (imageFile: File): Promise<File> => {
         const options = {
             maxSizeMB: 1,           
@@ -113,28 +113,40 @@ export function AddVehicle() {
         }
     };
     
-    // 💡 Handler de Imagem com Compressão
+    // 💡 Handler de Imagem com Controle de Carregamento
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         setValidationError(null);
         if (e.target.files) {
             const filesToCompress = Array.from(e.target.files);
+            setIsCompressing(true); // 💡 INÍCIO DO CARREGAMENTO
             
             toast({
                 title: "Preparando imagens...",
                 description: `Comprimindo ${filesToCompress.length} arquivo(s) para upload rápido...`,
-                duration: filesToCompress.length * 1500 // Aumenta a duração conforme o número de arquivos
+                duration: filesToCompress.length * 1500
             });
 
-            const compressedImagesPromises = filesToCompress.map(file => compressImage(file));
-            const compressedImages = await Promise.all(compressedImagesPromises);
-            
-            setImages(prev => [...prev, ...compressedImages]);
-            
-            toast({
-                title: "Imagens prontas!",
-                description: "Imagens otimizadas e adicionadas à lista.",
-                duration: 3000
-            });
+            try {
+                const compressedImagesPromises = filesToCompress.map(file => compressImage(file));
+                const compressedImages = await Promise.all(compressedImagesPromises);
+                
+                // 💡 Nota: A visualização é rápida porque a URL é criada localmente
+                setImages(prev => [...prev, ...compressedImages]);
+                
+                toast({
+                    title: "Imagens prontas!",
+                    description: "Imagens otimizadas e adicionadas à lista.",
+                    duration: 3000
+                });
+            } catch (error) {
+                 toast({
+                    title: "Erro ao processar imagens",
+                    description: "Algumas imagens podem não ter sido processadas corretamente.",
+                    variant: 'destructive',
+                });
+            } finally {
+                setIsCompressing(false); // 💡 FIM DO CARREGAMENTO
+            }
         }
     };
     // ---------------------------------------------
@@ -168,6 +180,8 @@ export function AddVehicle() {
                 break;
             case 5: 
                 if (images.length === 0) return !setValidationError("Selecione pelo menos uma imagem."); 
+                // 💡 Novo bloqueio para garantir que a compressão terminou antes de avançar
+                if (isCompressing) return !setValidationError("Aguarde a compressão das imagens."); 
                 break;
         }
         setValidationError(null);
@@ -310,15 +324,34 @@ export function AddVehicle() {
                             </div>
                         )}
 
-                        {/* ETAPA 5: UPLOAD DE IMAGENS */}
+                        {/* ETAPA 5: UPLOAD DE IMAGENS (COM CARREGAMENTO VISUAL) */}
                         {step === 5 && (
                             <div>
-                                <div>
-                                    <Label htmlFor="image-upload" className="p-6 border-2 border-dashed border-zinc-200 rounded-lg text-center cursor-pointer hover:border-amber-400/50 transition-colors block">
-                                        <Upload className="mx-auto h-12 w-12 text-zinc-400" />
-                                        <p className="mt-2 text-sm text-zinc-600">Clique para selecionar ou arraste as imagens</p>
+                                <div className="space-y-4">
+                                    <Label htmlFor="image-upload" className="p-6 border-2 border-dashed border-zinc-200 rounded-lg text-center cursor-pointer hover:border-amber-400/50 transition-colors block" aria-disabled={isCompressing}>
+                                        {isCompressing ? (
+                                            <Loader2 className="mx-auto h-12 w-12 text-amber-500 animate-spin" />
+                                        ) : (
+                                            <Upload className="mx-auto h-12 w-12 text-zinc-400" />
+                                        )}
+                                        
+                                        {isCompressing ? (
+                                            <p className="mt-2 text-sm font-semibold text-amber-600">Processando e Comprimindo Imagens...</p>
+                                        ) : (
+                                            <p className="mt-2 text-sm text-zinc-600">Clique para selecionar ou arraste as imagens</p>
+                                        )}
                                     </Label>
-                                    <Input id="image-upload" type="file" multiple className="sr-only" onChange={handleImageChange} accept="image/*"/>
+                                    <Input 
+                                        id="image-upload" 
+                                        type="file" 
+                                        multiple 
+                                        className="sr-only" 
+                                        onChange={handleImageChange} 
+                                        accept="image/*"
+                                        disabled={isCompressing} // 💡 Desabilita o input durante o processamento
+                                    />
+                                    
+                                    {/* Visualização das Imagens */}
                                     {images.length > 0 && (
                                         <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                                             {images.map((file, index) => (
@@ -329,6 +362,13 @@ export function AddVehicle() {
                                                     </Button>
                                                 </div>
                                             ))}
+                                            {/* Indicador visual de que o carregamento está completo, mas a compressão ainda pode estar em andamento */}
+                                            {isCompressing && (
+                                                <div className="p-4 flex items-center justify-center bg-zinc-100 rounded-lg border-2 border-amber-400/50">
+                                                    <Loader2 className="h-6 w-6 text-amber-500 animate-spin mr-2" />
+                                                    <span className="text-sm text-amber-600">Comprimindo...</span>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -366,9 +406,10 @@ export function AddVehicle() {
                     <Button 
                         className="bg-amber-500 hover:bg-amber-600 text-white disabled:bg-amber-300" 
                         onClick={nextStep}
-                        disabled={mutation.isPending || isLoadingLoja}
+                        // 💡 BLOQUEIO DO BOTÃO: Desabilitado se estiver comprimindo OU com mutação pendente
+                        disabled={mutation.isPending || isLoadingLoja || isCompressing} 
                     >
-                        Avançar <ArrowRight className="ml-2 h-4 w-4" />
+                        {isCompressing ? 'Processando Fotos...' : 'Avançar'} <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 )}
                 
