@@ -11,8 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-// O <Select> PODE SER REMOVIDO SE NÃO FOR USADO EM OUTRO LUGAR DESTE ARQUIVO
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -24,7 +22,8 @@ import {
 } from 'lucide-react';
 
 // --- Componentes Drag-and-Drop ---
-import { DndContext, closestCenter, DragOverlay, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
+// Importando TouchSensor e configuração
+import { DndContext, closestCenter, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -130,7 +129,7 @@ function ClientCard({ client, onDelete, onViewDetails }) {
                 ? JSON.parse(client.bot_data.interested_vehicles) 
                 : client.bot_data.interested_vehicles;
             interestedVehicleName = vehicles[0]?.nome || "Nenhum";
-        } catch (e) { console.error("Erro ao parsear interested_vehicles:", e); }
+        } catch (e) { /* Silently fail and use default */ }
     }
 
     const dealTypeKey = client.bot_data?.deal_type || "Não informado";
@@ -257,8 +256,11 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         const botData = formData.bot_data || {};
         const interestedVehicleIds = new Set((botData.interested_vehicles || []).map(v => v.id));
         const availableCars = allCars.filter(car => !interestedVehicleIds.has(car.id));
-        if (!vehicleSearch) return availableCars;
-        return availableCars.filter(car => car.nome.toLowerCase().includes(vehicleSearch.toLowerCase()));
+        
+        const lowerCaseSearch = vehicleSearch.toLowerCase();
+        if (!lowerCaseSearch) return availableCars;
+        
+        return availableCars.filter(car => car.nome.toLowerCase().includes(lowerCaseSearch));
     }, [vehicleSearch, allCars, formData.bot_data?.interested_vehicles]);
     
     const navSections = useMemo(() => [
@@ -730,7 +732,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         .filter(section => section.id !== 'documentos') 
                         .map(section => (
                         <div key={`pdf-info-${section.id}`} style={{ breakInside: 'avoid' }}>
-                             {renderSectionContent(section.id, true)}
+                            {renderSectionContent(section.id, true)}
                         </div>
                     ))}
                 </div>
@@ -748,19 +750,22 @@ function CRMKanbanContent() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [clientToDelete, setClientToDelete] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    // REMOVIDO: const [currentPage, setCurrentPage] = useState(1);
+    // REMOVIDO: const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const boardRef = useRef(null);
     const columnRefs = useRef({});
     
-    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+    // 💡 SENSOR CONFIGURADO PARA MELHORAR O MOBILE (TOUCH)
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+        useSensor(TouchSensor, {
+            activationConstraint: { delay: 250, tolerance: 5 },
+        })
+    );
+    
     const { data: clients = [], isLoading, error } = useQuery({ queryKey: ['clients'], queryFn: fetchClients, refetchInterval: 10000 });
 
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    // REMOVIDO: useEffect(() => { ... }) de resize e isMobile
 
     const updateStatusMutation = useMutation({
         mutationFn: updateClientStatus,
@@ -789,8 +794,37 @@ function CRMKanbanContent() {
         },
         onError: (err) => toast({ title: "Erro", description: err.message, variant: 'destructive' }),
     });
+    
+    // --- FUNÇÃO AUXILIAR PARA PEGAR O NOME DO CARRO ---
+    const getInterestedVehicleName = (client) => {
+        if (client.bot_data?.interested_vehicles) {
+            try {
+                const vehicles = typeof client.bot_data.interested_vehicles === 'string'
+                    ? JSON.parse(client.bot_data.interested_vehicles)
+                    : client.bot_data.interested_vehicles;
+                return vehicles[0]?.nome?.toLowerCase() || "";
+            } catch (e) {
+                return "";
+            }
+        }
+        return "";
+    };
 
-    const filteredClients = useMemo(() => clients.filter(c => (c.name?.toLowerCase() || '').includes(searchTerm.toLowerCase())), [clients, searchTerm]);
+    // LÓGICA DE FILTRO INALTERADA (já funciona para nome e carro)
+    const filteredClients = useMemo(() => {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+        if (!lowerCaseSearchTerm) {
+            return clients;
+        }
+
+        return clients.filter(c => {
+            const nameMatch = (c.name?.toLowerCase() || '').includes(lowerCaseSearchTerm);
+            const vehicleName = getInterestedVehicleName(c);
+            const vehicleMatch = vehicleName.includes(lowerCaseSearchTerm);
+
+            return nameMatch || vehicleMatch;
+        });
+    }, [clients, searchTerm]);
 
     const columns = useMemo(() => {
         const data = Object.fromEntries(KANBAN_COLUMNS.map(col => [col.id, []]));
@@ -803,11 +837,8 @@ function CRMKanbanContent() {
             .filter(col => searchTerm.trim() === '' || col.clients.length > 0);
     }, [filteredClients, searchTerm]);
 
-    const handlePageChange = (newPage) => {
-        if (newPage >= 1 && newPage <= columns.length) {
-            setCurrentPage(newPage);
-        }
-    };
+    // REMOVIDO: handlePageChange
+    // REMOVIDO: handleScrollColumn
 
     function handleDragStart(event) {
         const client = filteredClients.find(c => c.chat_id === event.active.id);
@@ -817,20 +848,29 @@ function CRMKanbanContent() {
     function handleDragEnd(event) {
         const { active, over } = event;
         setActiveClient(null);
+
         if (!over || active.id === over.id) return;
 
         const activeClientId = active.id;
+        const activeClientData = clients.find(c => c.chat_id === activeClientId);
+
         const overId = over.id;
 
-        const overClient = filteredClients.find(c => c.chat_id === overId);
         let destColumnId;
+
+        const overClient = clients.find(c => c.chat_id === overId);
         if (overClient) {
             destColumnId = getClientColumnId(overClient.bot_data?.state);
         } else {
-            destColumnId = overId; // Assuming dropped on column
+            const isColumn = KANBAN_COLUMNS.some(col => col.id === overId);
+            if (isColumn) {
+                destColumnId = overId;
+            } else {
+                destColumnId = getClientColumnId(activeClientData?.bot_data?.state);
+            }
         }
-
-        const sourceColumnId = getClientColumnId(activeClient?.bot_data?.state);
+        
+        const sourceColumnId = getClientColumnId(activeClientData?.bot_data?.state);
 
         if (sourceColumnId !== destColumnId) {
             updateStatusMutation.mutate({ chatId: activeClientId, newState: destColumnId });
@@ -846,18 +886,10 @@ function CRMKanbanContent() {
         setClientToDelete(null);
     };
 
-    const handleScrollColumn = (columnId, direction) => {
-        const columnEl = columnRefs.current[columnId]?.querySelector('.overflow-y-scroll');
-        if (columnEl) {
-            const scrollAmount = direction === 'up' ? -100 : 100;
-            columnEl.scrollBy({ top: scrollAmount, behavior: 'smooth' });
-        }
-    };
-
     if (isLoading) return <div className="p-6">Carregando CRM...</div>;
     if (error) return <div className="p-6 text-destructive">Erro ao carregar dados: {error.message}</div>;
 
-    const visibleColumns = isMobile ? columns.slice(currentPage - 1, currentPage) : columns;
+    // REMOVIDO: const visibleColumns = isMobile ? columns.slice(currentPage - 1, currentPage) : columns;
 
     return (
         <>
@@ -865,21 +897,29 @@ function CRMKanbanContent() {
                 <h1 className="text-2xl md:text-3xl font-bold">CRM - Funil de Vendas</h1>
                 <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                    <Input placeholder="Buscar clientes..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 focus-visible:ring-amber-500/20" />
+                    <Input placeholder="Buscar clientes ou nome do carro..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 focus-visible:ring-amber-500/20" />
                 </div>
                 <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
+                    {/* 💡 CORREÇÃO AQUI: Adicionar overflow-x-auto para rolar horizontalmente no mobile/desktop */}
                     <div ref={boardRef} className="w-full overflow-x-auto pb-4 scroll-smooth">
-                        <div className="flex gap-4 md:gap-6 items-start">
-                            {visibleColumns.length > 0 ? (
-                                visibleColumns.map((column) => (
-                                    <div key={column.id} ref={el => columnRefs.current[column.id] = el} className="flex-shrink-0 w-[calc(100%-3rem)] sm:w-72 box-border relative">
-                                        <SortableContext id={column.id} items={column.clients.map(c => c.chat_id)} strategy={verticalListSortingStrategy}>
-                                            <div className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-[calc(100vh-18rem)] md:h-[calc(100vh-12rem)]">
+                        {/* 💡 CORREÇÃO AQUI: flex-nowrap garante que as colunas fiquem lado a lado */}
+                        <div className="flex flex-nowrap gap-4 md:gap-6 items-start h-full">
+                            {columns.length > 0 ? (
+                                columns.map((column) => (
+                                    <div 
+                                        key={column.id} 
+                                        ref={el => columnRefs.current[column.id] = el} 
+                                        // 💡 CORREÇÃO AQUI: Garante largura de coluna no mobile e desktop
+                                        className="flex-shrink-0 w-[280px] sm:w-72 box-border relative h-[calc(100vh-18rem)] md:h-[calc(100vh-12rem)]"
+                                    >
+                                        <SortableContext id={column.id} items={[...column.clients.map(c => c.chat_id), column.id]} strategy={verticalListSortingStrategy}>
+                                            <div id={column.id} className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-full">
                                                 <div className="flex items-center justify-between">
                                                     <h3 className="font-semibold text-sm md:text-base truncate">{column.name}</h3>
                                                     <Badge variant="secondary">{column.clients.length}</Badge>
                                                 </div>
-                                                <div className="h-full overflow-y-scroll scrollbar-width-auto touch-pan-y pr-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                {/* 💡 CORREÇÃO AQUI: h-full no contêiner de rolagem vertical */}
+                                                <div className="flex-1 overflow-y-scroll scrollbar-width-auto touch-pan-y pr-2" style={{ WebkitOverflowScrolling: 'touch' }}>
                                                     <div className="space-y-3">
                                                         {column.clients.length > 0 ? (
                                                             column.clients.map((client) => (
@@ -892,12 +932,7 @@ function CRMKanbanContent() {
                                                 </div>
                                             </div>
                                         </SortableContext>
-                                        {isMobile && (
-                                            <div className="absolute top-0 right-0 h-full flex flex-col justify-between py-12 md:hidden">
-                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScrollColumn(column.id, 'up')}><ChevronUp className="h-5 w-5" /></Button>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleScrollColumn(column.id, 'down')}><ChevronDown className="h-5 w-5" /></Button>
-                                            </div>
-                                        )}
+                                        {/* REMOVIDO: Botões de rolagem vertical */}
                                     </div>
                                 ))
                             ) : (
@@ -907,13 +942,7 @@ function CRMKanbanContent() {
                     </div>
                     <DragOverlay>{activeClient ? <ClientCard client={activeClient} onDelete={() => {}} onViewDetails={() => {}} /> : null}</DragOverlay>
                 </DndContext>
-                {isMobile && columns.length > 0 && (
-                    <div className="flex justify-between items-center mt-4">
-                        <Button variant="ghost" disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}><ChevronLeft className="h-6 w-6" /></Button>
-                        <span className="text-sm font-medium">{currentPage} / {columns.length}</span>
-                        <Button variant="ghost" disabled={currentPage === columns.length} onClick={() => handlePageChange(currentPage + 1)}><ChevronRight className="h-6 w-6" /></Button>
-                    </div>
-                )}
+                {/* REMOVIDO: Paginação e navegação entre colunas */}
             </div>
             {detailedClient && (
                 <ClientDetailDialog client={detailedClient} isOpen={!!detailedClient} onOpenChange={(isOpen) => !isOpen && setDetailedClient(null)} updateMutation={updateDetailsMutation} />

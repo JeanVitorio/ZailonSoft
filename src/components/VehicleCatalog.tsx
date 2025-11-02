@@ -387,13 +387,11 @@ export function VehicleCatalog() {
       vehicle.ano.toString().includes(searchTerm)
     ), [vehicles, searchTerm]);
 
-  // --- [FUNÇÃO CORRIGIDA] ---
-  // Pega o ID da loja do primeiro carro da lista, que é o ID correto.
+  // --- FUNÇÃO DE CÓPIA DO LINK (SEM ALTERAÇÕES) ---
   const handleCopyPublicLink = () => {
     let lojaIdToUse: string | undefined = undefined;
 
     // 1. Tenta pegar o ID da loja a partir do primeiro veículo na lista
-    //    (Este ID é o que comprovadamente funciona na página de formulário)
     if (vehicles.length > 0) {
         lojaIdToUse = vehicles[0].loja_id;
     } 
@@ -422,12 +420,19 @@ export function VehicleCatalog() {
         toast({ title: "Erro", description: "Falha ao copiar o link.", variant: "destructive" });
     });
   };
-  // --- [FIM DA CORREÇÃO] ---
+  // -------------------------------------------------
 
   return (
     <div className="space-y-6 p-6 relative z-10">
+      {/* =========================================================
+        [AJUSTE DE RESPONSIVIDADE MOBILE APLICADO AQUI]
+        - flex-col: Empilha o título e o botão no mobile.
+        - sm:flex-row: Volta para o layout lado a lado no desktop.
+        - gap-4: Adiciona espaço entre o título e o botão no mobile.
+        =========================================================
+      */}
       <motion.div
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         initial="hidden"
         animate="visible"
         variants={fadeInUp}
@@ -437,9 +442,16 @@ export function VehicleCatalog() {
           <p className="text-zinc-600">Gerencie seu estoque de veículos</p>
         </div>
         
+        {/* =========================================================
+          [AJUSTE DE RESPONSIVIDADE MOBILE APLICADO AQUI NO BOTÃO]
+          - w-full: Ocupa 100% da largura no mobile.
+          - sm:w-auto: Volta para largura automática no desktop.
+          - self-start: Alinha o botão à esquerda no modo empilhado (mobile).
+          =========================================================
+        */}
         <motion.button
           onClick={handleCopyPublicLink}
-          className="flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 transition-all group shadow-sm"
+          className="flex items-center self-start sm:self-center w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 transition-all group shadow-sm"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >

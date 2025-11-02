@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Feather from 'react-feather';
 import { useToast } from '@/components/ui/use-toast';
 import { Progress } from '@/components/ui/progress';
-import imageCompression from 'browser-image-compression'; // 💡 NOVO IMPORT
+import imageCompression from 'browser-image-compression'; 
 
 import {
     StepPersonalData, StepFileUpload, StepPaymentType, StepFinancing,
@@ -318,7 +318,6 @@ export function PublicCarFormPage() {
     };
 
     const handleInputChange = (path: keyof FormData | string, value: any) => {
-         // ... (função original sem alterações)
         setValidationError(null);
         setFormData(prev => {
             const keys = path.split('.');
@@ -485,9 +484,6 @@ export function PublicCarFormPage() {
     if (errorCar || !interestedCar) return <div className="text-center py-20 text-red-500">Veículo não encontrado ou link inválido.</div>;
 
     // renderCurrentStep (sem alterações)
-    // NOTA: Para o spinner aparecer DENTRO do StepFileUpload, 
-    // você precisaria passar 'isCompressing={isCompressing}' como prop
-    // e modificar o componente 'StepFileUpload' para usá-lo.
     const renderCurrentStep = () => {
         if (step === 0) return <StepDealType setDealType={(type) => { setDealType(type); setStep(1); }} nextStep={() => {}} />;
         const currentStepConfig = flowSteps[step - 1];
@@ -516,20 +512,32 @@ export function PublicCarFormPage() {
             animate="visible"
             variants={fadeInUp}
         >
-            <div className="relative space-y-3 p-4 border-b border-zinc-200">
+            {/* =========================================================
+              [AJUSTE DE RESPONSIVIDADE MOBILE APLICADO AQUI]
+              - O container principal agora usa flex para alinhar o título e o link.
+              - flex-col: Empilha o link e o cabeçalho no mobile.
+              - sm:flex-row: Volta a alinhar o link e o cabeçalho lado a lado no desktop.
+            ========================================================= */}
+            <div className="flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-b border-zinc-200">
                 
+                {/* 1. Container para os Títulos (H1 e H2) */}
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold text-zinc-900">Proposta de Interesse</h1>
+                    <h2 className="text-xl font-semibold text-zinc-800">
+                        Veículo: <span className="text-amber-600">{interestedCar.nome} ({interestedCar.ano})</span>
+                    </h2>
+                </div>
+                
+                {/* 2. Botão/Link "Ver Catálogo" (Agora sem 'absolute' e alinhado pelo flex) */}
                 <Link
                     to={`/catalogo-loja/${interestedCar.loja_id}`} 
-                    className="absolute top-4 right-4 flex items-center px-3 py-2 rounded-lg text-sm font-medium text-amber-600 hover:bg-amber-50 transition-all group"
+                    // Removido: absolute top-4 right-4
+                    className="flex-shrink-0 flex items-center px-3 py-2 rounded-lg text-sm font-medium text-amber-600 border border-amber-600/30 hover:bg-amber-50 transition-all group"
                 >
                     <Feather.BookOpen className="w-4 h-4 mr-2 group-hover:text-amber-700 transition-colors" />
                     <span className="group-hover:text-amber-700 transition-colors">Ver Catálogo da Loja</span>
                 </Link>
 
-                <h1 className="text-3xl font-bold text-zinc-900">Proposta de Interesse</h1>
-                <h2 className="text-xl font-semibold text-zinc-800">
-                    Veículo: <span className="text-amber-600">{interestedCar.nome} ({interestedCar.ano})</span>
-                </h2>
             </div>
 
 
