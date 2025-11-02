@@ -1,5 +1,6 @@
 // src/pages/CRMKanban.tsx
-// Kanban CRM com DnD robusto (dnd-kit) – pronto para colar
+// CRM Kanban com DnD (dnd-kit), modal de detalhes com Relatório melhorado
+// e exportação de PDF paginado via html2canvas + jsPDF.
 
 import React, {
   useState,
@@ -29,7 +30,25 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { AlertTriangle, X, Edit, Save, Upload, Download, Settings, Layers, Trash2, Search, FileText, XCircle, Home, Box, Loader2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  X,
+  Edit,
+  Save,
+  Upload,
+  Download,
+  Settings,
+  Layers,
+  Trash2,
+  Search,
+  FileText,
+  XCircle,
+  Loader2,
+  ChevronRight,
+  CalendarDays,
+  Phone,
+  User2,
+} from 'lucide-react';
 
 // --- Drag-and-Drop ---
 import {
@@ -49,7 +68,11 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-// --- API (fornecidas por você) ---
+// --- PDF ---
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+
+// --- API (você fornece) ---
 import {
   fetchClients,
   fetchAvailableCars,
@@ -148,12 +171,15 @@ const INITIAL_KANBAN_COLUMNS = [
 ];
 const LOCAL_STORAGE_KEY_PREFIX = 'kanban_columns_';
 
+// Parser BRL tolerante (sem \p{...})
 const parseCurrency = (value: any) => {
-  if (typeof value === 'number') return value;
-  if (!value || typeof value !== 'string') return 0;
-  const cleaned = String(value).replace(/R\$\s?/, '').replace(/\./g, '').replace(',', '.');
-  const parsed = parseFloat(cleaned);
-  return isNaN(parsed) ? 0 : parsed;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (!value) return 0;
+  const cleaned = String(value).replace(/R\$\s?/gi, '').replace(/\./g, '').replace(',', '.');
+  const num = Number(cleaned);
+  if (Number.isFinite(num)) return num;
+  const digits = String(value).replace(/\D+/g, '');
+  return digits ? Number(digits) / 100 : 0;
 };
 const toBRL = (value: any) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
@@ -230,7 +256,7 @@ function ClientCard({
     transition,
     opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 10 : 0,
-    touchAction: 'none', // melhora DnD no touch
+    touchAction: 'none',
   };
 
   let interestedVehicleName = 'Nenhum';
@@ -298,7 +324,6 @@ function KanbanColumn({
   isImmutable: boolean;
   onRef: (el: HTMLDivElement | null) => void;
 }) {
-  // área de drop para soltar cartões dentro da coluna (inclusive quando vazia)
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
     data: { type: 'column' },
@@ -354,6 +379,88 @@ function KanbanColumn({
   );
 }
 
+// -------------------- Helpers de PDF --------------------
+async function exportNodePaginatedToPDF(
+  node: HTMLElement,
+  filename: string,
+  {
+    scale = 2,
+    marginMM = 0,
+  }: { scale?: number; marginMM?: number } = {}
+) {
+  // Canvas do conteúdo completo
+  const canvas = await html2canvas(node, {
+    scale,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#ffffff',
+    windowWidth: node.scrollWidth,
+    windowHeight: node.scrollHeight,
+    scrollX: 0,
+    scrollY: 0,
+  });
+
+  // PDF A4 em mm
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = pdf.internal.pageSize.getWidth() - marginMM * 2;
+  const pageHeight = pdf.internal.pageSize.getHeight() - marginMM * 2;
+
+  // Converte px -> mm mantendo proporção
+  const imgWidthMM = pageWidth;
+  const imgHeightMM = (canvas.height * imgWidthMM) / canvas.width;
+
+  // Precisamos fatiar o canvas em "páginas" com altura equivalente
+  // à altura do PDF (em canvas pixels)
+  const pxPerMM = canvas.width / imgWidthMM;
+  const pageHeightInPx = pageHeight * pxPerMM;
+
+  let renderedHeight = 0;
+
+  const pageCanvas = document.createElement('canvas');
+  const pageCtx = pageCanvas.getContext('2d')!;
+  pageCanvas.width = canvas.width;
+  pageCanvas.height = Math.min(pageHeightInPx, canvas.height);
+
+  while (renderedHeight < canvas.height) {
+    const sliceHeight = Math.min(pageHeightInPx, canvas.height - renderedHeight);
+
+    // Ajusta altura do canvas da página se sobrar menos na última página
+    if (pageCanvas.height !== sliceHeight) {
+      pageCanvas.height = sliceHeight;
+    }
+
+    // Recorta parte do canvas principal para o canvas da página
+    pageCtx.clearRect(0, 0, pageCanvas.width, pageCanvas.height);
+    pageCtx.drawImage(
+      canvas,
+      0,
+      renderedHeight,
+      pageCanvas.width,
+      sliceHeight,
+      0,
+      0,
+      pageCanvas.width,
+      sliceHeight
+    );
+
+    const imgData = pageCanvas.toDataURL('image/jpeg', 0.95);
+
+    if (renderedHeight > 0) pdf.addPage();
+    pdf.addImage(
+      imgData,
+      'JPEG',
+      marginMM,
+      marginMM,
+      pageWidth,
+      (sliceHeight / pxPerMM)
+    );
+
+    renderedHeight += sliceHeight;
+  }
+
+  pdf.save(filename);
+}
+
 // -------------------- Modal Detalhes do Cliente --------------------
 function ClientDetailDialog({
   client,
@@ -394,7 +501,7 @@ function ClientDetailDialog({
     const currentState = client.state || client.bot_data?.state;
     const exists = columns.some((c) => c.id === currentState);
     return exists ? currentState : 'leed_recebido';
-    };
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -489,12 +596,12 @@ function ClientDetailDialog({
   const navSections = useMemo(
     () =>
       [
-        { id: 'perfil', label: 'Perfil', icon: Search, condition: () => true },
+        { id: 'perfil', label: 'Perfil', icon: User2, condition: () => true },
         { id: 'interesse', label: 'Interesses', icon: Search, condition: () => true },
-        { id: 'troca', label: 'Troca', icon: Search, condition: () => hasTradeIn },
-        { id: 'financiamento', label: 'Financiamento', icon: Search, condition: () => hasFinancing },
-        { id: 'visita', label: 'Visita', icon: Search, condition: () => hasVisit },
-        { id: 'documentos', label: 'Documentos', icon: Search, condition: () => true },
+        { id: 'troca', label: 'Troca', icon: ChevronRight, condition: () => hasTradeIn },
+        { id: 'financiamento', label: 'Financiamento', icon: ChevronRight, condition: () => hasFinancing },
+        { id: 'visita', label: 'Visita', icon: CalendarDays, condition: () => hasVisit },
+        { id: 'documentos', label: 'Documentos', icon: FileText, condition: () => true },
       ].filter((s) => s.condition()),
     [hasTradeIn, hasFinancing, hasVisit],
   );
@@ -587,8 +694,7 @@ function ClientDetailDialog({
       await Promise.all([
         ...removedDocs.map((u) => deleteClientFile({ fileUrl: u, bucketName: 'client-documents' })),
         ...removedTradeInPhotos.map((u) =>
-          deleteClientFile({ fileUrl: u, bucketName: 'trade-in-cars' }),
-        ),
+          deleteClientFile({ fileUrl: u, bucketName: 'trade-in-cars' })),
       ]);
 
       const finalPayload = produce(payload, (draft: any) => {
@@ -640,12 +746,104 @@ function ClientDetailDialog({
     }
   };
 
-  const handleDownloadPdf = () =>
-    toast({
-      title: 'Simulação',
-      description:
-        'A lógica de exportação para PDF pode ser ligada aqui (html2canvas + jsPDF).',
-    });
+  // ---------- EXPORTAR PDF: pega o bloco escondido (pdfInfoRef), adiciona uma "capa" e pagina ----------
+  const handleDownloadPdf = async () => {
+    if (!pdfInfoRef.current) return;
+
+    try {
+      setIsDownloadingPdf(true);
+
+      // Cria um container temporário para conter a capa + conteúdo
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'fixed';
+      wrapper.style.left = '-99999px';
+      wrapper.style.top = '0';
+      wrapper.style.width = '800px'; // ~ A4 em px (escala 2 vai resolver nitidez)
+      wrapper.style.padding = '32px';
+      wrapper.style.background = '#fff';
+      wrapper.style.color = '#111827';
+      wrapper.style.fontFamily = 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto';
+
+      // CAPA do relatório (design mais bonito)
+      const stateName =
+        KANBAN_COLUMNS_MODAL.find((c) => c.id === (formData.state || ''))?.name ||
+        'Não informado';
+      const today = new Date().toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+
+      const cover = document.createElement('div');
+      cover.innerHTML = `
+        <div style="
+          border: 1px solid #E5E7EB;
+          border-radius: 24px;
+          padding: 28px;
+          background: linear-gradient(135deg,#FEF3C7 0%, #FFFBEB 100%);
+          margin-bottom: 24px;
+        ">
+          <div style="display:flex; align-items:center; gap:16px;">
+            <div style="width:56px; height:56px; border-radius:16px; background:#F59E0B; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:22px;">
+              ${String(formData?.name || 'C')[0]?.toUpperCase() || 'C'}
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:800; font-size:22px; color:#111827; line-height:1.2; margin-bottom:2px;">
+                Relatório do Cliente
+              </div>
+              <div style="color:#6B7280; font-size:13px;">Gerado em ${today}</div>
+            </div>
+          </div>
+          <div style="height:10px;"></div>
+          <div style="
+            display:grid;
+            grid-template-columns: repeat(3,1fr);
+            gap:12px;
+          ">
+            <div style="background:white; border:1px solid #F3F4F6; border-radius:12px; padding:12px;">
+              <div style="font-size:12px; color:#6B7280; margin-bottom:4px;">Nome</div>
+              <div style="font-weight:700; color:#111827; font-size:14px;">${formData?.name || 'N/A'}</div>
+            </div>
+            <div style="background:white; border:1px solid #F3F4F6; border-radius:12px; padding:12px;">
+              <div style="font-size:12px; color:#6B7280; margin-bottom:4px;">Telefone</div>
+              <div style="font-weight:700; color:#111827; font-size:14px;">${formData?.phone || 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Clona o conteúdo oculto (todas as seções exceto documentos) e anexa
+      const clone = pdfInfoRef.current.cloneNode(true) as HTMLElement;
+      clone.style.position = 'static';
+      clone.style.left = '0';
+      clone.style.top = '0';
+      clone.style.width = 'auto';
+      clone.style.padding = '0';
+      clone.style.background = 'transparent';
+
+      wrapper.appendChild(cover);
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
+
+      // Exporta com paginação
+      await exportNodePaginatedToPDF(
+        wrapper,
+        `Relatorio_${(formData?.name || 'Cliente').replace(/\s+/g, '_')}.pdf`,
+        { scale: 2, marginMM: 8 }
+      );
+
+      document.body.removeChild(wrapper);
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        title: 'Erro ao gerar PDF',
+        description: err?.message || 'Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
 
   const addInterestVehicle = (car: any) => {
     const current = formData.bot_data?.interested_vehicles || [];
@@ -1072,12 +1270,16 @@ function ClientDetailDialog({
       <DialogContent className="w-full max-w-[95vw] md:max-w-6xl max-h-[90vh] p-0 flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-4 border-b">
           <div className="flex justify-between items-center flex-wrap gap-2">
-            <DialogTitle className="text-lg md:text-xl">
-              {formData.name || 'Detalhes do Cliente'}
-            </DialogTitle>
-            <DialogDescription className="sr-only">
-              Visualize ou edite os detalhes do cliente e suas interações.
-            </DialogDescription>
+            <div>
+              <DialogTitle className="text-lg md:text-xl flex items-center gap-2">
+                <User2 className="h-5 w-5 text-amber-600" />
+                {formData.name || 'Detalhes do Cliente'}
+              </DialogTitle>
+              <DialogDescription className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                <Phone className="h-3.5 w-3.5" />
+                {formData.phone || '—'}
+              </DialogDescription>
+            </div>
 
             <div className="flex items-center gap-2">
               {!isEditing && (
@@ -1087,7 +1289,15 @@ function ClientDetailDialog({
                   onClick={handleDownloadPdf}
                   disabled={isDownloadingPdf}
                 >
-                  <Download className="h-4 w-4 mr-2" /> Baixar PDF
+                  {isDownloadingPdf ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4 mr-2" /> Baixar PDF
+                    </>
+                  )}
                 </Button>
               )}
               {isEditing ? (
@@ -1172,10 +1382,10 @@ function ClientDetailDialog({
           </main>
         </div>
 
-        {/* Conteúdo oculto p/ geração de PDF (se necessário) */}
+        {/* Conteúdo oculto p/ geração de PDF (sem "Documentos") */}
         <div
           ref={pdfInfoRef}
-          className="absolute -left-[9999px] top-0 bg-white space-y-8 p-12 w-[800px] text-black"
+          className="absolute -left-[9999px] top-0 bg-white space-y-8 p-8 w-[800px] text-black"
         >
           {navSections
             .filter((section) => section.id !== 'documentos')
@@ -1519,7 +1729,10 @@ function CRMKanbanContent() {
   return (
     <>
       <div className="space-y-6 p-4 md:p-6 h-screen overflow-y-hidden">
-        <h1 className="text-2xl md:text-3xl font-bold">CRM - Funil de Vendas</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl md:text-3xl font-bold">CRM - Funil de Vendas</h1>
+        </div>
+
         <div className="flex justify-between items-center gap-2">
           <div className="relative max-w-md flex-grow">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
