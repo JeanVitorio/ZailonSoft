@@ -3,41 +3,79 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import * as Feather from 'react-feather';
 import { motion } from 'framer-motion';
-// Importar Title e Description
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useAuth } from '@/auth/AuthContext'; // Assumindo que este hook está correto
+import { useAuth } from '@/auth/AuthContext';
 
-// --- Dados do Menu (Path é o segmento da rota DENTRO de /sistema/) ---
+// --- Dados do Menu (segmento dentro de /sistema/) ---
 const menuItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Feather.BarChart2, path: 'dashboard' },
   { id: 'catalog', label: 'Catálogo', icon: Feather.Truck, path: 'catalog' },
   { id: 'crm', label: 'CRM', icon: Feather.Users, path: 'crm' },
   { id: 'add-vehicle', label: 'Novo Veículo', icon: Feather.Plus, path: 'add-vehicle' },
-  { id: 'help', label: 'Ajuda / Como Usar', icon: Feather.HelpCircle, path: 'help' }, 
+  { id: 'help', label: 'Ajuda / Como Usar', icon: Feather.HelpCircle, path: 'help' },
   { id: 'settings', label: 'Configurações', icon: Feather.Settings, path: 'settings' },
 ];
 
-// --- Componente de Conteúdo do Menu (Compartilhado) ---
-function MenuContent({ closeMenu }: { closeMenu?: () => void; }) {
+// --- Marca (logo + nome) reutilizável ---
+function BrandMark({
+  logoSrc,
+  companyName = 'ZailonSoft',
+  subtitle = 'CRM Automotivo',
+  size = 40,
+  compact = false,
+}: {
+  logoSrc?: string;
+  companyName?: string;
+  subtitle?: string;
+  size?: number;
+  compact?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div
+        className="rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md overflow-hidden"
+        style={{ width: size, height: size }}
+      >
+        {logoSrc ? (
+          <img
+            src={logoSrc}
+            alt={`${companyName} logo`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <Feather.BarChart2 className="w-1/2 h-1/2 text-white" />
+        )}
+      </div>
+      <div className="leading-tight">
+        <h1 className="text-lg md:text-xl font-bold text-zinc-900">
+          {companyName.replace(/(Soft)$/i, '')}
+          <span className="text-amber-500">{companyName.match(/(Soft)$/i) ? 'Soft' : ''}</span>
+        </h1>
+        {!compact && <p className="text-xs md:text-sm text-zinc-500">{subtitle}</p>}
+      </div>
+    </div>
+  );
+}
+
+// --- Conteúdo do Menu (compartilhado) ---
+function MenuContent({ closeMenu }: { closeMenu?: () => void }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Deriva a aba ativa da URL
-  // O último segmento da URL (ex: "catalog" em "/sistema/catalog")
+  // último segmento da URL
   const pathParts = location.pathname.split('/');
-  const lastSegment = pathParts.at(-1) || 'dashboard'; 
-  
-  // Encontra o item ativo pelo path
-  const activeItem = menuItems.find(item => item.path === lastSegment);
-  const activeTab = activeItem ? activeItem.id : 'dashboard'; 
+  const lastSegment = pathParts.at(-1) || 'dashboard';
+
+  const activeItem = menuItems.find((item) => item.path === lastSegment);
+  const activeTab = activeItem ? activeItem.id : 'dashboard';
 
   const handleLogout = async () => {
     try {
       await logout();
       if (closeMenu) closeMenu();
-      navigate('/login'); // Redireciona para a página de login após o logout
+      navigate('/login');
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     }
@@ -53,29 +91,33 @@ function MenuContent({ closeMenu }: { closeMenu?: () => void; }) {
             <motion.button
               key={item.id}
               onClick={() => {
-                // CORREÇÃO ESSENCIAL: O caminho base agora é /sistema/{path}
                 const navigationPath = `/sistema/${item.path}`;
                 navigate(navigationPath);
                 if (closeMenu) closeMenu();
               }}
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200",
-                "hover:bg-amber-500/10 hover:border-amber-400/50",
+                'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200',
+                'hover:bg-amber-500/10 hover:border-amber-400/50',
                 isCurrentActive
-                  ? "bg-amber-500 text-white shadow-lg shadow-amber-500/50 font-semibold"
-                  : "text-zinc-700 border border-transparent font-medium"
+                  ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/50 font-semibold'
+                  : 'text-zinc-700 border border-transparent font-medium'
               )}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Icon className={cn("w-5 h-5 transition-colors", isCurrentActive ? "text-white" : "text-amber-500")} />
+              <Icon
+                className={cn(
+                  'w-5 h-5 transition-colors',
+                  isCurrentActive ? 'text-white' : 'text-amber-500'
+                )}
+              />
               <span>{item.label}</span>
             </motion.button>
           );
         })}
       </nav>
 
-      {/* Botão Sair/Logout */}
+      {/* Botão Sair */}
       <motion.button
         className="w-full flex items-center justify-start gap-3 px-4 py-3 mt-4 text-zinc-700 hover:bg-zinc-100 transition-all rounded-xl"
         onClick={handleLogout}
@@ -89,25 +131,19 @@ function MenuContent({ closeMenu }: { closeMenu?: () => void; }) {
   );
 }
 
-// --- Sidebar Principal (Desktop) ---
-function MainSidebar() {
+// --- Sidebar (Desktop) ---
+function MainSidebar({
+  logoSrc,
+  companyName,
+}: {
+  logoSrc?: string;
+  companyName?: string;
+}) {
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-zinc-200 shadow-xl hidden md:flex flex-col z-40">
-      {/* Área do Logo/Título */}
       <div className="p-6 border-b border-zinc-100 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md">
-            <Feather.BarChart2 className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-zinc-900">
-              Zailon<span className="text-amber-500">Soft</span>
-            </h1>
-            <p className="text-sm text-zinc-500">CRM Automotivo</p>
-          </div>
-        </div>
+        <BrandMark logoSrc={logoSrc} companyName={companyName} />
       </div>
-      {/* Conteúdo do Menu com Scroll */}
       <ScrollArea className="flex-1">
         <MenuContent />
       </ScrollArea>
@@ -115,58 +151,92 @@ function MainSidebar() {
   );
 }
 
-// --- Sidebar do Menu Mobile ---
-function MobileSidebar() {
+// --- Top Bar Mobile (melhorada) + Sidebar móvel ---
+// Agora a logo aparece ao lado do botão hambúrguer
+function MobileSidebar({
+  logoSrc,
+  companyName,
+}: {
+  logoSrc?: string;
+  companyName?: string;
+}) {
   const [open, setOpen] = useState(false);
   const closeMenu = () => setOpen(false);
 
   return (
-    <div className="md:hidden fixed top-4 left-4 z-50">
-      <Sheet open={open} onOpenChange={setOpen}>
-        {/* Botão de Trigger */}
-        <SheetTrigger
-          className="p-3 rounded-xl border border-zinc-200 bg-white text-amber-500 hover:bg-zinc-100 hover:border-amber-400/50 transition-all shadow-md"
-        >
-          <Feather.Menu className="h-6 w-6" />
-        </SheetTrigger>
-
-        {/* Conteúdo da Sidebar Móvel */}
-        <SheetContent
-          side="left"
-          className="w-4/5 max-w-[280px] h-full p-0 bg-white border-r border-zinc-200 flex flex-col z-50"
-          overlayClassName="bg-black/60"
-        >
-          <SheetTitle className="sr-only">Menu Principal</SheetTitle>
-          <SheetDescription className="sr-only">Navegue pelas seções do sistema.</SheetDescription>
-
-          {/* Área do Logo/Título dentro do Sheet */}
-          <div className="flex items-center gap-3 p-6 border-b border-zinc-100 flex-shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md">
-              <Feather.BarChart2 className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-zinc-900">
-                Zailon<span className="text-amber-500">Soft</span>
-              </h1>
-              <p className="text-sm text-zinc-500">CRM Automotivo</p>
-            </div>
-          </div>
-          {/* Conteúdo do Menu com Scroll */}
-          <ScrollArea className="flex-1">
-            <MenuContent closeMenu={closeMenu} />
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
-    </div>
-  );
-}
-
-// --- Componente de Exportação Principal ---
-export function Sidebar() {
-  return (
     <>
-      <MainSidebar />
-      <MobileSidebar />
+      {/* Top Bar fixa no mobile (guia melhorada) */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50">
+        <div className="mx-3 my-3 rounded-2xl bg-white/90 backdrop-blur border border-zinc-200 shadow-lg">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <BrandMark logoSrc={logoSrc} companyName={companyName} compact />
+            </div>
+
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger
+                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-zinc-200 bg-white text-amber-600 hover:bg-zinc-100 hover:border-amber-400/50 transition-all shadow-sm"
+                aria-label="Abrir menu"
+              >
+                {/* Logo pequena ao lado do hambúrguer (pedido) */}
+                <div className="w-6 h-6 rounded-md overflow-hidden bg-amber-500/10 flex items-center justify-center">
+                  {logoSrc ? (
+                    <img
+                      src={logoSrc}
+                      alt="Logo"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Feather.BarChart2 className="w-4 h-4 text-amber-600" />
+                  )}
+                </div>
+                <Feather.Menu className="h-5 w-5" />
+              </SheetTrigger>
+
+              <SheetContent
+                side="left"
+                className="w-4/5 max-w-[300px] h-full p-0 bg-white border-r border-zinc-200 flex flex-col z-50"
+                overlayClassName="bg-black/60"
+              >
+                <SheetTitle className="sr-only">Menu Principal</SheetTitle>
+                <SheetDescription className="sr-only">
+                  Navegue pelas seções do sistema.
+                </SheetDescription>
+
+                {/* Capa do menu com logo grande */}
+                <div className="flex items-center gap-3 p-6 border-b border-zinc-100 flex-shrink-0">
+                  <BrandMark logoSrc={logoSrc} companyName={companyName} />
+                </div>
+
+                <ScrollArea className="flex-1">
+                  <MenuContent closeMenu={closeMenu} />
+                </ScrollArea>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </div>
+
+      {/* Spacer para não cobrir o conteúdo pelo top bar mobile */}
+      <div className="md:hidden h-[72px]" />
     </>
   );
 }
+
+// --- Componente Principal de Exportação ---
+export function Sidebar({
+  logoSrc,
+  companyName = 'ZailonSoft',
+}: {
+  logoSrc?: string;
+  companyName?: string;
+}) {
+  return (
+    <>
+      <MainSidebar logoSrc={logoSrc} companyName={companyName} />
+      <MobileSidebar logoSrc={logoSrc} companyName={companyName} />
+    </>
+  );
+}
+
+export default Sidebar;
