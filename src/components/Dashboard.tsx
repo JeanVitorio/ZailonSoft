@@ -237,10 +237,10 @@ export function Dashboard() {
 
     return {
       cards: [
-        { title: 'Total de Propostas', value: totalPropostas, change: '+22%', route: '../crm' },
-        { title: 'Veículos em Estoque', value: emEstoque, change: '+5%', route: '../catalog' },
-        { title: 'Vendas Finalizadas', value: finalizado, change: '+18%', route: '../crm#finalizado' },
-        { title: 'Valor em Negociação', value: formatToBRL(valorNegociacaoNum), change: '+32%' },
+        { title: 'Total de Propostas', value: totalPropostas, route: '../crm' },
+        { title: 'Veículos em Estoque', value: emEstoque, route: '../catalog' },
+        { title: 'Vendas Finalizadas', value: finalizado, route: '../crm#finalizado' },
+        { title: 'Valor em Negociação', value: formatToBRL(valorNegociacaoNum), },
       ],
       funnelData,
       tipoData,
