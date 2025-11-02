@@ -13,7 +13,7 @@ const menuItems = [
   { id: 'catalog', label: 'Catálogo', icon: Feather.Truck, path: 'catalog' },
   { id: 'crm', label: 'CRM', icon: Feather.Users, path: 'crm' },
   { id: 'add-vehicle', label: 'Novo Veículo', icon: Feather.Plus, path: 'add-vehicle' },
-  { id: 'help', label: 'Ajuda / Como Usar', icon: Feather.HelpCircle, path: 'help' },
+  // { id: 'help', label: 'Ajuda / Como Usar', icon: Feather.HelpCircle, path: 'help' },
   { id: 'settings', label: 'Configurações', icon: Feather.Settings, path: 'settings' },
 ];
 
