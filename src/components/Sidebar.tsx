@@ -31,21 +31,20 @@ function BrandMark({
   size?: number;
   compact?: boolean;
 }) {
+  // fallback para o favicon real do sistema
+  const resolvedLogo = logoSrc || '/favicon.ico';
+
   return (
     <div className="flex items-center gap-3">
       <div
-        className="rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md overflow-hidden"
+        className="rounded-xl flex items-center justify-center shadow-md overflow-hidden bg-white"
         style={{ width: size, height: size }}
       >
-        {logoSrc ? (
-          <img
-            src={logoSrc}
-            alt={`${companyName} logo`}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <Feather.BarChart2 className="w-1/2 h-1/2 text-white" />
-        )}
+        <img
+          src={resolvedLogo}
+          alt={`${companyName} logo`}
+          className="w-full h-full object-contain"
+        />
       </div>
       <div className="leading-tight">
         <h1 className="text-lg md:text-xl font-bold text-zinc-900">
@@ -64,10 +63,8 @@ function MenuContent({ closeMenu }: { closeMenu?: () => void }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // último segmento da URL
   const pathParts = location.pathname.split('/');
   const lastSegment = pathParts.at(-1) || 'dashboard';
-
   const activeItem = menuItems.find((item) => item.path === lastSegment);
   const activeTab = activeItem ? activeItem.id : 'dashboard';
 
@@ -117,7 +114,6 @@ function MenuContent({ closeMenu }: { closeMenu?: () => void }) {
         })}
       </nav>
 
-      {/* Botão Sair */}
       <motion.button
         className="w-full flex items-center justify-start gap-3 px-4 py-3 mt-4 text-zinc-700 hover:bg-zinc-100 transition-all rounded-xl"
         onClick={handleLogout}
@@ -151,8 +147,7 @@ function MainSidebar({
   );
 }
 
-// --- Top Bar Mobile (melhorada) + Sidebar móvel ---
-// Agora a logo aparece ao lado do botão hambúrguer
+// --- Top Bar Mobile + Sidebar móvel ---
 function MobileSidebar({
   logoSrc,
   companyName,
@@ -163,14 +158,17 @@ function MobileSidebar({
   const [open, setOpen] = useState(false);
   const closeMenu = () => setOpen(false);
 
+  // usa favicon como fallback
+  const resolvedLogo = logoSrc || '/favicon.ico';
+
   return (
     <>
-      {/* Top Bar fixa no mobile (guia melhorada) */}
+      {/* Top Bar fixa no mobile */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50">
         <div className="mx-3 my-3 rounded-2xl bg-white/90 backdrop-blur border border-zinc-200 shadow-lg">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3 min-w-0">
-              <BrandMark logoSrc={logoSrc} companyName={companyName} compact />
+              <BrandMark logoSrc={resolvedLogo} companyName={companyName} compact />
             </div>
 
             <Sheet open={open} onOpenChange={setOpen}>
@@ -178,17 +176,13 @@ function MobileSidebar({
                 className="flex items-center gap-2 px-3 py-2 rounded-xl border border-zinc-200 bg-white text-amber-600 hover:bg-zinc-100 hover:border-amber-400/50 transition-all shadow-sm"
                 aria-label="Abrir menu"
               >
-                {/* Logo pequena ao lado do hambúrguer (pedido) */}
-                <div className="w-6 h-6 rounded-md overflow-hidden bg-amber-500/10 flex items-center justify-center">
-                  {logoSrc ? (
-                    <img
-                      src={logoSrc}
-                      alt="Logo"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Feather.BarChart2 className="w-4 h-4 text-amber-600" />
-                  )}
+                {/* Ícone real (favicon) ao lado do hambúrguer */}
+                <div className="w-6 h-6 rounded-md overflow-hidden bg-white border border-amber-200 flex items-center justify-center">
+                  <img
+                    src={resolvedLogo}
+                    alt="Logo"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <Feather.Menu className="h-5 w-5" />
               </SheetTrigger>
@@ -203,9 +197,9 @@ function MobileSidebar({
                   Navegue pelas seções do sistema.
                 </SheetDescription>
 
-                {/* Capa do menu com logo grande */}
+                {/* Cabeçalho do menu com logo real */}
                 <div className="flex items-center gap-3 p-6 border-b border-zinc-100 flex-shrink-0">
-                  <BrandMark logoSrc={logoSrc} companyName={companyName} />
+                  <BrandMark logoSrc={resolvedLogo} companyName={companyName} />
                 </div>
 
                 <ScrollArea className="flex-1">
@@ -223,18 +217,20 @@ function MobileSidebar({
   );
 }
 
-// --- Componente Principal de Exportação ---
+// --- Exportação principal ---
 export function Sidebar({
-  logoSrc,
+  logoSrc, // opcional — se não vier, usamos /favicon.ico
   companyName = 'ZailonSoft',
 }: {
   logoSrc?: string;
   companyName?: string;
 }) {
+  const resolvedLogo = logoSrc || '/favicon.ico';
+
   return (
     <>
-      <MainSidebar logoSrc={logoSrc} companyName={companyName} />
-      <MobileSidebar logoSrc={logoSrc} companyName={companyName} />
+      <MainSidebar logoSrc={resolvedLogo} companyName={companyName} />
+      <MobileSidebar logoSrc={resolvedLogo} companyName={companyName} />
     </>
   );
 }
