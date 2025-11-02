@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 
 // --- Componentes Drag-and-Drop ---
-// Importando TouchSensor e configuração
 import { DndContext, closestCenter, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -595,7 +594,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                        <ScrollArea className="h-auto">
+                                        <ScrollArea className="h-48">
                                             {parcelOptions.map(opt => (
                                                 <div
                                                     key={opt}
@@ -695,7 +694,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                                 {navSections.map(section => (
                                     <div
                                         key={section.id}
-                                        className="p-2 hover:bg-accent cursor-pointer text-sm flex items-center gap-2"
+                                        className="p-2 hover:bg-accent cursor-pointer text-sm"
                                         onClick={() => {
                                             setActiveSection(section.id);
                                             setNavOpen(false);
@@ -750,12 +749,15 @@ function CRMKanbanContent() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [clientToDelete, setClientToDelete] = useState(null);
-    // REMOVIDO: const [currentPage, setCurrentPage] = useState(1);
-    // REMOVIDO: const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const boardRef = useRef(null);
     const columnRefs = useRef({});
     
-    // 💡 SENSOR CONFIGURADO PARA MELHORAR O MOBILE (TOUCH)
+    // Estado e Refs para o Slider/Thumb
+    const [scrollProgress, setScrollProgress] = useState(0);
+    const sliderRef = useRef(null);
+    const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+
+    // SENSOR CONFIGURADO PARA MELHORAR O MOBILE (TOUCH)
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
         useSensor(TouchSensor, {
@@ -765,7 +767,84 @@ function CRMKanbanContent() {
     
     const { data: clients = [], isLoading, error } = useQuery({ queryKey: ['clients'], queryFn: fetchClients, refetchInterval: 10000 });
 
-    // REMOVIDO: useEffect(() => { ... }) de resize e isMobile
+    // Lógica para ACOMPANHAR a rolagem (Board -> Slider)
+    const handleScroll = () => {
+        if (boardRef.current && !isDraggingSlider) {
+            const { scrollLeft, scrollWidth, clientWidth } = boardRef.current;
+            if (scrollWidth > clientWidth) {
+                const progress = (scrollLeft / (scrollWidth - clientWidth)) * 100;
+                setScrollProgress(progress);
+            } else {
+                setScrollProgress(0); 
+            }
+        }
+    };
+    
+    // Lógica para CONTROLAR a rolagem (Slider -> Board)
+    const handleSliderMove = (clientX) => {
+        if (!isDraggingSlider || !boardRef.current || !sliderRef.current) return;
+
+        const sliderRect = sliderRef.current.getBoundingClientRect();
+        const relativeX = clientX - sliderRect.left;
+        const sliderWidth = sliderRect.width;
+
+        // Calcula a nova porcentagem
+        let newProgress = (relativeX / sliderWidth) * 100;
+        newProgress = Math.min(100, Math.max(0, newProgress)); 
+
+        setScrollProgress(newProgress);
+
+        // Converte a porcentagem de volta para scrollLeft
+        const { scrollWidth, clientWidth } = boardRef.current;
+        const maxScroll = scrollWidth - clientWidth;
+        const newScrollLeft = (newProgress / 100) * maxScroll;
+        
+        boardRef.current.scrollLeft = newScrollLeft;
+    };
+
+    const handleSliderStart = (clientX) => {
+        setIsDraggingSlider(true);
+        handleSliderMove(clientX);
+    };
+
+    const handleSliderEnd = () => {
+        setIsDraggingSlider(false);
+    };
+    
+    // Efeito para adicionar listeners de movimento global
+    useEffect(() => {
+        const onMouseMove = (e) => handleSliderMove(e.clientX);
+        const onMouseUp = handleSliderEnd;
+        const onTouchMove = (e) => handleSliderMove(e.touches[0].clientX);
+        const onTouchEnd = handleSliderEnd;
+
+        if (isDraggingSlider) {
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener('touchmove', onTouchMove);
+            document.addEventListener('touchend', onTouchEnd);
+        }
+
+        return () => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            document.removeEventListener('touchmove', onTouchMove);
+            document.removeEventListener('touchend', onTouchEnd);
+        };
+    }, [isDraggingSlider]);
+
+    // Anexa o listener de scroll ao elemento do Board
+    useEffect(() => {
+        const boardElement = boardRef.current;
+        if (boardElement) {
+            boardElement.addEventListener('scroll', handleScroll);
+            handleScroll(); 
+            return () => {
+                boardElement.removeEventListener('scroll', handleScroll);
+            };
+        }
+    }, [clients.length, searchTerm, isDraggingSlider]);
+
 
     const updateStatusMutation = useMutation({
         mutationFn: updateClientStatus,
@@ -810,7 +889,6 @@ function CRMKanbanContent() {
         return "";
     };
 
-    // LÓGICA DE FILTRO INALTERADA (já funciona para nome e carro)
     const filteredClients = useMemo(() => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
         if (!lowerCaseSearchTerm) {
@@ -837,14 +915,13 @@ function CRMKanbanContent() {
             .filter(col => searchTerm.trim() === '' || col.clients.length > 0);
     }, [filteredClients, searchTerm]);
 
-    // REMOVIDO: handlePageChange
-    // REMOVIDO: handleScrollColumn
 
     function handleDragStart(event) {
         const client = filteredClients.find(c => c.chat_id === event.active.id);
         setActiveClient(client);
     }
 
+    // 💡 CORREÇÃO: Drop na Coluna "Novo Lead"
     function handleDragEnd(event) {
         const { active, over } = event;
         setActiveClient(null);
@@ -858,14 +935,17 @@ function CRMKanbanContent() {
 
         let destColumnId;
 
+        // 1. Soltou sobre OUTRO CARD: Pega a coluna do card sobreposto.
         const overClient = clients.find(c => c.chat_id === overId);
         if (overClient) {
             destColumnId = getClientColumnId(overClient.bot_data?.state);
         } else {
+            // 2. Soltou sobre a ÁREA DA COLUNA: Verifica se o overId é um ID de coluna válido.
             const isColumn = KANBAN_COLUMNS.some(col => col.id === overId);
             if (isColumn) {
-                destColumnId = overId;
+                destColumnId = overId; // O drop zone é a própria coluna (Novo Lead, etc.)
             } else {
+                // 3. Soltou fora: Mantém na coluna original.
                 destColumnId = getClientColumnId(activeClientData?.bot_data?.state);
             }
         }
@@ -873,6 +953,8 @@ function CRMKanbanContent() {
         const sourceColumnId = getClientColumnId(activeClientData?.bot_data?.state);
 
         if (sourceColumnId !== destColumnId) {
+            // Se o destino é a coluna "Novo Lead" e a origem não é, o drop é feito.
+            // Esta lógica garante que cards podem ser movidos para a coluna `leed_recebido`
             updateStatusMutation.mutate({ chatId: activeClientId, newState: destColumnId });
         }
     }
@@ -889,8 +971,6 @@ function CRMKanbanContent() {
     if (isLoading) return <div className="p-6">Carregando CRM...</div>;
     if (error) return <div className="p-6 text-destructive">Erro ao carregar dados: {error.message}</div>;
 
-    // REMOVIDO: const visibleColumns = isMobile ? columns.slice(currentPage - 1, currentPage) : columns;
-
     return (
         <>
             <div className="space-y-6 p-4 md:p-6 h-screen overflow-y-hidden">
@@ -899,26 +979,47 @@ function CRMKanbanContent() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <Input placeholder="Buscar clientes ou nome do carro..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 focus-visible:ring-amber-500/20" />
                 </div>
+                
+                {/* 💡 SLIDER FUNCIONAL: Permite arrastar o thumb para rolar as colunas */}
+                <div 
+                    ref={sliderRef}
+                    className="relative w-full h-2 bg-gray-200 rounded-full mt-2 cursor-pointer"
+                    onMouseDown={(e) => handleSliderStart(e.clientX)}
+                    onTouchStart={(e) => handleSliderStart(e.touches[0].clientX)}
+                >
+                    {/* Barra de Progresso Amarela */}
+                    <div 
+                        className="absolute top-0 left-0 h-full bg-amber-500 rounded-full transition-all duration-100 ease-linear pointer-events-none"
+                        style={{ width: `${scrollProgress}%` }}
+                    />
+                    {/* Thumb (Bolinha) - A bolinha é o alvo principal de arrasto do slider */}
+                    <div 
+                        className="absolute top-1/2 -translate-y-1/2 h-4 w-4 bg-amber-600 rounded-full shadow-md z-10 cursor-grab"
+                        style={{ left: `calc(${scrollProgress}% - 8px)` }}
+                        // Adicionando um pequeno div invisível para garantir a área de clique/toque
+                        onMouseDown={(e) => { e.stopPropagation(); handleSliderStart(e.clientX); }}
+                        onTouchStart={(e) => { e.stopPropagation(); handleSliderStart(e.touches[0].clientX); }}
+                    />
+                </div>
+                
                 <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
-                    {/* 💡 CORREÇÃO AQUI: Adicionar overflow-x-auto para rolar horizontalmente no mobile/desktop */}
+                    {/* A área de colunas em si */}
                     <div ref={boardRef} className="w-full overflow-x-auto pb-4 scroll-smooth">
-                        {/* 💡 CORREÇÃO AQUI: flex-nowrap garante que as colunas fiquem lado a lado */}
                         <div className="flex flex-nowrap gap-4 md:gap-6 items-start h-full">
                             {columns.length > 0 ? (
                                 columns.map((column) => (
                                     <div 
                                         key={column.id} 
                                         ref={el => columnRefs.current[column.id] = el} 
-                                        // 💡 CORREÇÃO AQUI: Garante largura de coluna no mobile e desktop
                                         className="flex-shrink-0 w-[280px] sm:w-72 box-border relative h-[calc(100vh-18rem)] md:h-[calc(100vh-12rem)]"
                                     >
                                         <SortableContext id={column.id} items={[...column.clients.map(c => c.chat_id), column.id]} strategy={verticalListSortingStrategy}>
+                                            {/* O ID da coluna (column.id) é crucial para o drop em colunas vazias */}
                                             <div id={column.id} className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-full">
                                                 <div className="flex items-center justify-between">
                                                     <h3 className="font-semibold text-sm md:text-base truncate">{column.name}</h3>
                                                     <Badge variant="secondary">{column.clients.length}</Badge>
                                                 </div>
-                                                {/* 💡 CORREÇÃO AQUI: h-full no contêiner de rolagem vertical */}
                                                 <div className="flex-1 overflow-y-scroll scrollbar-width-auto touch-pan-y pr-2" style={{ WebkitOverflowScrolling: 'touch' }}>
                                                     <div className="space-y-3">
                                                         {column.clients.length > 0 ? (
@@ -932,7 +1033,6 @@ function CRMKanbanContent() {
                                                 </div>
                                             </div>
                                         </SortableContext>
-                                        {/* REMOVIDO: Botões de rolagem vertical */}
                                     </div>
                                 ))
                             ) : (
@@ -942,7 +1042,6 @@ function CRMKanbanContent() {
                     </div>
                     <DragOverlay>{activeClient ? <ClientCard client={activeClient} onDelete={() => {}} onViewDetails={() => {}} /> : null}</DragOverlay>
                 </DndContext>
-                {/* REMOVIDO: Paginação e navegação entre colunas */}
             </div>
             {detailedClient && (
                 <ClientDetailDialog client={detailedClient} isOpen={!!detailedClient} onOpenChange={(isOpen) => !isOpen && setDetailedClient(null)} updateMutation={updateDetailsMutation} />
