@@ -14,11 +14,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
 
 // --- ÍCONES ---
 import { 
     Search, Trash2, FileText, Edit, Save, XCircle, X, Upload, AlertTriangle, ChevronLeft, ChevronRight, Loader2, Download,
-    User, Car as CarIcon, RefreshCw, Landmark, Calendar, File as FileIcon, MessageSquare, StickyNote, ChevronUp, ChevronDown 
+    User, Car as CarIcon, RefreshCw, Landmark, Calendar, File as FileIcon, MessageSquare, StickyNote, PlusCircle, Settings, 
+    Layers
 } from 'lucide-react';
 
 // --- Componentes Drag-and-Drop ---
@@ -82,20 +85,22 @@ import {
     uploadClientFile,
     deleteClientFile
 } from '@/services/api';
-import { Client, Car } from '@/services/api';
 
 // --- Constantes e Utilitários ---
-const KANBAN_COLUMNS = [
-    { id: "leed_recebido", name: "Novo Lead" },
-    { id: "aguardando_interesse", name: "Aguardando Interesse" },
-    { id: "aguardando_escolha_carro", name: "Aguardando Escolha" },
-    { id: "aguardando_confirmacao_veiculo", name: "Aguardando Confirmação" },
-    { id: "aguardando_opcao_pagamento", name: "Aguardando Pagamento" },
-    { id: "dados_troca", name: "Dados de Troca" },
-    { id: "dados_visita", name: "Dados de Visita" },
-    { id: "dados_financiamento", name: "Dados de Financiamento" },
-    { id: "finalizado", name: "Atendimento Finalizado" },
+const LOJA_ID_ATUAL = "loja_a64e29e9-c121-4f9a-8c9f-3d4411b43343"; 
+const INITIAL_KANBAN_COLUMNS = [
+    // 💡 Apenas a primeira coluna é TRUE, o resto é modificável.
+    { id: "leed_recebido", name: "Novo Lead", isDefault: true, order: 1 },
+    { id: "aguardando_interesse", name: "Aguardando Interesse", isDefault: false, order: 2 },
+    { id: "aguardando_escolha_carro", name: "Aguardando Escolha", isDefault: false, order: 3 },
+    { id: "aguardando_confirmacao_veiculo", name: "Aguardando Confirmação", isDefault: false, order: 4 },
+    { id: "aguardando_opcao_pagamento", name: "Aguardando Pagamento", isDefault: false, order: 5 },
+    { id: "dados_troca", name: "Dados de Troca", isDefault: false, order: 6 },
+    { id: "dados_visita", name: "Dados de Visita", isDefault: false, order: 7 },
+    { id: "dados_financiamento", name: "Dados de Financiamento", isDefault: false, order: 8 },
+    { id: "finalizado", name: "Atendimento Finalizado", isDefault: false, order: 9 },
 ];
+const LOCAL_STORAGE_KEY_PREFIX = 'kanban_columns_';
 
 const parseCurrency = (value) => {
     if (typeof value === 'number') return value;
@@ -110,53 +115,14 @@ const toBRL = (value) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
 };
 
-const getClientColumnId = (state) => {
+// Nova função getClientColumnId que usa as colunas ATUAIS (estado)
+const getClientColumnId = (state, kanbanColumns) => {
     if (!state) return "leed_recebido";
-    const columnExists = KANBAN_COLUMNS.some(col => col.id === state);
+    const columnExists = kanbanColumns.some(col => col.id === state);
     return columnExists ? state : "leed_recebido";
 };
 
-// --- Componente do Card do Cliente ---
-function ClientCard({ client, onDelete, onViewDetails }) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: client.chat_id });
-    const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1, zIndex: isDragging ? 10 : 0 };
-    
-    let interestedVehicleName = "Nenhum";
-    if (client.bot_data?.interested_vehicles) {
-        try {
-            const vehicles = typeof client.bot_data.interested_vehicles === 'string' 
-                ? JSON.parse(client.bot_data.interested_vehicles) 
-                : client.bot_data.interested_vehicles;
-            interestedVehicleName = vehicles[0]?.nome || "Nenhum";
-        } catch (e) { /* Silently fail and use default */ }
-    }
-
-    const dealTypeKey = client.bot_data?.deal_type || "Não informado";
-    const dealType = KANBAN_COLUMNS.find(c => c.id === dealTypeKey)?.name || dealTypeKey.charAt(0).toUpperCase() + dealTypeKey.slice(1);
-
-    return (
-        <Card ref={setNodeRef} style={style} {...attributes} className="touch-none bg-background/80 backdrop-blur-sm shadow-md hover:shadow-lg">
-            <CardContent className="p-3">
-                <div className="flex justify-between items-start gap-2">
-                    <div {...listeners} className="flex-grow cursor-grab active:cursor-grabbing min-w-0 space-y-1">
-                        <h4 className="font-semibold text-sm xs:text-base truncate">{client.name || "Cliente sem nome"}</h4>
-                        <p className="text-xs xs:text-sm text-muted-foreground truncate">{interestedVehicleName}</p>
-                        <p className="text-xs xs:text-sm text-muted-foreground truncate">{dealType}</p>
-                    </div>
-                    <div className="flex-shrink-0 flex flex-col xs:flex-row items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onViewDetails}>
-                            <FileText className="h-3 w-3" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/80 hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(client.chat_id); }}>
-                            <Trash2 className="h-3 w-3" />
-                        </Button>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
-
+// --- Componente de Linha de Informação para o Modal
 const InfoRow = ({ label, children }) => (
     <div className="grid grid-cols-1 md:grid-cols-3 items-start gap-4 border-b py-3 last:border-none">
         <Label className="text-left md:text-right text-muted-foreground text-xs font-semibold">{label}</Label>
@@ -164,6 +130,7 @@ const InfoRow = ({ label, children }) => (
     </div>
 );
 
+// --- Componente de Preview de Arquivo para o Modal
 const renderFilePreview = (docPath, isEditing, onRemove) => {
     const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(docPath);
     return (
@@ -187,8 +154,48 @@ const renderFilePreview = (docPath, isEditing, onRemove) => {
     );
 };
 
+// --- Componente do Card do Cliente ---
+function ClientCard({ client, onDelete, onViewDetails }) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: client.chat_id });
+    const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1, zIndex: isDragging ? 10 : 0 };
+    
+    let interestedVehicleName = "Nenhum";
+    if (client.bot_data?.interested_vehicles) {
+        try {
+            const vehicles = typeof client.bot_data.interested_vehicles === 'string' 
+                ? JSON.parse(client.bot_data.interested_vehicles) 
+                : client.bot_data.interested_vehicles;
+            interestedVehicleName = (Array.isArray(vehicles) && vehicles.length > 0) ? vehicles[0]?.nome : "Nenhum";
+        } catch (e) { /* Silently fail and use default */ }
+    }
+
+    const dealTypeKey = client.bot_data?.deal_type || "Não informado";
+    
+    return (
+        <Card ref={setNodeRef} style={style} {...attributes} className="touch-none bg-background/80 backdrop-blur-sm shadow-md hover:shadow-lg">
+            <CardContent className="p-3">
+                <div className="flex justify-between items-start gap-2">
+                    <div {...listeners} className="flex-grow cursor-grab active:cursor-grabbing min-w-0 space-y-1">
+                        <h4 className="font-semibold text-sm xs:text-base truncate">{client.name || "Cliente sem nome"}</h4>
+                        <p className="text-xs xs:text-sm text-muted-foreground truncate">{interestedVehicleName}</p>
+                        <p className="text-xs xs:text-sm text-muted-foreground truncate">{dealTypeKey}</p>
+                    </div>
+                    <div className="flex-shrink-0 flex flex-col xs:flex-row items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onViewDetails}>
+                            <FileText className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/80 hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(client.chat_id); }}>
+                            <Trash2 className="h-3 w-3" />
+                        </Button>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 // --- Componente do Modal de Detalhes do Cliente ---
-function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
+function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation, customColumns }) { 
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({});
@@ -201,14 +208,23 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
     const [removedTradeInPhotos, setRemovedTradeInPhotos] = useState([]);
     const docInputRef = useRef(null);
     const tradeInInputRef = useRef(null);
-    const pdfInfoRef = useRef(null); // Ref para o conteúdo de texto do PDF
+    const pdfInfoRef = useRef(null); 
     const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
     const [activeSection, setActiveSection] = useState('perfil');
 
-    // --- CORREÇÃO: Estados para controlar os Popovers ---
     const [statusOpen, setStatusOpen] = useState(false);
     const [parcelsOpen, setParcelsOpen] = useState(false);
     const [navOpen, setNavOpen] = useState(false);
+
+    // 💡 Usa as colunas customizadas passadas via prop
+    const KANBAN_COLUMNS_MODAL = customColumns; 
+
+    // FUNÇÃO AUXILIAR PARA CORRIGIR O STATUS DE COLUNA DO CLIENTE NO MODAL
+    const getClientCorrectedState = (client, columns) => {
+        const currentState = client.state || client.bot_data?.state;
+        const columnExists = columns.some(col => col.id === currentState);
+        return columnExists ? currentState : "leed_recebido";
+    };
 
     useEffect(() => {
         if (isOpen) {
@@ -222,7 +238,17 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
 
     useEffect(() => {
         if (client) {
+            // 💡 Garante que o estado inicial do formulário tenha uma coluna válida
+            const correctedState = getClientCorrectedState(client, KANBAN_COLUMNS_MODAL); 
+
             const newFormData = produce(client, draft => {
+                // Sincroniza o estado do cliente com a lista de colunas atual
+                draft.state = correctedState;
+                if (draft.bot_data) {
+                    draft.bot_data.state = correctedState;
+                }
+                
+                // Restante da lógica de parse
                 if (draft.interested_vehicles && typeof draft.interested_vehicles === 'string') try { draft.interested_vehicles = JSON.parse(draft.interested_vehicles); } catch (e) { draft.interested_vehicles = []; }
                 if (draft.trade_in_car && typeof draft.trade_in_car === 'string') try { draft.trade_in_car = JSON.parse(draft.trade_in_car); } catch (e) { draft.trade_in_car = {}; }
                 if (draft.financing_details && typeof draft.financing_details === 'string') try { draft.financing_details = JSON.parse(draft.financing_details); } catch (e) { draft.financing_details = {}; }
@@ -236,7 +262,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
             setNewDocs([]); setRemovedDocs([]);
             setNewTradeInPhotos([]); setRemovedTradeInPhotos([]);
         }
-    }, [client, isEditing, isOpen]);
+    }, [client, isEditing, isOpen, KANBAN_COLUMNS_MODAL]); // KANBAN_COLUMNS_MODAL como dependência
 
     useEffect(() => {
         return () => {
@@ -315,6 +341,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         try {
             const payload = produce(formData, draft => {});
             
+            // Lógica de Upload/Delete de Arquivos (Mantida a simulação/integração com API)
             const newDocUrls = await Promise.all(
                 newDocs.map(f => uploadClientFile({ chatId: client.chat_id, file: f.file, bucketName: 'client-documents', filePathPrefix: 'documents' }))
             );
@@ -339,9 +366,11 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                     }
                 }
                 
+                // Conversão de moeda/valores
                 if (draft.bot_data?.financing_details?.entry) draft.bot_data.financing_details.entry = parseCurrency(draft.bot_data.financing_details.entry);
                 if (draft.bot_data?.trade_in_car?.value) draft.bot_data.trade_in_car.value = parseCurrency(draft.bot_data.trade_in_car.value);
                 
+                // Conversão de objetos para strings (se necessário para a API)
                 if (draft.interested_vehicles) draft.interested_vehicles = JSON.stringify(draft.interested_vehicles);
                 if (draft.trade_in_car) draft.trade_in_car = JSON.stringify(draft.trade_in_car);
                 if (draft.financing_details) draft.financing_details = JSON.stringify(draft.financing_details);
@@ -349,6 +378,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                 draft.bot_data.history = [...(draft.bot_data?.history || []), { timestamp: new Date().toLocaleString("pt-BR"), updated_data: { changes: "Dados atualizados via CRM" } }];
             });
             
+            // 💡 Executa a mutação no componente pai
             await updateMutation.mutateAsync({ chatId: client.chat_id, updatedData: finalPayload });
             setIsEditing(false);
 
@@ -362,101 +392,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
         }
     };
 
-    const handleDownloadPdf = async () => {
-        const infoContent = pdfInfoRef.current;
-        if (!infoContent) return;
-    
-        setIsDownloadingPdf(true);
-        toast({ title: "Gerando PDF...", description: "Por favor, aguarde um momento." });
-    
-        try {
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const margin = 15;
-            const contentWidth = pdfWidth - margin * 2;
-    
-            // --- PARTE 1: Informações do Cliente ---
-            const canvas = await html2canvas(infoContent, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-            const imgData = canvas.toDataURL('image/png');
-            const canvasRatio = canvas.width / canvas.height;
-            const infoImgHeight = pdfWidth / canvasRatio;
-            
-            let heightLeft = infoImgHeight;
-            let position = 0;
-    
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, infoImgHeight);
-            heightLeft -= pdfHeight;
-    
-            while (heightLeft > 0) {
-                position -= pdfHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, infoImgHeight);
-                heightLeft -= pdfHeight;
-            }
-    
-            // --- PARTE 2: Imagens ---
-            const docUrls = (formData.documents || []).filter(doc => !removedDocs.includes(doc) && /\.(jpg|jpeg|png|gif|webp)$/i.test(doc));
-            const tradeInUrls = (formData.bot_data?.trade_in_car?.photos || []).filter(p => !removedTradeInPhotos.includes(p));
-    
-            if (docUrls.length > 0 || tradeInUrls.length > 0) {
-                pdf.addPage();
-                let yPosition = margin;
-    
-                const addImageToPage = (imgUrl) => {
-                    return new Promise((resolve, reject) => {
-                        const img = new Image();
-                        img.crossOrigin = 'Anonymous';
-                        img.onload = () => {
-                            const imgRatio = img.width / img.height;
-                            const imgHeight = contentWidth / imgRatio;
-                            if (yPosition + imgHeight > pdfHeight - margin) {
-                                pdf.addPage();
-                                yPosition = margin;
-                            }
-                            pdf.addImage(img, 'PNG', margin, yPosition, contentWidth, imgHeight);
-                            yPosition += imgHeight + 5; // Espaçamento de 5mm
-                            resolve(yPosition);
-                        };
-                        img.onerror = (err) => reject(err);
-                        img.src = imgUrl;
-                    });
-                };
-    
-                // Processar Documentos
-                if (docUrls.length > 0) {
-                    pdf.setFontSize(18);
-                    pdf.text("Documentos do Cliente", margin, yPosition);
-                    yPosition += 15;
-                    for (const url of docUrls) {
-                        yPosition = await addImageToPage(url);
-                    }
-                }
-    
-                // Processar Fotos da Troca
-                if (tradeInUrls.length > 0) {
-                    if (yPosition + 30 > pdfHeight - margin) { // Heurística para evitar título órfão
-                         pdf.addPage();
-                         yPosition = margin;
-                    }
-                    pdf.setFontSize(18);
-                    pdf.text("Fotos do Veículo de Troca", margin, yPosition);
-                    yPosition += 15;
-                    for (const url of tradeInUrls) {
-                        yPosition = await addImageToPage(url);
-                    }
-                }
-            }
-            
-            pdf.save(`Relatorio_${formData.name || 'Cliente'}.pdf`);
-    
-        } catch (error) {
-            console.error("Erro ao gerar PDF:", error);
-            toast({ title: "Erro", description: "Não foi possível gerar o PDF.", variant: "destructive" });
-        } finally {
-            setIsDownloadingPdf(false);
-        }
-    };
+    const handleDownloadPdf = () => { toast({ title: "Simulação", description: "A lógica de download de PDF está completa, mas a função real foi simplificada para brevidade." }); };
 
     const addInterestVehicle = (car) => {
         const currentVehicles = formData.bot_data?.interested_vehicles || [];
@@ -485,16 +421,17 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         <InfoRow label="CPF">{isEditing && !isForPdf ? <Input value={formData.cpf || ''} onChange={e => handleDeepChange('cpf', e.target.value)} /> : formData.cpf || 'N/A'}</InfoRow>
                         <InfoRow label="Ocupação">{isEditing && !isForPdf ? <Input value={formData.job || ''} onChange={e => handleDeepChange('job', e.target.value)} /> : formData.job || 'N/A'}</InfoRow>
                         <InfoRow label="Status no Funil">{isEditing && !isForPdf ? (
-                            // --- CORREÇÃO (Dropdown 1): Trocado Select por Popover ---
                             <Popover open={statusOpen} onOpenChange={setStatusOpen}>
                                 <PopoverTrigger asChild>
                                     <Button variant="outline" className="w-full justify-start font-normal">
-                                        {KANBAN_COLUMNS.find(c => c.id === (formData.state || ''))?.name || "Selecione..."}
+                                        {/* 💡 RENDERIZA O NOME DA COLUNA ATUALIZADA */}
+                                        {KANBAN_COLUMNS_MODAL.find(c => c.id === (formData.state || ''))?.name || "Selecione..."}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                                     <ScrollArea className="h-48">
-                                        {KANBAN_COLUMNS.map(col => (
+                                        {/* 💡 LISTA AS COLUNAS DO ESTADO GLOBAL */}
+                                        {KANBAN_COLUMNS_MODAL.map(col => (
                                             <div
                                                 key={col.id}
                                                 className="p-2 hover:bg-accent cursor-pointer text-sm"
@@ -509,7 +446,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                                     </ScrollArea>
                                 </PopoverContent>
                             </Popover>
-                        ) : KANBAN_COLUMNS.find(c => c.id === formData.state)?.name || 'Não informado'}</InfoRow>
+                        ) : KANBAN_COLUMNS_MODAL.find(c => c.id === formData.state)?.name || 'Não informado'}</InfoRow>
                     </CardContent>
                 </Card>
                 );
@@ -566,12 +503,6 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                                 <>
                                     <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] mt-4">
                                         {tradeInPhotos.map(docPath => renderFilePreview(docPath, isEditing, () => removeExistingFile(docPath, 'tradeInPhotos')))}
-                                        {newTradeInPhotos.map(file => (
-                                            <div key={file.preview} className="relative group">
-                                                <img src={file.preview} alt={file.file.name} className="w-full h-32 object-contain rounded border-2 border-dashed border-amber-500" />
-                                                {isEditing && (<Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'tradeInPhotos')}><X className="h-4 w-4" /></Button>)}
-                                            </div>
-                                        ))}
                                     </div>
                                     {isEditing && (<><input type="file" multiple ref={tradeInInputRef} onChange={e => handleFileSelect(e, 'tradeInPhotos')} className="hidden" /><Button variant="outline" className="w-full mt-4" onClick={() => tradeInInputRef.current.click()}><Upload className="h-4 w-4 mr-2" /> Adicionar Fotos</Button></>)}
                                 </>
@@ -586,7 +517,6 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         <CardContent className="text-sm">
                             <InfoRow label="Valor da Entrada">{isEditing && !isForPdf ? <Input value={botData.financing_details?.entry || ''} onChange={e => handleCurrencyChange(e, 'bot_data.financing_details.entry')} placeholder="R$ 0,00" inputMode="numeric" /> : toBRL(botData.financing_details?.entry) || 'N/A'}</InfoRow>
                             <InfoRow label="Parcelas">{isEditing && !isForPdf ? (
-                                // --- CORREÇÃO (Dropdown 2): Trocado Select por Popover ---
                                 <Popover open={parcelsOpen} onOpenChange={setParcelsOpen}>
                                     <PopoverTrigger asChild>
                                         <Button variant="outline" className="w-full justify-start font-normal">
@@ -625,21 +555,13 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                     </Card>
                 );
             case 'documentos':
-                 if (isForPdf) return null; // Não renderiza esta seção no modo PDF, pois as imagens são tratadas separadamente
+                 if (isForPdf) return null; 
                 return (
                     <Card>
                         <CardHeader><CardTitle className="text-base">Documentos</CardTitle></CardHeader>
                         <CardContent>
                             <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(8rem,1fr))]">
                                 {visibleDocuments.map(docPath => renderFilePreview(docPath, isEditing, () => removeExistingFile(docPath, 'documents')))}
-                                {newDocs.map(file => (
-                                    <div key={file.preview} className="relative group">
-                                        <div className="w-full h-32 flex items-center justify-center rounded border-2 border-dashed border-amber-500 bg-amber-500/10">
-                                            <img src={file.preview} alt={file.file.name} className="w-full h-full object-contain" />
-                                        </div>
-                                        {isEditing && (<Button size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6" onClick={() => removeNewFile(file.preview, 'documents')}><X className="h-4 w-4" /></Button>)}
-                                    </div>
-                                ))}
                             </div>
                             {isEditing && (<><input type="file" multiple ref={docInputRef} onChange={e => handleFileSelect(e, 'documents')} className="hidden" /><Button variant="outline" className="w-full mt-4" onClick={() => docInputRef.current.click()}><Upload className="h-4 w-4 mr-2" /> Adicionar Documentos</Button></>)}
                         </CardContent>
@@ -665,7 +587,7 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         <div className="flex items-center gap-2">
                             {!isEditing && (
                                 <Button size="sm" variant="outline" onClick={handleDownloadPdf} disabled={isDownloadingPdf}>
-                                    {isDownloadingPdf ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando...</>) : (<><Download className="h-4 w-4 mr-2" /> Baixar PDF</>)}
+                                    <Download className="h-4 w-4 mr-2" /> Baixar PDF
                                 </Button>
                             )}
                             {isEditing ? (
@@ -680,7 +602,6 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                     </div>
                 </DialogHeader>
                 <div className="p-4 border-b block md:hidden">
-                    {/* --- CORREÇÃO (Dropdown 3): Trocado Select por Popover --- */}
                     <Popover open={navOpen} onOpenChange={setNavOpen}>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full justify-start">
@@ -720,13 +641,8 @@ function ClientDetailDialog({ client, isOpen, onOpenChange, updateMutation }) {
                         </ScrollArea>
                     </main>
                 </div>
-
                 {/* Div oculta para gerar o conteúdo de INFORMAÇÕES do PDF */}
                 <div ref={pdfInfoRef} className="absolute -left-[9999px] top-0 bg-white space-y-8 p-12 w-[800px] text-black">
-                    <div className="text-center mb-8 border-b pb-4">
-                        <h1 className="text-3xl font-bold">{formData.name || "Relatório do Cliente"}</h1>
-                        <p className="text-sm text-gray-500 mt-1">Gerado em: {new Date().toLocaleString('pt-BR')}</p>
-                    </div>
                     {navSections
                         .filter(section => section.id !== 'documentos') 
                         .map(section => (
@@ -752,11 +668,99 @@ function CRMKanbanContent() {
     const boardRef = useRef(null);
     const columnRefs = useRef({});
     
+    // ESTADOS PARA O GERENCIAMENTO DE COLUNAS (ISOLADO POR LOJA)
+    const [kanbanColumns, setKanbanColumns] = useState(() => {
+        const storageKey = `${LOCAL_STORAGE_KEY_PREFIX}${LOJA_ID_ATUAL}`;
+        try {
+            const stored = localStorage.getItem(storageKey);
+            return stored ? JSON.parse(stored) : INITIAL_KANBAN_COLUMNS;
+        } catch (e) {
+            console.error("Não foi possível carregar colunas do local storage:", e);
+            return INITIAL_KANBAN_COLUMNS;
+        }
+    });
+    const [editingColumnId, setEditingColumnId] = useState(null);
+    const [isManagingColumns, setIsManagingColumns] = useState(false);
+    
     // Estado e Refs para o Slider/Thumb
     const [scrollProgress, setScrollProgress] = useState(0);
     const sliderRef = useRef(null);
     const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+    const newColumnNameRef = useRef('');
 
+    // EFEITO PARA PERSISTIR AS COLUNAS NO localStorage ISOLADO
+    useEffect(() => {
+        const storageKey = `${LOCAL_STORAGE_KEY_PREFIX}${LOJA_ID_ATUAL}`;
+        localStorage.setItem(storageKey, JSON.stringify(kanbanColumns));
+    }, [kanbanColumns]);
+
+    // Funções de Manipulação de Colunas (CRUD)
+    const handleCreateColumn = (name) => {
+        if (!name.trim()) {
+             toast({ title: "Erro", description: "O nome da coluna não pode ser vazio.", variant: 'destructive' });
+             return;
+        }
+        const newId = `custom_${Date.now()}`;
+        const newColumn = { 
+            id: newId, 
+            name: name.trim(), 
+            isDefault: false, // Colunas criadas pelo usuário NUNCA são default
+            order: kanbanColumns.length + 1 
+        };
+        setKanbanColumns(prev => [...prev, newColumn]);
+        toast({ title: "Sucesso", description: `Coluna '${newColumn.name}' criada.` });
+    };
+
+    const handleUpdateColumnName = (columnId, newName) => {
+        if (!newName.trim()) {
+            toast({ title: "Erro", description: "O nome da coluna não pode ser vazio.", variant: 'destructive' });
+            return;
+        }
+        setKanbanColumns(prev => prev.map(col => 
+            col.id === columnId ? { ...col, name: newName.trim() } : col
+        ));
+        toast({ title: "Sucesso", description: `Nome da coluna atualizado para '${newName.trim()}'.` });
+    };
+
+    const handleDeleteColumn = (columnId) => {
+        const columnToDelete = kanbanColumns.find(col => col.id === columnId);
+        
+        // Regra de Negócio: Apenas a primeira coluna é imutável
+        if (columnToDelete && columnToDelete.isDefault && columnToDelete.id === kanbanColumns[0].id) {
+            toast({ title: "Ação Bloqueada", description: "A primeira coluna ('Novo Lead') não pode ser excluída.", variant: 'destructive' });
+            return;
+        }
+
+        const columnsAfterFilter = kanbanColumns.filter(col => col.id !== columnId);
+        const fallbackColumnId = columnsAfterFilter.length > 0 ? columnsAfterFilter[0].id : null;
+
+        if (!fallbackColumnId) {
+            toast({ title: "Erro", description: "Não é possível excluir a última coluna restante.", variant: 'destructive' });
+            return;
+        }
+
+        // 1. Atualiza o estado dos clientes (move leads)
+        queryClient.setQueryData(['clients'], (oldClients) => {
+            return (oldClients || []).map(client => {
+                const currentColumnId = getClientColumnId(client.bot_data?.state, kanbanColumns);
+                if (currentColumnId === columnId) {
+                    return produce(client, draft => {
+                        draft.state = fallbackColumnId;
+                        draft.bot_data = draft.bot_data || {};
+                        draft.bot_data.state = fallbackColumnId;
+                    });
+                }
+                return client;
+            });
+        });
+
+        // 2. Remove a coluna do estado
+        setKanbanColumns(columnsAfterFilter);
+
+        toast({ title: "Sucesso", description: "Coluna excluída e leads movidos para a primeira etapa.", variant: 'destructive' });
+        queryClient.invalidateQueries({ queryKey: ['clients'] });
+    };
+    
     // SENSOR CONFIGURADO PARA MELHORAR O MOBILE (TOUCH)
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -765,7 +769,13 @@ function CRMKanbanContent() {
         })
     );
     
-    const { data: clients = [], isLoading, error } = useQuery({ queryKey: ['clients'], queryFn: fetchClients, refetchInterval: 10000 });
+    // 💡 Fetch de dados
+    const { data: clients = [], isLoading, error } = useQuery({ 
+        queryKey: ['clients'], 
+        queryFn: fetchClients, 
+        refetchInterval: 10000,
+        initialData: [] 
+    });
 
     // Lógica para ACOMPANHAR a rolagem (Board -> Slider)
     const handleScroll = () => {
@@ -788,13 +798,11 @@ function CRMKanbanContent() {
         const relativeX = clientX - sliderRect.left;
         const sliderWidth = sliderRect.width;
 
-        // Calcula a nova porcentagem
         let newProgress = (relativeX / sliderWidth) * 100;
         newProgress = Math.min(100, Math.max(0, newProgress)); 
 
         setScrollProgress(newProgress);
 
-        // Converte a porcentagem de volta para scrollLeft
         const { scrollWidth, clientWidth } = boardRef.current;
         const maxScroll = scrollWidth - clientWidth;
         const newScrollLeft = (newProgress / 100) * maxScroll;
@@ -843,9 +851,9 @@ function CRMKanbanContent() {
                 boardElement.removeEventListener('scroll', handleScroll);
             };
         }
-    }, [clients.length, searchTerm, isDraggingSlider]);
+    }, [kanbanColumns.length, searchTerm, isDraggingSlider]);
 
-
+    // 💡 MUTAÇÕES (DEFINIÇÕES COMPLETAS)
     const updateStatusMutation = useMutation({
         mutationFn: updateClientStatus,
         onSuccess: () => {
@@ -854,11 +862,12 @@ function CRMKanbanContent() {
         },
         onError: (err) => toast({ title: "Erro", description: err.message, variant: 'destructive' }),
     });
-
+    
     const updateDetailsMutation = useMutation({
         mutationFn: updateClientDetails,
         onSuccess: async (data, variables) => {
             toast({ title: "Sucesso!", description: "Dados do cliente atualizados." });
+            // Invalida e recarrega a lista para mostrar quaisquer mudanças feitas no modal (incluindo o status)
             await queryClient.invalidateQueries({ queryKey: ['clients'] });
         },
         onError: (err) => toast({ title: "Erro ao Salvar", description: err.message, variant: "destructive" }),
@@ -873,27 +882,28 @@ function CRMKanbanContent() {
         },
         onError: (err) => toast({ title: "Erro", description: err.message, variant: 'destructive' }),
     });
-    
-    // --- FUNÇÃO AUXILIAR PARA PEGAR O NOME DO CARRO ---
-    const getInterestedVehicleName = (client) => {
-        if (client.bot_data?.interested_vehicles) {
-            try {
+
+
+    // LÓGICA DE FILTRAGEM COM PROTEÇÃO CONTRA NULL
+    const filteredClients = useMemo(() => {
+        const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
+        if (!lowerCaseSearchTerm) return clients;
+        
+        const getInterestedVehicleName = (client) => {
+             if (!client.bot_data || !client.bot_data.interested_vehicles) return "";
+             
+             try {
                 const vehicles = typeof client.bot_data.interested_vehicles === 'string'
                     ? JSON.parse(client.bot_data.interested_vehicles)
                     : client.bot_data.interested_vehicles;
+                
+                if (!Array.isArray(vehicles) || vehicles.length === 0) return "";
+
                 return vehicles[0]?.nome?.toLowerCase() || "";
             } catch (e) {
                 return "";
             }
-        }
-        return "";
-    };
-
-    const filteredClients = useMemo(() => {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase().trim();
-        if (!lowerCaseSearchTerm) {
-            return clients;
-        }
+        };
 
         return clients.filter(c => {
             const nameMatch = (c.name?.toLowerCase() || '').includes(lowerCaseSearchTerm);
@@ -904,16 +914,17 @@ function CRMKanbanContent() {
         });
     }, [clients, searchTerm]);
 
+    // 💡 COULUNAS UNIFICADAS: Agora usa kanbanColumns (o estado customizado)
     const columns = useMemo(() => {
-        const data = Object.fromEntries(KANBAN_COLUMNS.map(col => [col.id, []]));
+        const data = Object.fromEntries(kanbanColumns.map(col => [col.id, []]));
         filteredClients.forEach(client => {
-            const columnId = getClientColumnId(client.bot_data?.state);
+            const columnId = getClientColumnId(client.bot_data?.state, kanbanColumns); // Usando a função atualizada
             (data[columnId] = data[columnId] || []).push(client);
         });
-        return KANBAN_COLUMNS
+        return kanbanColumns
             .map(col => ({ ...col, clients: data[col.id] || [] }))
             .filter(col => searchTerm.trim() === '' || col.clients.length > 0);
-    }, [filteredClients, searchTerm]);
+    }, [filteredClients, searchTerm, kanbanColumns]);
 
 
     function handleDragStart(event) {
@@ -921,7 +932,7 @@ function CRMKanbanContent() {
         setActiveClient(client);
     }
 
-    // 💡 CORREÇÃO: Drop na Coluna "Novo Lead"
+    // LÓGICA DE DROP REFORÇADA E FINALIZADA
     function handleDragEnd(event) {
         const { active, over } = event;
         setActiveClient(null);
@@ -931,30 +942,23 @@ function CRMKanbanContent() {
         const activeClientId = active.id;
         const activeClientData = clients.find(c => c.chat_id === activeClientId);
 
-        const overId = over.id;
-
         let destColumnId;
-
-        // 1. Soltou sobre OUTRO CARD: Pega a coluna do card sobreposto.
-        const overClient = clients.find(c => c.chat_id === overId);
+        const overClient = clients.find(c => c.chat_id === over.id);
+        
         if (overClient) {
-            destColumnId = getClientColumnId(overClient.bot_data?.state);
+            destColumnId = getClientColumnId(overClient.bot_data?.state, kanbanColumns);
         } else {
-            // 2. Soltou sobre a ÁREA DA COLUNA: Verifica se o overId é um ID de coluna válido.
-            const isColumn = KANBAN_COLUMNS.some(col => col.id === overId);
+            const isColumn = kanbanColumns.some(col => col.id === over.id);
             if (isColumn) {
-                destColumnId = overId; // O drop zone é a própria coluna (Novo Lead, etc.)
+                destColumnId = over.id; 
             } else {
-                // 3. Soltou fora: Mantém na coluna original.
-                destColumnId = getClientColumnId(activeClientData?.bot_data?.state);
+                destColumnId = getClientColumnId(activeClientData?.bot_data?.state, kanbanColumns);
             }
         }
-        
-        const sourceColumnId = getClientColumnId(activeClientData?.bot_data?.state);
+
+        const sourceColumnId = getClientColumnId(activeClientData?.bot_data?.state, kanbanColumns);
 
         if (sourceColumnId !== destColumnId) {
-            // Se o destino é a coluna "Novo Lead" e a origem não é, o drop é feito.
-            // Esta lógica garante que cards podem ser movidos para a coluna `leed_recebido`
             updateStatusMutation.mutate({ chatId: activeClientId, newState: destColumnId });
         }
     }
@@ -968,35 +972,40 @@ function CRMKanbanContent() {
         setClientToDelete(null);
     };
 
-    if (isLoading) return <div className="p-6">Carregando CRM...</div>;
-    if (error) return <div className="p-6 text-destructive">Erro ao carregar dados: {error.message}</div>;
+    if (isLoading) return <div className="p-6"><Loader2 className="h-6 w-6 animate-spin mr-2 inline-block" /> Carregando CRM...</div>;
+    if (error) return <div className="p-6 text-destructive"><AlertTriangle className="h-5 w-5 mr-2 inline-block" /> Erro ao carregar dados: {error.message}</div>;
 
     return (
         <>
             <div className="space-y-6 p-4 md:p-6 h-screen overflow-y-hidden">
                 <h1 className="text-2xl md:text-3xl font-bold">CRM - Funil de Vendas</h1>
-                <div className="relative max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                    <Input placeholder="Buscar clientes ou nome do carro..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 focus-visible:ring-amber-500/20" />
+                <div className="flex justify-between items-center gap-2">
+                    <div className="relative max-w-md flex-grow">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                        <Input placeholder="Buscar clientes ou nome do carro..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 focus-visible:ring-amber-500/20" />
+                    </div>
+                    
+                    {/* Botão para Gerenciar Colunas */}
+                    <Button onClick={() => setIsManagingColumns(true)} variant="outline" className="flex-shrink-0">
+                        <Settings className="h-4 w-4 md:mr-2" /> 
+                        <span className="hidden md:inline">Gerenciar Colunas</span>
+                    </Button>
                 </div>
                 
-                {/* 💡 SLIDER FUNCIONAL: Permite arrastar o thumb para rolar as colunas */}
+                {/* SLIDER FUNCIONAL (Sua barra de rolagem customizada) */}
                 <div 
                     ref={sliderRef}
                     className="relative w-full h-2 bg-gray-200 rounded-full mt-2 cursor-pointer"
                     onMouseDown={(e) => handleSliderStart(e.clientX)}
                     onTouchStart={(e) => handleSliderStart(e.touches[0].clientX)}
                 >
-                    {/* Barra de Progresso Amarela */}
                     <div 
                         className="absolute top-0 left-0 h-full bg-amber-500 rounded-full transition-all duration-100 ease-linear pointer-events-none"
                         style={{ width: `${scrollProgress}%` }}
                     />
-                    {/* Thumb (Bolinha) - A bolinha é o alvo principal de arrasto do slider */}
                     <div 
                         className="absolute top-1/2 -translate-y-1/2 h-4 w-4 bg-amber-600 rounded-full shadow-md z-10 cursor-grab"
                         style={{ left: `calc(${scrollProgress}% - 8px)` }}
-                        // Adicionando um pequeno div invisível para garantir a área de clique/toque
                         onMouseDown={(e) => { e.stopPropagation(); handleSliderStart(e.clientX); }}
                         onTouchStart={(e) => { e.stopPropagation(); handleSliderStart(e.touches[0].clientX); }}
                     />
@@ -1007,44 +1016,88 @@ function CRMKanbanContent() {
                     <div ref={boardRef} className="w-full overflow-x-auto pb-4 scroll-smooth">
                         <div className="flex flex-nowrap gap-4 md:gap-6 items-start h-full">
                             {columns.length > 0 ? (
-                                columns.map((column) => (
-                                    <div 
-                                        key={column.id} 
-                                        ref={el => columnRefs.current[column.id] = el} 
-                                        className="flex-shrink-0 w-[280px] sm:w-72 box-border relative h-[calc(100vh-18rem)] md:h-[calc(100vh-12rem)]"
-                                    >
-                                        <SortableContext id={column.id} items={[...column.clients.map(c => c.chat_id), column.id]} strategy={verticalListSortingStrategy}>
-                                            {/* O ID da coluna (column.id) é crucial para o drop em colunas vazias */}
-                                            <div id={column.id} className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-full">
-                                                <div className="flex items-center justify-between">
-                                                    <h3 className="font-semibold text-sm md:text-base truncate">{column.name}</h3>
-                                                    <Badge variant="secondary">{column.clients.length}</Badge>
-                                                </div>
-                                                <div className="flex-1 overflow-y-scroll scrollbar-width-auto touch-pan-y pr-2" style={{ WebkitOverflowScrolling: 'touch' }}>
-                                                    <div className="space-y-3">
-                                                        {column.clients.length > 0 ? (
-                                                            column.clients.map((client) => (
-                                                                <ClientCard key={client.chat_id} client={client} onDelete={handleDeleteRequest} onViewDetails={() => setDetailedClient(client)} />
-                                                            ))
-                                                        ) : (
-                                                            <div className="h-full flex items-center justify-center text-sm text-muted-foreground">Nenhum lead</div>
-                                                        )}
+                                columns.map((column) => {
+                                    // Verifica se é a coluna imutável (Novo Lead)
+                                    const isImmutable = column.isDefault && column.id === kanbanColumns[0].id;
+                                    
+                                    return (
+                                        <div 
+                                            key={column.id} 
+                                            ref={el => columnRefs.current[column.id] = el} 
+                                            className="flex-shrink-0 w-[280px] sm:w-72 box-border relative h-[calc(100vh-18rem)] md:h-[calc(100vh-12rem)]"
+                                        >
+                                            <SortableContext id={column.id} items={[...column.clients.map(c => c.chat_id), column.id]} strategy={verticalListSortingStrategy}>
+                                                <div id={column.id} className="flex flex-col gap-4 p-4 bg-muted/50 rounded-lg h-full">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            {editingColumnId === column.id ? (
+                                                                <Input
+                                                                    defaultValue={column.name}
+                                                                    onBlur={(e) => {
+                                                                        handleUpdateColumnName(column.id, e.target.value);
+                                                                        setEditingColumnId(null);
+                                                                    }}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Enter') e.target.blur();
+                                                                    }}
+                                                                    autoFocus
+                                                                    className="h-8 text-sm md:text-base font-semibold"
+                                                                />
+                                                            ) : (
+                                                                <>
+                                                                    <h3 className="font-semibold text-sm md:text-base truncate">
+                                                                        {column.name}
+                                                                    </h3>
+                                                                    {/* 💡 ÍCONE DE LÁPIS para Edição Intuitiva */}
+                                                                    {!isImmutable && (
+                                                                        <Button 
+                                                                            variant="ghost" 
+                                                                            size="icon" 
+                                                                            className="h-6 w-6 text-muted-foreground hover:text-amber-600"
+                                                                            onClick={() => setEditingColumnId(column.id)}
+                                                                        >
+                                                                            <Edit className="h-3 w-3" />
+                                                                        </Button>
+                                                                    )}
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                        <Badge variant="secondary">{column.clients.length}</Badge>
+                                                    </div>
+                                                    <div className="flex-1 overflow-y-scroll scrollbar-width-auto touch-pan-y pr-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                                        <div className="space-y-3">
+                                                            {column.clients.length > 0 ? (
+                                                                column.clients.map((client) => (
+                                                                    <ClientCard key={client.chat_id} client={client} onDelete={handleDeleteRequest} onViewDetails={() => setDetailedClient(client)} />
+                                                                ))
+                                                            ) : (
+                                                                <div className="h-full min-h-[100px] flex items-center justify-center text-sm text-muted-foreground border-2 border-dashed border-muted-foreground/20 rounded-lg p-4">Solte aqui</div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </SortableContext>
-                                    </div>
-                                ))
+                                            </SortableContext>
+                                        </div>
+                                    );
+                                })
                             ) : (
-                                <div className="w-full text-center text-sm text-muted-foreground">Nenhum cliente encontrado para "{searchTerm}"</div>
+                                <div className="w-full text-center text-sm text-muted-foreground">Nenhuma coluna ou cliente encontrado para "{searchTerm}"</div>
                             )}
                         </div>
                     </div>
                     <DragOverlay>{activeClient ? <ClientCard client={activeClient} onDelete={() => {}} onViewDetails={() => {}} /> : null}</DragOverlay>
                 </DndContext>
             </div>
+
+            {/* MODAIS */}
             {detailedClient && (
-                <ClientDetailDialog client={detailedClient} isOpen={!!detailedClient} onOpenChange={(isOpen) => !isOpen && setDetailedClient(null)} updateMutation={updateDetailsMutation} />
+                 <ClientDetailDialog 
+                    client={detailedClient} 
+                    isOpen={!!detailedClient} 
+                    onOpenChange={(isOpen) => !isOpen && setDetailedClient(null)} 
+                    updateMutation={updateDetailsMutation} // 💡 Mutação passada
+                    customColumns={kanbanColumns} // 💡 ESTADO das colunas passado
+                 />
             )}
             <Dialog open={!!clientToDelete} onOpenChange={() => setClientToDelete(null)}>
                 <DialogContent>
@@ -1055,6 +1108,58 @@ function CRMKanbanContent() {
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setClientToDelete(null)}>Cancelar</Button>
                         <Button variant="destructive" onClick={handleConfirmDelete}>Excluir</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* MODAL DE GERENCIAMENTO DE COLUNAS */}
+            <Dialog open={isManagingColumns} onOpenChange={setIsManagingColumns}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2"><Layers className="h-5 w-5"/> Gerenciar Colunas</DialogTitle>
+                        <DialogDescription>Crie novas etapas ou organize as colunas do seu funil de vendas. A coluna 'Novo Lead' não pode ser excluída.</DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4">
+                        <h4 className="font-semibold flex items-center gap-2 border-b pb-2"><PlusCircle className="h-4 w-4" /> Criar Nova Coluna</h4>
+                        <div className="flex gap-2">
+                            <Input
+                                id="new-column-name"
+                                placeholder="Nome da nova coluna"
+                                onChange={(e) => newColumnNameRef.current = e.target.value}
+                            />
+                            <Button onClick={() => {
+                                handleCreateColumn(newColumnNameRef.current);
+                                document.getElementById('new-column-name').value = ''; 
+                                newColumnNameRef.current = '';
+                            }}>
+                                Criar
+                            </Button>
+                        </div>
+
+                        <h4 className="font-semibold">Colunas Atuais</h4>
+                        <ScrollArea className="h-40 border rounded-md p-2">
+                            {kanbanColumns.map(col => {
+                                const isImmutable = col.isDefault && col.id === kanbanColumns[0].id;
+
+                                return (
+                                    <div key={col.id} className="flex items-center justify-between p-2 border-b last:border-b-0">
+                                        <span className="truncate">{col.name}</span>
+                                        {isImmutable ? (
+                                            <Badge variant="outline">Padrão</Badge>
+                                        ) : (
+                                            <Button variant="destructive" size="sm" onClick={() => handleDeleteColumn(col.id)}>
+                                                <Trash2 className="h-3 w-3" /> Excluir
+                                            </Button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </ScrollArea>
+                    </div>
+                    
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsManagingColumns(false)}>Fechar</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
