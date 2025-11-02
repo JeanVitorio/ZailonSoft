@@ -145,15 +145,17 @@ export function Dashboard() {
     queryKey: ['clients', lojaId],
     queryFn: fetchClients,
     enabled: !!lojaId,
+    initialData: [],
   });
 
   const { data: vehicles = [], isLoading: vLoading } = useQuery<CarType[]>({
     queryKey: ['vehicles', lojaId],
     queryFn: () => fetchAvailableCars(lojaId!),
     enabled: !!lojaId,
+    initialData: [],
   });
 
-  // ---- Cálculos do dashboard (agora com fallback para zeros) ----
+  // ---- DADOS DERIVADOS (com fallback para zeros) ----
   const dashboardData = useMemo(() => {
     // Contagens detalhadas (para cards / grids)
     const funnelCountsRaw = KANBAN_COLUMNS.map(
@@ -286,18 +288,74 @@ export function Dashboard() {
     };
   }, [baseChartOptions, dashboardData.maxTipo]);
 
-  const exportToPDF = useCallback(async () => {
+  // ---- Exportação para PDF (página inteira/multipáginas) ----
+  const exportToPDFFull = useCallback(async () => {
     if (!dashboardRef.current) return;
-    const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL('image/png');
+
+    const el = dashboardRef.current;
+    const canvas = await html2canvas(el, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      windowWidth: el.scrollWidth,
+      windowHeight: el.scrollHeight,
+      scrollX: 0,
+      scrollY: -window.scrollY,
+    });
+
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const width = pdf.internal.pageSize.getWidth();
-    const height = (canvas.height * width) / canvas.width;
-    pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const imgWidth = pageWidth;
+    const ratio = imgWidth / canvas.width;
+    const imgFullHeight = canvas.height * ratio;
+
+    if (imgFullHeight <= pageHeight) {
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgFullHeight);
+    } else {
+      const pageCanvas = document.createElement('canvas');
+      const pageCtx = pageCanvas.getContext('2d')!;
+      const sliceHeightPx = pageHeight / ratio; // altura equivalente à página em px
+
+      let renderedHeight = 0;
+      while (renderedHeight < canvas.height) {
+        const sliceHeight = Math.min(sliceHeightPx, canvas.height - renderedHeight);
+
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeight;
+
+        pageCtx.clearRect(0, 0, pageCanvas.width, pageCanvas.height);
+        pageCtx.drawImage(
+          canvas,
+          0,
+          renderedHeight,
+          canvas.width,
+          sliceHeight,
+          0,
+          0,
+          canvas.width,
+          sliceHeight
+        );
+
+        const sliceImgHeight = sliceHeight * ratio;
+
+        if (renderedHeight === 0) {
+          pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, sliceImgHeight);
+        } else {
+          pdf.addPage();
+          pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, sliceImgHeight);
+        }
+
+        renderedHeight += sliceHeight;
+      }
+    }
+
     pdf.save(`Dashboard_${storeDetailsData?.nome || 'Zailon'}_${new Date().toLocaleDateString('pt-BR')}.pdf`);
   }, [storeDetailsData?.nome]);
 
-  // ---- Loading visual ----
+  // ---- CARREGANDO ----
   if (authLoading || cLoading || vLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -306,7 +364,7 @@ export function Dashboard() {
     );
   }
 
-  // ---- Sempre renderiza o dashboard, mesmo sem dados (tudo zerado) ----
+  // ---- UI ----
   return (
     <div ref={dashboardRef} className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-10">
@@ -314,7 +372,11 @@ export function Dashboard() {
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
             {storeDetailsData?.logo_url ? (
-              <img src={storeDetailsData.logo_url} alt="Logo" className="w-14 h-14 rounded-full object-contain bg-white shadow" />
+              <img
+                src={storeDetailsData.logo_url}
+                alt="Logo"
+                className="w-14 h-14 rounded-full object-contain bg-white shadow"
+              />
             ) : (
               <div className="w-14 h-14 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
                 {storeDetailsData?.nome?.[0] || 'Z'}
@@ -330,7 +392,7 @@ export function Dashboard() {
             </div>
           </div>
           <button
-            onClick={exportToPDF}
+            onClick={exportToPDFFull}
             className="px-5 py-3 bg-emerald-600 text-white rounded-xl shadow hover:bg-emerald-700 transition flex items-center gap-2 text-sm font-medium whitespace-nowrap"
           >
             <Feather.Download className="w-5 h-5" />
@@ -347,13 +409,11 @@ export function Dashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
               className="bg-white rounded-2xl shadow border border-gray-100 p-5 cursor-pointer hover:shadow-lg transition"
-              onClick={() => card.route && navigate(card.route)}
+              onClick={() => (card as any).route && navigate((card as any).route)}
             >
               <div className="h-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-t-2xl mb-3"></div>
               <p className="text-xs font-medium text-gray-500 uppercase">{card.title}</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
-              {/* Espaço reservado para variações futuras */}
-              <span className="text-xs text-emerald-600 font-medium">{card.change}</span>
             </motion.div>
           ))}
         </div>
@@ -361,7 +421,11 @@ export function Dashboard() {
         {/* GRÁFICOS */}
         <div className="space-y-10">
           {/* FUNIL AGRUPADO */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white rounded-2xl shadow border border-gray-100 p-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-white rounded-2xl shadow border border-gray-100 p-6"
+          >
             <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">Funil de Vendas</h2>
             <div className="h-64 sm:h-80">
               <Line data={dashboardData.funnelData} options={funnelOptions} />
@@ -369,7 +433,11 @@ export function Dashboard() {
           </motion.div>
 
           {/* TIPO DE NEGÓCIO */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white rounded-2xl shadow border border-gray-100 p-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-white rounded-2xl shadow border border-gray-100 p-6"
+          >
             <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">Tipo de Negócio</h2>
             <div className="h-64 sm:h-80">
               <Line data={dashboardData.tipoData} options={tipoOptions} />
