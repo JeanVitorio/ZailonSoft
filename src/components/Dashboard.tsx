@@ -16,6 +16,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+
 import {
   fetchClients,
   fetchAvailableCars,
@@ -139,22 +140,21 @@ export function Dashboard() {
   const { lojaId, isLoading: authLoading } = useAuth();
 
   const { data: storeDetailsData } = useQuery({ queryKey: ['storeDetails'], queryFn: fetchStoreDetails });
+
   const { data: clients = [], isLoading: cLoading } = useQuery<ClientType[]>({
     queryKey: ['clients', lojaId],
     queryFn: fetchClients,
     enabled: !!lojaId,
   });
+
   const { data: vehicles = [], isLoading: vLoading } = useQuery<CarType[]>({
     queryKey: ['vehicles', lojaId],
     queryFn: () => fetchAvailableCars(lojaId!),
     enabled: !!lojaId,
   });
 
-  // ---- TUDO A PARTIR DAQUI SÃO HOOKS: ORDEM FIXA ----
-
+  // ---- Cálculos do dashboard (agora com fallback para zeros) ----
   const dashboardData = useMemo(() => {
-    if (!clients.length) return null;
-
     // Contagens detalhadas (para cards / grids)
     const funnelCountsRaw = KANBAN_COLUMNS.map(
       (col) => clients.filter((c) => (c.bot_data?.state || c.state) === col.id).length
@@ -240,7 +240,7 @@ export function Dashboard() {
         { title: 'Total de Propostas', value: totalPropostas, route: '../crm' },
         { title: 'Veículos em Estoque', value: emEstoque, route: '../catalog' },
         { title: 'Vendas Finalizadas', value: finalizado, route: '../crm#finalizado' },
-        { title: 'Valor em Negociação', value: formatToBRL(valorNegociacaoNum), },
+        { title: 'Valor em Negociação', value: formatToBRL(valorNegociacaoNum) },
       ],
       funnelData,
       tipoData,
@@ -273,20 +273,18 @@ export function Dashboard() {
   );
 
   const funnelOptions = useMemo(() => {
-    if (!dashboardData) return baseChartOptions;
     return {
       ...baseChartOptions,
       scales: { ...baseChartOptions.scales, y: { ...baseChartOptions.scales.y, suggestedMax: dashboardData.maxFunnel } },
     };
-  }, [baseChartOptions, dashboardData]);
+  }, [baseChartOptions, dashboardData.maxFunnel]);
 
   const tipoOptions = useMemo(() => {
-    if (!dashboardData) return baseChartOptions;
     return {
       ...baseChartOptions,
       scales: { ...baseChartOptions.scales, y: { ...baseChartOptions.scales.y, suggestedMax: dashboardData.maxTipo } },
     };
-  }, [baseChartOptions, dashboardData]);
+  }, [baseChartOptions, dashboardData.maxTipo]);
 
   const exportToPDF = useCallback(async () => {
     if (!dashboardRef.current) return;
@@ -299,8 +297,7 @@ export function Dashboard() {
     pdf.save(`Dashboard_${storeDetailsData?.nome || 'Zailon'}_${new Date().toLocaleDateString('pt-BR')}.pdf`);
   }, [storeDetailsData?.nome]);
 
-  // ---- SÓ AGORA OS RETURNS CONDICIONAIS ----
-
+  // ---- Loading visual ----
   if (authLoading || cLoading || vLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -309,15 +306,7 @@ export function Dashboard() {
     );
   }
 
-  if (!dashboardData) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-        <Feather.AlertCircle className="w-20 h-20 text-red-500 mb-4" />
-        <p className="text-2xl font-semibold text-gray-700">Sem dados</p>
-      </div>
-    );
-  }
-
+  // ---- Sempre renderiza o dashboard, mesmo sem dados (tudo zerado) ----
   return (
     <div ref={dashboardRef} className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-10">
@@ -363,6 +352,7 @@ export function Dashboard() {
               <div className="h-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-t-2xl mb-3"></div>
               <p className="text-xs font-medium text-gray-500 uppercase">{card.title}</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
+              {/* Espaço reservado para variações futuras */}
               <span className="text-xs text-emerald-600 font-medium">{card.change}</span>
             </motion.div>
           ))}
