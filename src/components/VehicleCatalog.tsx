@@ -1,337 +1,271 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import * as Feather from 'react-feather';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogTitle,
-  DialogDescription
-} from '@/components/ui/dialog';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { fetchAvailableCars, updateVehicle as updateVehicleInSupabase, deleteVehicle as deleteVehicleInSupabase, deleteVehicleImage as deleteVehicleImageInSupabase, Car as SupabaseCar } from '@/services/api';
-import { useAuth } from '@/auth/AuthContext'; 
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import {
+  fetchAvailableCars,
+  updateVehicle as updateVehicleInSupabase,
+  deleteVehicle as deleteVehicleInSupabase,
+  fetchStoreDetails,
+  Car as SupabaseCar,
+} from '@/services/api';
+import { useAuth } from '@/auth/AuthContext';
 
 interface Vehicle extends SupabaseCar {}
 
-// Funções de conversão (sem alterações)
-const parsePrice = (value: string | number): number => {
-  if (typeof value === 'number') return value;
-  if (!value || typeof value !== 'string') return 0;
-  const cleaned = String(value)
-    .replace(/R\$\s?/, '')
-    .replace(/\./g, '')
-    .replace(',', '.');
-  const number = parseFloat(cleaned);
-  return isNaN(number) ? 0 : number;
-};
+/* ================= Helpers de normalização ================= */
+const getName = (c: Partial<Vehicle>) => (c as any)?.nome ?? (c as any)?.name ?? '';
+const getDesc = (c: Partial<Vehicle>) => (c as any)?.descricao ?? (c as any)?.description ?? '';
+const getYear = (c: Partial<Vehicle>) => (c as any)?.ano ?? (c as any)?.year ?? '';
+const getPriceRaw = (c: Partial<Vehicle>) => (c as any)?.preco ?? (c as any)?.price ?? 0;
+const getImages = (c: Partial<Vehicle>) => (c as any)?.imagens ?? (c as any)?.images ?? [];
 
-const formatCurrency = (value: string | number): string => {
-  const number = parsePrice(value);
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
+/* parse/format de preço robusto */
+const parsePrice = (v: any) => {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  const s = String(v ?? '').trim();
+  if (!s) return 0;
+  const brlLike = s.replace(/\s+/g, '').replace(/R\$\s?/gi, '').replace(/\./g, '').replace(/,/, '.');
+  const n = Number(brlLike);
+  if (Number.isFinite(n)) return n;
+  const digits = s.replace(/\D+/g, '');
+  return digits ? (digits.length >= 3 ? Number(digits) / 100 : Number(digits)) : 0;
 };
+const formatCurrency = (v: any) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(
+    parsePrice(v)
+  );
+const sl = (s: any) => String(s ?? '').toLowerCase();
 
-// Animações (sem alterações)
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeInOut' } },
-};
+const fade = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
 
-// CarDetailsView Component
+/* ================= DETALHES ================= */
 function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => void }) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<Partial<Vehicle>>(vehicle);
-  const [newImages, setNewImages] = useState<File[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const qc = useQueryClient();
+  const [edit, setEdit] = useState(false);
+
+  // estado local sempre com campos PT/EN espelhados
+  const [data, setData] = useState<Partial<Vehicle>>({
+    ...vehicle,
+    nome: getName(vehicle),
+    name: getName(vehicle),
+    descricao: getDesc(vehicle),
+    description: getDesc(vehicle),
+    ano: getYear(vehicle) as any,
+    year: getYear(vehicle) as any,
+    preco: String(getPriceRaw(vehicle)),
+    price: String(getPriceRaw(vehicle)),
+    imagens: getImages(vehicle) as any,
+    images: getImages(vehicle) as any,
+  });
+
+  const [imgs, setImgs] = useState<File[]>([]);
+  const [idx, setIdx] = useState(0);
 
   useEffect(() => {
-    if (vehicle) {
-      const initialPrice = vehicle.preco ? formatCurrency(vehicle.preco).replace(/R\$\s?/, '') : '';
-      setFormData({ ...vehicle, preco: initialPrice });
-      setNewImages([]);
-      setCurrentImageIndex(0);
-    }
-  }, [vehicle, isEditing]);
+    setData({
+      ...vehicle,
+      nome: getName(vehicle),
+      name: getName(vehicle),
+      descricao: getDesc(vehicle),
+      description: getDesc(vehicle),
+      ano: getYear(vehicle) as any,
+      year: getYear(vehicle) as any,
+      preco: String(getPriceRaw(vehicle)),
+      price: String(getPriceRaw(vehicle)),
+      imagens: getImages(vehicle) as any,
+      images: getImages(vehicle) as any,
+    });
+    setIdx(0);
+  }, [vehicle]);
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const digitsOnly = value.replace(/\D/g, '');
-    if (digitsOnly === '') {
-      setFormData({ ...formData, preco: '' });
-      return;
-    }
-    const numberValue = Number(digitsOnly) / 100;
-    const formattedValue = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(numberValue);
-    setFormData({ ...formData, preco: formattedValue });
+  const priceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let v = e.target.value.replace(/\D/g, '');
+    const formatted = v ? (Number(v) / 100).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
+    setData((prev) => ({ ...prev, preco: formatted, price: formatted }));
   };
 
-  const updateMutation = useMutation({
-    mutationFn: ({ carId, updatedData, newImages }: { carId: string, updatedData: Partial<Vehicle>, newImages: File[] }) =>
-      updateVehicleInSupabase({ carId, updatedData, newImages }),
+  const save = useMutation({
+    mutationFn: () =>
+      updateVehicleInSupabase({
+        carId: (vehicle as any).id,
+        // escreve PT e EN para manter compatibilidade até padronizar no backend
+        updatedData: {
+          ...data,
+          nome: getName(data),
+          name: getName(data),
+          descricao: getDesc(data),
+          description: getDesc(data),
+          ano: getYear(data),
+          year: getYear(data),
+          preco: parsePrice((data as any).preco ?? (data as any).price),
+          price: parsePrice((data as any).preco ?? (data as any).price),
+          imagens: getImages(data),
+          images: getImages(data),
+        },
+        newImages: imgs,
+      }),
     onSuccess: () => {
-      toast({ title: "Sucesso!", description: "Veículo atualizado." });
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      setIsEditing(false);
-    },
-    onError: (e: Error) => {
-      console.error('Erro ao atualizar veículo:', e);
-      toast({ title: "Erro!", description: e.message || "Falha ao atualizar o veículo.", variant: "destructive" });
+      toast({ title: 'Salvo!' });
+      qc.invalidateQueries({ queryKey: ['vehicles'] });
+      setEdit(false);
     },
   });
 
-  const deleteImageMutation = useMutation({
-    mutationFn: ({ carId, imageUrl }: { carId: string, imageUrl: string }) => deleteVehicleImageInSupabase({ carId, imageUrl }),
-    onSuccess: () => {
-      toast({ title: "Sucesso!", description: "Imagem removida." });
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-    },
-    onError: (e: Error) => {
-      console.error('Erro ao remover imagem:', e);
-      toast({ title: "Erro!", description: e.message || "Falha ao remover a imagem.", variant: "destructive" });
-    },
-  });
-
-  const handleSave = () => {
-    if (!formData.nome || formData.nome.trim() === '') {
-      toast({ title: "Erro!", description: "O nome do veículo é obrigatório.", variant: "destructive" });
-      return;
-    }
-    if (!formData.ano || isNaN(Number(formData.ano))) {
-      toast({ title: "Erro!", description: "O ano do veículo é inválido.", variant: "destructive" });
-      return;
-    }
-
-    const priceNum = parsePrice(String(formData.preco || ''));
-    if (isNaN(priceNum) || priceNum <= 0) {
-      toast({ title: "Erro!", description: "O preço do veículo é inválido.", variant: "destructive" });
-      return;
-    }
-
-    if (!formData.loja_id) {
-      toast({ title: "Erro!", description: "O ID da loja é obrigatório.", variant: "destructive" });
-      return;
-    }
-
-    const updatedData = {
-      nome: formData.nome.trim(),
-      ano: Number(formData.ano),
-      preco: priceNum,
-      descricao: formData.descricao || '',
-      loja_id: formData.loja_id,
-    };
-
-    updateMutation.mutate({ carId: vehicle.id, updatedData, newImages });
-  };
-
-  const handleImageRemove = (index: number) => {
-    if (window.confirm('Tem certeza que deseja remover esta imagem?')) {
-      const imageUrl = formData.imagens?.[index];
-      if (imageUrl) {
-        deleteImageMutation.mutate({ carId: vehicle.id, imageUrl });
-      } else {
-        toast({ title: "Erro!", description: "Imagem não encontrada.", variant: "destructive" });
-      }
-    }
-  };
-
-  const navigateGallery = (direction: number) => {
-    if (!formData?.imagens) return;
-    const newIndex = (currentImageIndex + direction + formData.imagens.length) % formData.imagens.length;
-    setCurrentImageIndex(newIndex);
-  };
-
-  const currentImages = formData.imagens || [];
+  const imgList = getImages(data) as string[];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold text-zinc-900">
-          {isEditing ? (
-            <Input
-              value={formData.nome}
-              onChange={e => setFormData({ ...formData, nome: e.target.value })}
-              className="text-3xl font-bold border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20"
-            />
-          ) : (
-            formData.nome
-          )}
-        </h1>
-        
-        <div className="flex gap-2">
-          <AnimatePresence mode="wait">
-            {!isEditing ? (
-              <motion.div
-                key="view-buttons"
-                className="flex gap-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.1 }}
-              >
-                <motion.button
-                  className="px-4 py-2 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-zinc-100 hover:border-amber-400/50 transition-all"
-                  onClick={onBack}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Feather.ArrowLeft className="w-4 h-4 mr-2 inline" /> Fechar
-                </motion.button>
-                <motion.button
-                  className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all"
-                  onClick={() => setIsEditing(true)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Feather.Edit className="w-4 h-4 mr-2 inline" /> Editar
-                </motion.button>
-              </motion.div>
+    <div className="bg-white">
+      {/* Header do modal */}
+      <div className="p-6 md:p-8 border-b border-gray-100">
+        <div className="h-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full mb-4" />
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            {edit ? (
+              <Input
+                autoFocus
+                value={getName(data)}
+                onChange={(e) => setData((p) => ({ ...p, nome: e.target.value, name: e.target.value }))}
+                className="text-2xl md:text-3xl font-bold"
+              />
             ) : (
-              <motion.div
-                key="edit-buttons"
-                className="flex gap-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.1 }}
-              >
-                <motion.button
-                  className="px-4 py-2 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-zinc-100 hover:border-amber-400/50 transition-all"
-                  onClick={() => setIsEditing(false)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Feather.X className="w-4 h-4 mr-2 inline" /> Cancelar
-                </motion.button>
-                <motion.button
-                  className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all"
-                  onClick={handleSave}
-                  disabled={updateMutation.isPending}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Feather.Save className="w-4 h-4 mr-2 inline" /> {updateMutation.isPending ? 'Salvando...' : 'Salvar'}
-                </motion.button>
-              </motion.div>
+              getName(data) || 'Sem título'
             )}
-          </AnimatePresence>
-        </div>
-
-      </div>
-      <div className="bg-white/70 p-6 rounded-lg border border-zinc-200 shadow-sm">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div className="relative aspect-video rounded-lg overflow-hidden border border-zinc-200">
-              {currentImages.length > 0 ? (
-                <img src={currentImages[currentImageIndex]} alt="Imagem principal" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-zinc-100 flex items-center justify-center text-zinc-600">Sem imagem</div>
-              )}
-              {currentImages.length > 1 && (
-                <>
-                  <motion.button
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full border border-zinc-200 text-amber-500 hover:bg-zinc-100"
-                    onClick={() => navigateGallery(-1)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Feather.ChevronLeft className="w-5 h-5" />
-                  </motion.button>
-                  <motion.button
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full border border-zinc-200 text-amber-500 hover:bg-zinc-100"
-                    onClick={() => navigateGallery(1)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Feather.ChevronRight className="w-5 h-5" />
-                  </motion.button>
-                </>
-              )}
-            </div>
-            <div className="grid grid-cols-5 gap-2">
-              {currentImages.map((img, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={img}
-                    onClick={() => setCurrentImageIndex(index)}
-                    alt={`Thumbnail ${index+1}`}
-                    className={`w-full aspect-square object-cover rounded-md cursor-pointer border-2 ${currentImageIndex === index ? 'border-amber-500' : 'border-transparent'}`}
-                  />
-                  {isEditing && (
-                    <motion.button
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center"
-                      onClick={() => handleImageRemove(index)}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <Feather.Trash2 className="h-3 w-3" />
-                    </motion.button>
-                  )}
-                </div>
-              ))}
-            </div>
-            {isEditing && (
-              <div>
-                <Label htmlFor="new-images" className="text-zinc-800 font-medium">Adicionar novas imagens</Label>
-                <Input
-                  id="new-images"
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={e => setNewImages(Array.from(e.target.files || []))}
-                  className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20"
-                />
-              </div>
+          </h1>
+          <div className="flex gap-2">
+            {edit ? (
+              <>
+                <button onClick={() => setEdit(false)} className="px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-50">
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => save.mutate()}
+                  className="px-5 py-2 bg-amber-500 text-white rounded-xl shadow hover:bg-amber-600 transition"
+                >
+                  Salvar
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={onBack}
+                  className="px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <Feather.ArrowLeft className="w-5 h-5" /> Voltar
+                </button>
+                <button
+                  onClick={() => setEdit(true)}
+                  className="px-5 py-2 bg-amber-500 text-white rounded-xl shadow hover:bg-amber-600 transition flex items-center gap-2"
+                >
+                  <Feather.Edit className="w-4 h-4" /> Editar
+                </button>
+              </>
             )}
           </div>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label className="text-zinc-800 font-medium">Preço</Label>
-                {isEditing ? (
-                  <Input
-                    value={String(formData.preco || '')}
-                    onChange={handlePriceChange}
-                    placeholder="0,00"
-                    inputMode="numeric"
-                    className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20"
-                  />
-                ) : (
-                  <p className="text-2xl font-bold text-amber-500">{formatCurrency(formData.preco || 0)}</p>
-                )}
-              </div>
-              <div>
-                <Label className="text-zinc-800 font-medium">Ano</Label>
-                {isEditing ? (
-                  <Input
-                    type="number"
-                    value={String(formData.ano || '')}
-                    onChange={e => setFormData({ ...formData, ano: Number(e.target.value) })}
-                    className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20"
-                  />
-                ) : (
-                  <p className="font-semibold text-zinc-800">{formData.ano}</p>
-                )}
-              </div>
-            </div>
+        </div>
+      </div>
+
+      {/* Corpo */}
+      <div className="p-6 md:p-8 grid lg:grid-cols-2 gap-10">
+        {/* Galeria */}
+        <div className="space-y-4">
+          <div className="relative aspect-video bg-gray-100 rounded-2xl overflow-hidden border border-gray-200">
+            {imgList?.[idx] ? (
+              <img src={imgList[idx]} className="w-full h-full object-cover" />
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-400">Sem foto</div>
+            )}
+            {imgList && imgList.length > 1 && (
+              <>
+                <button
+                  onClick={() => setIdx((i) => (i - 1 + imgList.length) % imgList.length)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur p-2 rounded-full shadow"
+                >
+                  <Feather.ChevronLeft />
+                </button>
+                <button
+                  onClick={() => setIdx((i) => (i + 1) % imgList.length)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur p-2 rounded-full shadow"
+                >
+                  <Feather.ChevronRight />
+                </button>
+              </>
+            )}
+          </div>
+          <div className="grid grid-cols-6 gap-2">
+            {imgList?.map((img, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className={`aspect-square rounded-xl border ${i === idx ? 'border-amber-500' : 'border-gray-200'} overflow-hidden`}
+              >
+                <img src={img} className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+          {edit && (
             <div>
-              <Label className="text-zinc-800 font-medium">Descrição</Label>
-              {isEditing ? (
-                <Textarea
-                  value={formData.descricao}
-                  onChange={e => setFormData({ ...formData, descricao: e.target.value })}
-                  rows={8}
-                  className="border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20"
+              <Label>Nova(s) foto(s)</Label>
+              <Input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) => setImgs(Array.from(e.target.files || []))}
+                className="mt-1"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Infos */}
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <Label>Preço</Label>
+              {edit ? (
+                <Input
+                  value={String((data as any).preco ?? (data as any).price ?? '')}
+                  onChange={priceInput}
+                  placeholder="00,00"
+                  className="text-2xl font-bold mt-1"
                 />
               ) : (
-                <p className="text-zinc-600 whitespace-pre-wrap">{formData.descricao}</p>
+                <p className="text-3xl font-bold text-amber-600">{formatCurrency(getPriceRaw(vehicle))}</p>
               )}
             </div>
+            <div>
+              <Label>Ano</Label>
+              {edit ? (
+                <Input
+                  type="number"
+                  value={String(getYear(data) ?? '')}
+                  onChange={(e) => setData((p) => ({ ...p, ano: Number(e.target.value), year: Number(e.target.value) }))}
+                  className="text-2xl font-bold mt-1"
+                />
+              ) : (
+                <p className="text-3xl font-bold text-gray-900">{getYear(vehicle) || '—'}</p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <Label>Descrição</Label>
+            {edit ? (
+              <Textarea
+                value={getDesc(data)}
+                onChange={(e) => setData((p) => ({ ...p, descricao: e.target.value, description: e.target.value }))}
+                rows={6}
+                className="mt-2"
+              />
+            ) : (
+              <p className="text-gray-700 mt-2">{getDesc(vehicle) || 'Sem descrição.'}</p>
+            )}
           </div>
         </div>
       </div>
@@ -339,256 +273,195 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
   );
 }
 
-// VehicleCatalog Component (Componente Principal)
+/* ================= CATÁLOGO ================= */
 export function VehicleCatalog() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCar, setSelectedCar] = useState<Vehicle | null>(null);
+  const [search, setSearch] = useState('');
+  const [car, setCar] = useState<Vehicle | null>(null);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { user } = useAuth(); // Pega o usuário logado (que é o objeto 'loja')
+  const qc = useQueryClient();
+  const { lojaId, isLoading: authLoad } = useAuth();
 
-  const { data: vehicles = [], isLoading, error } = useQuery<Vehicle[]>({
-    queryKey: ['vehicles'],
-    queryFn: fetchAvailableCars,
+  // Dados da loja
+  const { data: storeDetails } = useQuery({
+    queryKey: ['storeDetails'],
+    queryFn: fetchStoreDetails,
   });
 
-  useEffect(() => {
-    if (selectedCar) {
-      const updatedCarInList = vehicles.find(v => v.id === selectedCar.id);
-      if (updatedCarInList) {
-        setSelectedCar(updatedCarInList);
-      } else {
-        setSelectedCar(null);
-      }
-    }
-  }, [vehicles, selectedCar]);
+  const { data: cars = [], isLoading } = useQuery<Vehicle[]>({
+    queryKey: ['vehicles', lojaId],
+    queryFn: () => (lojaId ? fetchAvailableCars(lojaId) : Promise.resolve([])),
+    enabled: !!lojaId && !authLoad,
+  });
 
-  const deleteMutation = useMutation({
+  const del = useMutation({
     mutationFn: deleteVehicleInSupabase,
     onSuccess: () => {
-      toast({ title: "Sucesso!", description: "Veículo removido do catálogo." });
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-    },
-    onError: (error: Error) => {
-      console.error('Erro ao remover veículo:', error);
-      toast({ title: "Erro!", description: error.message || "Falha ao remover o veículo.", variant: "destructive" });
+      toast({ title: 'Excluído!' });
+      qc.invalidateQueries({ queryKey: ['vehicles'] });
     },
   });
 
-  const handleDelete = (vehicleId: string) => {
-    if (window.confirm("Tem certeza que deseja excluir este veículo?")) {
-      deleteMutation.mutate(vehicleId);
-    }
-  };
-
-  const filteredVehicles = useMemo(() =>
-    vehicles.filter(vehicle =>
-      vehicle.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vehicle.ano.toString().includes(searchTerm)
-    ), [vehicles, searchTerm]);
-
-  // --- FUNÇÃO DE CÓPIA DO LINK (SEM ALTERAÇÕES) ---
-  const handleCopyPublicLink = () => {
-    let lojaIdToUse: string | undefined = undefined;
-
-    // 1. Tenta pegar o ID da loja a partir do primeiro veículo na lista
-    if (vehicles.length > 0) {
-        lojaIdToUse = vehicles[0].loja_id;
-    } 
-    // 2. Se não houver veículos, usa o ID da loja do usuário logado como fallback
-    else if (user && user.id) {
-        lojaIdToUse = user.id;
-    }
-
-    // 3. Se nenhum ID foi encontrado, mostra um erro
-    if (!lojaIdToUse) {
-        toast({ 
-            title: "Erro!", 
-            description: "Não foi possível encontrar o ID da loja. Adicione um veículo ao catálogo primeiro.", 
-            variant: "destructive" 
-        });
-        return;
-    }
-
-    // Usa a URL correta do seu App.tsx: /catalogo-loja/
-    const publicUrl = `${window.location.origin}/catalogo-loja/${lojaIdToUse}`;
-
-    navigator.clipboard.writeText(publicUrl).then(() => {
-        toast({ title: "Link Copiado!", description: "O link do catálogo público foi copiado." });
-    }).catch(err => {
-        console.error('Falha ao copiar link: ', err);
-        toast({ title: "Erro", description: "Falha ao copiar o link.", variant: "destructive" });
+  // filtro com campos PT/EN
+  const filtered = useMemo(() => {
+    const q = sl(search);
+    return cars.filter((c) => {
+      const name = sl(getName(c));
+      const year = String(getYear(c) ?? '');
+      const priceStr = sl(formatCurrency(getPriceRaw(c)));
+      return name.includes(q) || year.includes(search) || priceStr.includes(q);
     });
+  }, [cars, search]);
+
+  const copyCat = () => {
+    const url = `${window.location.origin}/catalogo-loja/${lojaId}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: 'Copiado!', description: 'Link do catálogo' });
   };
-  // -------------------------------------------------
+
+  const copyForm = (id: string) => {
+    const url = `${window.location.origin}/form-proposta/${id}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: 'Copiado!', description: 'Link do formulário' });
+  };
 
   return (
-    <div className="space-y-6 p-6 relative z-10">
-      {/* =========================================================
-        [AJUSTE DE RESPONSIVIDADE MOBILE APLICADO AQUI]
-        - flex-col: Empilha o título e o botão no mobile.
-        - sm:flex-row: Volta para o layout lado a lado no desktop.
-        - gap-4: Adiciona espaço entre o título e o botão no mobile.
-        =========================================================
-      */}
-      <motion.div
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-        initial="hidden"
-        animate="visible"
-        variants={fadeInUp}
-      >
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900">Catálogo de Veículos</h1>
-          <p className="text-zinc-600">Gerencie seu estoque de veículos</p>
-        </div>
-        
-        {/* =========================================================
-          [AJUSTE DE RESPONSIVIDADE MOBILE APLICADO AQUI NO BOTÃO]
-          - w-full: Ocupa 100% da largura no mobile.
-          - sm:w-auto: Volta para largura automática no desktop.
-          - self-start: Alinha o botão à esquerda no modo empilhado (mobile).
-          =========================================================
-        */}
-        <motion.button
-          onClick={handleCopyPublicLink}
-          className="flex items-center self-start sm:self-center w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 transition-all group shadow-sm"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Feather.Copy className="w-4 h-4 mr-2" />
-          Copiar Link do Catálogo
-        </motion.button>
-        
-      </motion.div>
-      <motion.div
-        className="relative max-w-md"
-        initial="hidden"
-        animate="visible"
-        variants={fadeInUp}
-      >
-        <Feather.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-600 w-4 h-4" />
-        <Input
-          placeholder="Buscar por nome ou ano..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20"
-        />
-      </motion.div>
-
-      {isLoading && (
-        <motion.div initial="hidden" animate="visible" variants={fadeInUp}>
-          <div className="text-zinc-800">Carregando catálogo...</div>
-        </motion.div>
-      )}
-      {error && (
-        <motion.div initial="hidden" animate="visible" variants={fadeInUp}>
-          <div className="text-red-500">Erro: {(error as Error).message}</div>
-        </motion.div>
-      )}
-
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        initial="hidden"
-        animate="visible"
-        variants={{
-          hidden: { opacity: 0 },
-          visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
-        }}
-      >
-        {filteredVehicles.map((vehicle) => (
-          <motion.div key={vehicle.id} variants={fadeInUp}>
-            <div className="overflow-hidden bg-white/70 rounded-lg border border-zinc-200 shadow-sm hover:border-amber-400/50 transition-all group">
-              <div className="aspect-video overflow-hidden bg-zinc-100">
-                <img
-                  src={vehicle.imagens?.[0] ? vehicle.imagens[0] : 'https://placehold.co/400x300/e4e4e7/3f3f46?text=Sem+Imagem'}
-                  alt={vehicle.nome}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/400x300/e4e4e7/3f3f46?text=Sem+Imagem'; }}
-                />
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-10">
+        {/* HEADER */}
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            {storeDetails?.logo_url ? (
+              <img
+                src={storeDetails.logo_url}
+                alt="Logo da loja"
+                className="w-14 h-14 rounded-full object-contain bg-white shadow"
+              />
+            ) : (
+              <div className="w-14 h-14 bg-amber-500 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow">
+                {storeDetails?.nome?.[0] || 'Z'}
               </div>
-              <div className="p-6 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold text-zinc-900">{vehicle.nome}</h3>
-                    <p className="text-sm text-zinc-600 mt-1 flex items-center gap-1">
-                      <Feather.Calendar className="w-4 h-4" /> {vehicle.ano}
-                    </p>
-                  </div>
-                  <div className="text-2xl font-bold text-amber-500">{formatCurrency(vehicle.preco)}</div>
-                </div>
-                <p className="text-sm text-zinc-600 line-clamp-2">{vehicle.descricao}</p>
-                <div className="flex gap-2 pt-2">
-                  <motion.button
-                    className="flex-1 px-4 py-2 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-zinc-100 hover:border-amber-400/50 transition-all"
-                    onClick={() => setSelectedCar(vehicle)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Feather.Eye className="w-4 h-4 mr-2 inline" /> Ver Detalhes
-                  </motion.button>
-                  <motion.button
-                    className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-all"
-                    onClick={() => {
-                      // Este é o link do FORMULÁRIO PÚBLICO (individual)
-                      const publicLink = `${window.location.origin}/form-proposta/${vehicle.id}`;
-                      navigator.clipboard.writeText(publicLink);
-                      toast({
-                        title: "Link Copiado!",
-                        description: "Link do formulário público copiado. Envie ao cliente!",
-                        className: "bg-blue-500 text-white"
-                      });
-                    }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Feather.Link className="w-4 h-4" />
-                  </motion.button>
-                  <motion.button
-                    className="px-4 py-2 rounded-lg border border-zinc-200 text-red-500 hover:bg-red-500/10 hover:border-red-500/50 transition-all"
-                    onClick={() => handleDelete(vehicle.id)}
-                    disabled={deleteMutation.isPending && deleteMutation.variables === vehicle.id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Feather.Trash2 className="w-4 h-4" />
-                  </motion.button>
-                </div>
-              </div>
+            )}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                Catálogo <span className="text-amber-600">{storeDetails?.nome || 'Zailon'}</span>
+              </h1>
+              <p className="text-sm text-gray-600">Gerencie seu estoque com eficiência</p>
             </div>
-          </motion.div>
-        ))}
-      </motion.div>
-      {filteredVehicles.length === 0 && !isLoading && (
+          </div>
+          <button
+            onClick={copyCat}
+            className="px-5 py-3 bg-amber-500 text-white rounded-xl shadow hover:bg-amber-600 transition flex items-center gap-2 text-sm font-medium whitespace-nowrap"
+          >
+            <Feather.Link className="w-5 h-5" />
+            Copiar link do catálogo
+          </button>
+        </div>
+
+        {/* BUSCA */}
+        <div className="flex flex-col md:flex-row gap-4 mb-10">
+          <div className="relative flex-1 max-w-xl">
+            <Feather.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              placeholder="Buscar por nome, ano ou preço"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 border-gray-200 focus:border-amber-500"
+            />
+          </div>
+        </div>
+
+        {/* LOADING */}
+        {(isLoading || authLoad) && (
+          <div className="text-center py-20">
+            <Feather.Loader className="w-10 h-10 mx-auto animate-spin text-amber-500" />
+            <p className="text-gray-600 mt-4">Carregando...</p>
+          </div>
+        )}
+
+        {/* GRID */}
         <motion.div
-          className="text-center py-12"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+          variants={fade}
           initial="hidden"
           animate="visible"
-          variants={fadeInUp}
         >
-          <div className="w-24 h-24 mx-auto bg-zinc-100 rounded-full flex items-center justify-center mb-4">
-            <Feather.Truck className="w-12 h-12 text-zinc-600" />
-          </div>
-          <h3 className="text-lg font-medium text-zinc-900 mb-2">Nenhum veículo encontrado</h3>
+          {filtered.map((c) => {
+            const title = getName(c) || 'Sem título';
+            const year = getYear(c) || '—';
+            const price = getPriceRaw(c);
+            const desc = getDesc(c) || 'Sem descrição';
+            const img0 = (getImages(c) as string[])?.[0] || 'https://placehold.co/600x400/f3f4f6/9ca3af?text=Sem+Foto';
+
+            return (
+              <motion.div
+                key={(c as any).id}
+                className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow hover:shadow-xl hover:border-amber-200 transition-all"
+                whileHover={{ y: -6 }}
+              >
+                <div className="h-1.5 bg-gradient-to-r from-amber-500 to-yellow-500" />
+                <div className="aspect-video bg-gray-100">
+                  <img src={img0} alt={title} className="w-full h-full object-cover" />
+                </div>
+                <div className="p-5 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-lg leading-tight">{title}</h3>
+                      <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                        <Feather.Calendar className="w-4 h-4" /> {year}
+                      </p>
+                    </div>
+                    <p className="text-xl font-bold text-amber-600 whitespace-nowrap">{formatCurrency(price)}</p>
+                  </div>
+
+                  <p className="text-sm text-gray-600 line-clamp-2">{desc}</p>
+
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      onClick={() => setCar(c)}
+                      className="flex-1 py-2 border border-amber-500 text-amber-700 rounded-lg hover:bg-amber-50 flex items-center justify-center gap-2 text-sm"
+                    >
+                      <Feather.Eye className="w-4 h-4" /> Ver
+                    </button>
+                    <button
+                      onClick={() => {
+                        const url = `${window.location.origin}/form-proposta/${(c as any).id}`;
+                        navigator.clipboard.writeText(url);
+                        toast({ title: 'Copiado!', description: 'Link do formulário' });
+                      }}
+                      className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
+                      title="Copiar link do formulário"
+                    >
+                      <Feather.Link className="w-4 h-4 text-gray-600" />
+                    </button>
+                    <button
+                      onClick={() => confirm('Excluir este veículo?') && del.mutate((c as any).id)}
+                      className="p-2 border border-gray-200 rounded-lg hover:bg-red-50"
+                      title="Excluir"
+                    >
+                      <Feather.Trash2 className="w-4 h-4 text-red-500" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </motion.div>
-      )}
 
-      <Dialog open={!!selectedCar} onOpenChange={(isOpen) => { if (!isOpen) { setSelectedCar(null); } }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-white/70 border border-zinc-200 overflow-y-auto">
-          <VisuallyHidden>
-            <DialogTitle>Detalhes do Veículo</DialogTitle>
-            <DialogDescription>
-              Veja ou edite os detalhes do veículo selecionado.
-            </DialogDescription>
-          </VisuallyHidden>
-          
-          {selectedCar && (
-            <div className="p-6">
-              <CarDetailsView vehicle={selectedCar} onBack={() => setSelectedCar(null)} />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+        {/* VAZIO */}
+        {filtered.length === 0 && !isLoading && !authLoad && (
+          <div className="text-center py-20">
+            <Feather.Truck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500 text-lg">Nenhum veículo encontrado</p>
+          </div>
+        )}
 
+        {/* MODAL */}
+        <Dialog open={!!car} onOpenChange={(o) => !o && setCar(null)}>
+          <DialogContent className="max-w-6xl p-0 overflow-hidden rounded-2xl">
+            {car && <CarDetailsView vehicle={car} onBack={() => setCar(null)} />}
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

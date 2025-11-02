@@ -11,9 +11,13 @@ interface Subscription {
 interface AuthContextType {
   user: User | null;
   subscription: Subscription | null;
-  loading: boolean; // <- Este agora é um loading combinado
+  loading: boolean; // <- Loading combinado (Auth + Subscrição + Loja)
   logout: () => Promise<void>;
   refreshSubscription: () => Promise<void>;
+  
+  // 🚨 NOVAS PROPRIEDADES PARA ISOLAMENTO DE DADOS
+  lojaId: string | null; 
+  lojaLoading: boolean; 
 }
 
 // --- Contexto ---
@@ -23,13 +27,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children, queryClient }: { children: ReactNode, queryClient: QueryClient }) {
   const [user, setUser] = useState<User | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [authLoading, setAuthLoading] = useState(true); // Loading da sessão
-  const [subLoading, setSubLoading] = useState(true);   // Loading da assinatura
+  const [authLoading, setAuthLoading] = useState(true); 
+  const [subLoading, setSubLoading] = useState(true); 
+  
+  // 🚨 NOVO ESTADO DA LOJA
+  const [lojaId, setLojaId] = useState<string | null>(null);
+  const [lojaLoading, setLojaLoading] = useState(true);
 
-  // Função para carregar ou refrescar a assinatura
+  // Função para carregar ou refrescar a assinatura (MANTIDA)
   const loadSubscription = async (currentUserId: string | undefined) => {
     if (currentUserId) {
-      setSubLoading(true); // Inicia o loading da assinatura
+      setSubLoading(true); 
       const { data: subData, error: subError } = await supabase
         .from('subscriptions')
         .select('status')
@@ -42,21 +50,53 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode, q
       } else {
         setSubscription(subData as Subscription | null);
       }
-      setSubLoading(false); // Finaliza o loading da assinatura
+      setSubLoading(false); 
     } else {
       setSubscription(null);
-      setSubLoading(false); // Finaliza o loading (sem usuário)
+      setSubLoading(false); 
     }
   };
+  
+  // 🚨 NOVA FUNÇÃO PARA CARREGAR O ID DA LOJA
+  const loadLojaId = async (currentUserId: string | undefined) => {
+    if (currentUserId) {
+      setLojaLoading(true);
+      const { data: lojaData, error: lojaError } = await supabase
+        .from('lojas')
+        .select('id')
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+
+      if (lojaError) {
+        console.error("Erro ao carregar loja:", lojaError.message);
+        setLojaId(null);
+      } else {
+        // O ID da loja é o campo 'id' da tabela 'lojas'
+        setLojaId(lojaData?.id ?? null);
+      }
+      setLojaLoading(false);
+    } else {
+      setLojaId(null);
+      setLojaLoading(false); 
+    }
+  };
+
 
   useEffect(() => {
     // 1. Verificação inicial da sessão
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user ?? null;
+      
       setUser(currentUser);
-      setAuthLoading(false); // Auth está pronto
-      await loadSubscription(currentUser?.id); // Carrega a assinatura
+      setAuthLoading(false); 
+      
+      // 🚨 Carrega as dependências
+      const loadPromises = [
+        loadSubscription(currentUser?.id),
+        loadLojaId(currentUser?.id), // Carrega o lojaId
+      ];
+      await Promise.all(loadPromises);
     };
 
     checkSession();
@@ -65,8 +105,11 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode, q
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-      setAuthLoading(false); // Garante que authLoading seja false
-      loadSubscription(currentUser?.id); // Recarrega a assinatura no login/logout
+      setAuthLoading(false); 
+      
+      // 🚨 Recarrega as dependências no login/logout
+      loadSubscription(currentUser?.id); 
+      loadLojaId(currentUser?.id); 
     });
 
     return () => {
@@ -75,32 +118,33 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode, q
   }, []);
 
 
-  // Função pública para refrescar
+  // Função pública para refrescar (MANTIDA)
   const refreshSubscription = async () => {
     await loadSubscription(user?.id);
   };
 
-  // A função de logout "Zero Cache"
+  // A função de logout "Zero Cache" (MANTIDA)
   const logout = async () => {
     console.log("Iniciando logout completo e limpeza de caches...");
     await supabase.auth.signOut();
     queryClient.clear();
-    // Limpa os estados locais antes de redirecionar
     setUser(null);
     setSubscription(null);
+    setLojaId(null); // Limpa o ID da loja no logout
     window.location.href = '/login';
   };
 
-  // O loading combinado: A app está carregando se o auth não foi checado
-  // OU se o auth foi checado, temos um usuário, mas a assinatura dele ainda não carregou.
-  const loading = authLoading || (!!user && subLoading);
+  // 🚨 NOVO LOADING COMBINADO
+  // A aplicação só está "pronta" se a autenticação, a subscrição E o ID da loja terminaram de carregar.
+  const loading = authLoading || subLoading || lojaLoading; 
 
-  const value = { user, subscription, loading, logout, refreshSubscription };
+  // 🚨 NOVO OBJETO DE VALOR
+  const value = { user, subscription, loading, logout, refreshSubscription, lojaId, lojaLoading };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// --- Hook de Acesso ---
+// --- Hook de Acesso (MANTIDO) ---
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {

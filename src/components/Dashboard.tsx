@@ -1,279 +1,414 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import * as Feather from 'react-feather';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
-import { Doughnut, Bar, getElementAtEvent } from 'react-chartjs-2';
-import { fetchClients, fetchAvailableCars, Client as ClientType, Car as CarType } from '@/services/api';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Filler,
+  Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import {
+  fetchClients,
+  fetchAvailableCars,
+  fetchStoreDetails,
+  Client as ClientType,
+  Car as CarType,
+} from '@/services/api';
+import { useAuth } from '@/auth/AuthContext';
 
-// Registra os componentes necessários do Chart.js
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler, Legend);
 
-// Lista COMPLETA de colunas, igual à do CRM
+// === COLUNAS EXATAS DO BANCO (IGUAL AO CRM) ===
 const KANBAN_COLUMNS = [
-    { id: "leed_recebido", name: "Novo Lead" },
-    { id: "aguardando_interesse", name: "Aguardando Interesse" },
-    { id: "aguardando_escolha_carro", name: "Aguardando Escolha" },
-    { id: "aguardando_confirmacao_veiculo", name: "Aguardando Confirmação" },
-    { id: "aguardando_opcao_pagamento", name: "Aguardando Pagamento" },
-    { id: "dados_troca", name: "Dados de Troca" },
-    { id: "dados_visita", name: "Dados de Visita" },
-    { id: "dados_financiamento", name: "Dados de Financiamento" },
-    { id: "finalizado", name: "Atendimento Finalizado" },
+  { id: 'leed_recebido', name: 'Novo Lead' },
+  { id: 'aguardando_interesse', name: 'Aguardando Interesse' },
+  { id: 'aguardando_escolha_carro', name: 'Aguardando Escolha' },
+  { id: 'aguardando_confirmacao_veiculo', name: 'Aguardando Confirmação' },
+  { id: 'aguardando_opcao_pagamento', name: 'Aguardando Pagamento' },
+  { id: 'dados_troca', name: 'Dados de Troca' },
+  { id: 'dados_visita', name: 'Dados de Visita' },
+  { id: 'dados_financiamento', name: 'Dados de Financiamento' },
+  { id: 'finalizado', name: 'Atendimento Finalizado' },
 ];
 
-const getClientColumnId = (state: string) => {
-    if (!state) return "leed_recebido";
-    return KANBAN_COLUMNS.some(col => col.id === state) ? state : "leed_recebido";
+// Grupos (apenas para o gráfico do funil)
+const AGUARDANDO_IDS = [
+  'aguardando_interesse',
+  'aguardando_escolha_carro',
+  'aguardando_confirmacao_veiculo',
+  'aguardando_opcao_pagamento',
+];
+const DADOS_IDS = ['dados_troca', 'dados_visita', 'dados_financiamento'];
+
+/** Parser de moeda BRL tolerante */
+const parseCurrency = (v: any): number => {
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  const raw = String(v ?? '').trim();
+  if (!raw) return 0;
+
+  // BRL comum: remove R$, espaços e separador de milhar; primeira vírgula vira ponto
+  const brlLike = raw
+    .replace(/\s+/g, '')
+    .replace(/R\$\s?/gi, '')
+    .replace(/\./g, '')
+    .replace(/,/, '.');
+
+  let n = Number(brlLike);
+  if (Number.isFinite(n)) return n;
+
+  // Fallback: extrai apenas dígitos e interpreta como centavos se >= 3 dígitos
+  const digits = raw.replace(/\D+/g, '');
+  if (!digits) return 0;
+  n = digits.length >= 3 ? Number(digits) / 100 : Number(digits);
+  return Number.isFinite(n) ? n : 0;
 };
 
-const parseCurrency = (value: string | number): number => {
-    if (typeof value === 'number') return value;
-    if (!value || typeof value !== 'string') return 0;
-    return Number(String(value).replace(/[^0-9,.]/g, '').replace('.', '').replace(',', '.')) || 0;
+/** Pega o melhor preço (maior válido) disponível para o cliente */
+const pickVehiclePrice = (client: ClientType): number => {
+  const b: any = client?.bot_data ?? {};
+  const candidates: any[] = [];
+
+  if (Array.isArray(b?.interested_vehicles)) {
+    for (const it of b.interested_vehicles) {
+      if (!it) continue;
+      candidates.push(
+        it.preco,
+        it.valor,
+        it.price,
+        it.preco_tabela,
+        it.preco_sugerido,
+        it.preco_anunciado
+      );
+    }
+  }
+
+  const iv = b?.interested_vehicle;
+  if (iv) {
+    candidates.push(
+      iv.preco,
+      iv.valor,
+      iv.price,
+      iv.preco_tabela,
+      iv.preco_sugerido,
+      iv.preco_anunciado
+    );
+  }
+
+  const vehicle = b?.vehicle;
+  if (vehicle) {
+    candidates.push(
+      vehicle.preco,
+      vehicle.valor,
+      vehicle.price,
+      vehicle.preco_tabela,
+      vehicle.preco_sugerido
+    );
+  }
+
+  // Campos agregados
+  candidates.push(
+    b?.vehicle_price,
+    b?.valor_negociacao,
+    b?.valor_negociacao_total,
+    b?.budget?.value,
+    b?.orcamento?.valor,
+    b?.negociacao?.valor
+  );
+
+  const parsed = candidates.map(parseCurrency).filter((x) => Number.isFinite(x) && x > 0);
+  return parsed.length ? Math.max(...parsed) : 0;
 };
 
-const formatToBRL = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-};
-
-const dealTypeToColumnId: { [key: string]: string } = {
-    'Troca': 'dados_troca',
-    'Financiamento': 'dados_financiamento',
-    'Visita': 'dados_visita',
-    'Pagamento_a_vista': 'aguardando_opcao_pagamento',
-    'Não definido': 'leed_recebido'
-};
-
+const formatToBRL = (v: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(
+    Number.isFinite(v) ? v : 0
+  );
 
 export function Dashboard() {
-    const navigate = useNavigate();
-    const doughnutChartRef = useRef(null);
-    const barChartRef = useRef(null);
+  const navigate = useNavigate();
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const { lojaId, isLoading: authLoading } = useAuth();
 
-    const { data: clients = [], isLoading: isLoadingClients, error: errorClients } = useQuery<ClientType[]>({
-        queryKey: ['clients'],
-        queryFn: fetchClients,
-    });
+  const { data: storeDetailsData } = useQuery({ queryKey: ['storeDetails'], queryFn: fetchStoreDetails });
+  const { data: clients = [], isLoading: cLoading } = useQuery<ClientType[]>({
+    queryKey: ['clients', lojaId],
+    queryFn: fetchClients,
+    enabled: !!lojaId,
+  });
+  const { data: vehicles = [], isLoading: vLoading } = useQuery<CarType[]>({
+    queryKey: ['vehicles', lojaId],
+    queryFn: () => fetchAvailableCars(lojaId!),
+    enabled: !!lojaId,
+  });
 
-    const { data: vehicles = [], isLoading: isLoadingVehicles, error: errorVehicles } = useQuery<CarType[]>({
-        queryKey: ['vehicles'],
-        queryFn: fetchAvailableCars,
-    });
+  // ---- TUDO A PARTIR DAQUI SÃO HOOKS: ORDEM FIXA ----
 
-    const dashboardData = useMemo(() => {
-        if (!clients || !vehicles) return null;
+  const dashboardData = useMemo(() => {
+    if (!clients.length) return null;
 
-        const totalProposals = clients.length;
-        const totalSales = clients.filter(c => c.bot_data?.state === 'finalizado').length;
-        const totalVehicles = vehicles.length;
-
-        const totalValueInNegotiation = clients
-            .filter(c => c.bot_data?.state !== 'finalizado')
-            .reduce((total, client) => {
-                const interestedVehicles = client.bot_data?.interested_vehicles;
-                if (Array.isArray(interestedVehicles) && interestedVehicles.length > 0) {
-                    const vehiclePrice = parseCurrency(interestedVehicles[0].preco);
-                    return total + vehiclePrice;
-                }
-                return total;
-            }, 0);
-
-        const statusCount = clients.reduce((acc: { [key: string]: number }, client: ClientType) => {
-            const columnId = getClientColumnId(client.bot_data?.state);
-            const columnName = KANBAN_COLUMNS.find(col => col.id === columnId)?.name || 'Outros';
-            acc[columnName] = (acc[columnName] || 0) + 1;
-            return acc;
-        }, {});
-
-        const dealTypeCount = clients.reduce((acc: { [key: string]: number }, client: ClientType) => {
-            const type = client.bot_data?.deal_type || 'Não Definido';
-            const typeName = type.charAt(0).toUpperCase() + type.slice(1);
-            acc[typeName] = (acc[typeName] || 0) + 1;
-            return acc;
-        }, {});
-
-        return {
-            stats: [
-                { title: 'Total de Propostas', value: totalProposals, icon: Feather.FileText },
-                { title: 'Veículos em Estoque', value: totalVehicles, icon: Feather.Truck },
-                { title: 'Vendas Finalizadas', value: totalSales, icon: Feather.DollarSign },
-                { title: 'Valor em Negociação', value: formatToBRL(totalValueInNegotiation), icon: Feather.BarChart2 },
-            ],
-            doughnutData: {
-                labels: Object.keys(statusCount),
-                datasets: [{
-                    data: Object.values(statusCount),
-                    backgroundColor: ['#f59e0b', '#d97706', '#eab308', '#f97316', '#b45309', '#92400e', '#fde68a', '#fef3c7', '#fed7aa'],
-                    hoverBackgroundColor: ['#f59e0bCC', '#d97706CC', '#eab308CC', '#f97316CC', '#b45309CC', '#92400eCC', '#fde68aCC', '#fef3c7CC', '#fed7aaCC'],
-                    hoverOffset: 8,
-                    borderWidth: 0,
-                }],
-            },
-            barData: {
-                labels: Object.keys(dealTypeCount),
-                datasets: [{
-                    label: 'Número de Propostas',
-                    data: Object.values(dealTypeCount),
-                    backgroundColor: '#f59e0b66',
-                    borderColor: '#f59e0b',
-                    borderWidth: 1,
-                }],
-            }
-        };
-    }, [clients, vehicles]);
-
-    const handleDoughnutClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!doughnutChartRef.current || !dashboardData) return;
-        const element = getElementAtEvent(doughnutChartRef.current, event);
-
-        if (element.length > 0) {
-            const segmentIndex = element[0].index;
-            const label = dashboardData.doughnutData.labels[segmentIndex]; 
-            
-            const column = KANBAN_COLUMNS.find(col => col.name === label);
-            if (column) {
-                // Navegação relativa: de '/sistema/dashboard' para '/sistema/crm#...'
-                navigate(`../crm#${column.id}`); 
-            }
-        }
-    };
-
-    const handleBarClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!barChartRef.current || !dashboardData) return;
-        const element = getElementAtEvent(barChartRef.current, event);
-
-        if (element.length > 0) {
-            const segmentIndex = element[0].index;
-            const label = dashboardData.barData.labels[segmentIndex]; 
-
-            const columnId = dealTypeToColumnId[label];
-            if (columnId) {
-                // Navegação relativa: de '/sistema/dashboard' para '/sistema/crm#...'
-                navigate(`../crm#${columnId}`);
-            }
-        }
-    };
-
-    const fadeInUp = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeInOut' } },
-    };
-
-    if (isLoadingClients || isLoadingVehicles) {
-        return <div className="p-6">Carregando dashboard...</div>;
-    }
-    if (errorClients || errorVehicles) {
-        return <div className="p-6 text-red-500">Erro ao carregar dados: {errorClients?.message || errorVehicles?.message}</div>;
-    }
-
-    if (!dashboardData) return null; 
-
-    return (
-        <div className="space-y-8 p-4 md:p-6 relative z-10">
-            <motion.div initial="hidden" animate="visible" variants={fadeInUp}>
-                <h1 className="text-3xl font-bold text-zinc-900">Central de Propostas</h1>
-                <p className="text-zinc-600 mt-1">Acompanhe o desempenho das propostas recebidas pelo formulário.</p>
-            </motion.div>
-
-            <div className="flex flex-col gap-6 md:gap-8">
-                <motion.div
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 order-2 lg:order-1"
-                    variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-                    initial="hidden"
-                    animate="visible"
-                >
-                    {dashboardData.stats.map((stat) => {
-                        const Icon = stat.icon;
-                        
-                        let onClickAction = undefined;
-                        let cursorClass = '';
-
-                        // Navegação Relativa (ex: 'crm')
-                        if (stat.title === 'Total de Propostas') {
-                            onClickAction = () => navigate('../crm'); 
-                            cursorClass = 'cursor-pointer';
-                        } else if (stat.title === 'Veículos em Estoque') {
-                            onClickAction = () => navigate('../catalog'); // <-- CORRIGIDO para 'catalog'
-                            cursorClass = 'cursor-pointer';
-                        } else if (stat.title === 'Vendas Finalizadas') {
-                            onClickAction = () => navigate('../crm#finalizado');
-                            cursorClass = 'cursor-pointer';
-                        }
-
-                        return (
-                            <motion.div 
-                                key={stat.title} 
-                                variants={fadeInUp} 
-                                onClick={onClickAction} 
-                                className={cursorClass}
-                            >
-                                <div className="bg-white/70 p-6 rounded-lg border border-zinc-200 shadow-sm hover:border-amber-400/50 transition-colors h-full">
-                                    <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                        <h3 className="text-sm font-medium text-zinc-600">{stat.title}</h3>
-                                        <Icon className="h-5 w-5 text-amber-500" />
-                                    </div>
-                                    <div className="text-2xl font-bold text-zinc-900">{stat.value}</div>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </motion.div>
-
-                <motion.div
-                    className="grid grid-cols-1 lg:grid-cols-2 gap-6 order-1 lg:order-2"
-                    variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-                    initial="hidden"
-                    animate="visible"
-                >
-                    <motion.div variants={fadeInUp}>
-                        <div className="bg-white/70 p-6 rounded-lg border border-zinc-200 shadow-sm h-full">
-                            <h3 className="text-lg font-semibold text-zinc-900 mb-4">Propostas por Status no Funil</h3>
-                            <div className="h-72 relative">
-                                <Doughnut
-                                    ref={doughnutChartRef}
-                                    onClick={handleDoughnutClick}
-                                    data={dashboardData.doughnutData}
-                                    options={{
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: { legend: { position: 'right', labels: { color: '#3f3f46' } } },
-                                        cutout: '60%',
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </motion.div>
-                    <motion.div variants={fadeInUp}>
-                        <div className="bg-white/70 p-6 rounded-lg border border-zinc-200 shadow-sm h-full">
-                            <h3 className="text-lg font-semibold text-zinc-900 mb-4">Propostas por Tipo de Negócio</h3>
-                            <div className="h-72 relative">
-                                <Bar
-                                    ref={barChartRef}
-                                    onClick={handleBarClick}
-                                    data={dashboardData.barData}
-                                    options={{
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: { legend: { display: false } },
-                                        scales: {
-                                            x: { ticks: { color: '#3f3f46' } },
-                                            y: {
-                                                ticks: { color: '#3f3f46', stepSize: 1 },
-                                                beginAtZero: true,
-                                            },
-                                        },
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </motion.div>
-                </motion.div>
-                
-            </div>
-        </div>
+    // Contagens detalhadas (para cards / grids)
+    const funnelCountsRaw = KANBAN_COLUMNS.map(
+      (col) => clients.filter((c) => (c.bot_data?.state || c.state) === col.id).length
     );
+
+    // Funil agrupado (gráfico)
+    const novoLead = clients.filter((c) => (c.bot_data?.state || c.state) === 'leed_recebido').length;
+    const aguardando = clients.filter((c) => AGUARDANDO_IDS.includes(c.bot_data?.state || c.state)).length;
+    const dados = clients.filter((c) => DADOS_IDS.includes(c.bot_data?.state || c.state)).length;
+    const finalizado = clients.filter((c) => (c.bot_data?.state || c.state) === 'finalizado').length;
+
+    const funnelChartLabels = ['Novo Lead', 'Aguardando', 'Dados', 'Finalizado'];
+    const funnelChartValues = [novoLead, aguardando, dados, finalizado];
+
+    // Tipo de negócio
+    const tipoOrdemFixa: Array<'À vista' | 'Financiado' | 'Troca'> = ['À vista', 'Financiado', 'Troca'];
+    const tipoCountBase = { 'À vista': 0, 'Financiado': 0, Troca: 0 } as Record<(typeof tipoOrdemFixa)[number], number>;
+    const tipoCount = clients.reduce((acc, c) => {
+      const tipoRaw = c.bot_data?.deal_type;
+      if (!tipoRaw) return acc;
+      const normalized = String(tipoRaw).toLowerCase();
+      if (normalized.includes('vista')) acc['À vista'] += 1;
+      else if (normalized.includes('financ')) acc['Financiado'] += 1;
+      else if (normalized.includes('troca')) acc['Troca'] += 1;
+      return acc;
+    }, { ...tipoCountBase });
+    const tipoLabels = [...tipoOrdemFixa];
+    const tipoValues = tipoLabels.map((k) => tipoCount[k]);
+
+    const totalPropostas = clients.length;
+    const emEstoque = vehicles.length;
+
+    // Valor em negociação (somente não finalizados)
+    const valorNegociacaoNum = clients
+      .filter((c) => (c.bot_data?.state || c.state) !== 'finalizado')
+      .reduce((acc, c) => acc + pickVehiclePrice(c), 0);
+
+    const funnelData = {
+      labels: funnelChartLabels,
+      datasets: [
+        {
+          data: funnelChartValues,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(251, 158, 11, 0.08)',
+          tension: 0.35,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+          pointBackgroundColor: '#f59e0b',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          spanGaps: true,
+        },
+      ],
+    };
+
+    const tipoData = {
+      labels: tipoLabels,
+      datasets: [
+        {
+          data: tipoValues,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.08)',
+          tension: 0.35,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+          pointBackgroundColor: '#10b981',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          spanGaps: true,
+        },
+      ],
+    };
+
+    const maxFunnel = Math.max(1, ...funnelChartValues);
+    const maxTipo = Math.max(1, ...tipoValues);
+
+    return {
+      cards: [
+        { title: 'Total de Propostas', value: totalPropostas, change: '+22%', route: '../crm' },
+        { title: 'Veículos em Estoque', value: emEstoque, change: '+5%', route: '../catalog' },
+        { title: 'Vendas Finalizadas', value: finalizado, change: '+18%', route: '../crm#finalizado' },
+        { title: 'Valor em Negociação', value: formatToBRL(valorNegociacaoNum), change: '+32%' },
+      ],
+      funnelData,
+      tipoData,
+      funnelCountsRaw,
+      funnelChartLabels,
+      funnelChartValues,
+      tipoLabels,
+      tipoValues,
+      valorNegociacao: formatToBRL(valorNegociacaoNum),
+      maxFunnel,
+      maxTipo,
+    };
+  }, [clients, vehicles]);
+
+  const baseChartOptions = useMemo(
+    () =>
+      ({
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 300 },
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1f2937', intersect: false } },
+        elements: { line: { borderJoinStyle: 'round' }, point: { hitRadius: 8 } },
+        scales: {
+          x: { grid: { display: false }, ticks: { display: false } },
+          y: { beginAtZero: true, grid: { display: false }, ticks: { display: false } },
+        },
+      }) as const,
+    []
+  );
+
+  const funnelOptions = useMemo(() => {
+    if (!dashboardData) return baseChartOptions;
+    return {
+      ...baseChartOptions,
+      scales: { ...baseChartOptions.scales, y: { ...baseChartOptions.scales.y, suggestedMax: dashboardData.maxFunnel } },
+    };
+  }, [baseChartOptions, dashboardData]);
+
+  const tipoOptions = useMemo(() => {
+    if (!dashboardData) return baseChartOptions;
+    return {
+      ...baseChartOptions,
+      scales: { ...baseChartOptions.scales, y: { ...baseChartOptions.scales.y, suggestedMax: dashboardData.maxTipo } },
+    };
+  }, [baseChartOptions, dashboardData]);
+
+  const exportToPDF = useCallback(async () => {
+    if (!dashboardRef.current) return;
+    const canvas = await html2canvas(dashboardRef.current, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const width = pdf.internal.pageSize.getWidth();
+    const height = (canvas.height * width) / canvas.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, width, height);
+    pdf.save(`Dashboard_${storeDetailsData?.nome || 'Zailon'}_${new Date().toLocaleDateString('pt-BR')}.pdf`);
+  }, [storeDetailsData?.nome]);
+
+  // ---- SÓ AGORA OS RETURNS CONDICIONAIS ----
+
+  if (authLoading || cLoading || vLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <Feather.AlertCircle className="w-20 h-20 text-red-500 mb-4" />
+        <p className="text-2xl font-semibold text-gray-700">Sem dados</p>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={dashboardRef} className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-10">
+        {/* HEADER */}
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            {storeDetailsData?.logo_url ? (
+              <img src={storeDetailsData.logo_url} alt="Logo" className="w-14 h-14 rounded-full object-contain bg-white shadow" />
+            ) : (
+              <div className="w-14 h-14 bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+                {storeDetailsData?.nome?.[0] || 'Z'}
+              </div>
+            )}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                Dashboard <span className="text-emerald-600">{storeDetailsData?.nome || 'Zailon'}</span>
+              </h1>
+              <p className="text-sm text-gray-600">
+                {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={exportToPDF}
+            className="px-5 py-3 bg-emerald-600 text-white rounded-xl shadow hover:bg-emerald-700 transition flex items-center gap-2 text-sm font-medium whitespace-nowrap"
+          >
+            <Feather.Download className="w-5 h-5" />
+            Exportar PDF
+          </button>
+        </div>
+
+        {/* CARDS */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {dashboardData.cards.map((card, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="bg-white rounded-2xl shadow border border-gray-100 p-5 cursor-pointer hover:shadow-lg transition"
+              onClick={() => card.route && navigate(card.route)}
+            >
+              <div className="h-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-t-2xl mb-3"></div>
+              <p className="text-xs font-medium text-gray-500 uppercase">{card.title}</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
+              <span className="text-xs text-emerald-600 font-medium">{card.change}</span>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* GRÁFICOS */}
+        <div className="space-y-10">
+          {/* FUNIL AGRUPADO */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white rounded-2xl shadow border border-gray-100 p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">Funil de Vendas</h2>
+            <div className="h-64 sm:h-80">
+              <Line data={dashboardData.funnelData} options={funnelOptions} />
+            </div>
+          </motion.div>
+
+          {/* TIPO DE NEGÓCIO */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white rounded-2xl shadow border border-gray-100 p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">Tipo de Negócio</h2>
+            <div className="h-64 sm:h-80">
+              <Line data={dashboardData.tipoData} options={tipoOptions} />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 text-center">
+              {dashboardData.tipoLabels.map((label, i) => (
+                <div key={i} className="text-xs">
+                  <div className="font-bold text-gray-900 text-lg">{dashboardData.tipoValues[i]}</div>
+                  <div className="text-gray-500 mt-1">{label}</div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* VALOR EM NEGOCIAÇÃO */}
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="mt-10">
+          <div className="bg-gradient-to-r from-amber-500 to-yellow-500 rounded-3xl p-8 text-center shadow-2xl">
+            <p className="text-2xl font-bold text-zinc-800 opacity-90">Valor Total em Negociação</p>
+            <p className="text-5xl sm:text-7xl font-black text-zinc-900 mt-4">{dashboardData.valorNegociacao}</p>
+          </div>
+        </motion.div>
+
+        <div className="mt-12 text-center text-xs text-gray-500">
+          <p>Zailon Intelligence • Atualizado agora</p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default Dashboard;
