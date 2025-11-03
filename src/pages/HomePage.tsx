@@ -444,7 +444,7 @@ const HomePage = () => {
 
               <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" className="mt-16">
                 <Link to="/signup" className="inline-flex items-center gap-3 bg-amber-500 text-zinc-900 px-10 py-5 rounded-xl font-bold text-xl hover:bg-amber-600 transition shadow-xl">
-                  Resolva Essas Dores Agora – Comece Grátis <Feather.ArrowRight size={24} />
+                  Resolva Essas Dores Agora mesmo <Feather.ArrowRight size={24} />
                 </Link>
               </motion.div>
             </div>
