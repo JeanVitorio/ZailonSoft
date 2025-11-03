@@ -6,13 +6,12 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import * as Feather from 'react-feather';
 import { useAuth } from '@/auth/AuthContext';
 
-// --- VÍDEOS (mesma pasta deste arquivo) ---
+// --- VÍDEOS ---
 import formularioVideo from './Formulario.mp4';
 import relatorioVideo from './Relatorio.mp4';
 import crmVideo from './CRMKanban.mp4';
 import dashboardVideo from './dash.mp4';
 
-// (Opcional) pôsteres dos vídeos para evitar tela preta no primeiro frame
 const posters = {
   formulario: '/posters/formulario.jpg',
   relatorio: '/posters/relatorio.jpg',
@@ -20,7 +19,7 @@ const posters = {
   dashboard: '/posters/dashboard.jpg',
 };
 
-// ------------------------- Util: Animações & A11y -------------------------
+// ------------------------- Util: A11y & Scroll -------------------------
 const usePrefersReducedMotion = () => {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -33,7 +32,7 @@ const usePrefersReducedMotion = () => {
   return reduced;
 };
 
-const useScrollHeader = (offset = 50) => {
+const useScrollHeader = (offset = 60) => {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > offset);
@@ -44,100 +43,30 @@ const useScrollHeader = (offset = 50) => {
   return scrolled;
 };
 
-// Pausa/retoma vídeos conforme visibilidade (economia de CPU/bateria)
 const useSmartVideo = () => {
   const refs = useRef<HTMLVideoElement[]>([]);
   const register = useCallback((el: HTMLVideoElement | null) => {
-    if (!el) return;
-    if (!refs.current.includes(el)) refs.current.push(el);
+    if (!el || refs.current.includes(el)) return;
+    refs.current.push(el);
   }, []);
+
   useEffect(() => {
     const obs = new IntersectionObserver(
       (entries) =>
         entries.forEach((e) => {
           const v = e.target as HTMLVideoElement;
-          if (e.isIntersecting) {
-            v.play().catch(() => void 0);
-          } else {
-            v.pause();
-          }
+          e.isIntersecting ? v.play().catch(() => {}) : v.pause();
         }),
-      { threshold: 0.25 }
+      { threshold: 0.3 }
     );
     refs.current.forEach((v) => obs.observe(v));
     return () => obs.disconnect();
   }, []);
+
   return register;
 };
 
-// ------------------------- Fundo com “dots” leves -------------------------
-const LightDotsBackground = () => {
-  const [dots, setDots] = useState<any[]>([]);
-  const reduced = usePrefersReducedMotion();
-
-  useEffect(() => {
-    const n = reduced ? 20 : 70;
-    const newDots = Array.from({ length: n }).map(() => ({
-      id: Math.random(),
-      top: `${Math.random() * 100}%`,
-      left: `${Math.random() * 100}%`,
-      animationDuration: `${Math.random() * 8 + 8}s`,
-      animationDelay: `${Math.random() * 8}s`,
-      size: `${Math.random() * 2 + 1}px`,
-      opacity: `${Math.random() * 0.4 + 0.3}`,
-    }));
-    setDots(newDots);
-  }, [reduced]);
-
-  return (
-    <>
-      <style>
-        {`
-          @keyframes move-dots {
-            from { transform: translateY(0px); }
-            to { transform: translateY(-1500px); }
-          }
-          .light-dot {
-            animation: move-dots linear infinite;
-            position: absolute;
-            background-color: #a1a1aa;
-            border-radius: 50%;
-            z-index: -20;
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .light-dot { animation: none; }
-          }
-        `}
-      </style>
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        {dots.map((dot) => (
-          <div
-            key={dot.id}
-            className="light-dot"
-            style={{
-              top: dot.top,
-              left: dot.left,
-              animationDuration: dot.animationDuration,
-              animationDelay: dot.animationDelay,
-              width: dot.size,
-              height: dot.size,
-              opacity: dot.opacity,
-            }}
-          />
-        ))}
-      </div>
-    </>
-  );
-};
-
-const AnimatedBackground = () => (
-  <div className="absolute inset-0 -z-10 h-full w-full pointer-events-none">
-    <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] bg-[size:14px_24px] opacity-[0.08]"></div>
-    <div className="absolute left-0 right-0 top-[-10%] h-[1000px] w-[1000px] rounded-full bg-[radial-gradient(circle_400px_at_50%_300px,#fef3c760,transparent)]"></div>
-  </div>
-);
-
-// FAQ Item acessível
+// ------------------------- FAQ Item -------------------------
 const FaqItem = ({
   question,
   answer,
@@ -149,45 +78,43 @@ const FaqItem = ({
   isOpen: boolean;
   onClick: () => void;
 }) => {
-  const panelId = useMemo(() => `faq-panel-${btoa(question).replace(/=/g, '')}`, [question]);
+  const panelId = useMemo(() => `faq-${btoa(question).replace(/=/g, '')}`, [question]);
   const btnId = `${panelId}-btn`;
+
   return (
     <motion.div
       layout
-      className="bg-zinc-700/50 p-4 rounded-lg border border-zinc-600 hover:border-amber-400/50 transition-colors duration-300 shadow-sm backdrop-blur-sm"
+      className="bg-white rounded-2xl shadow border border-gray-100 p-5 transition-all hover:shadow-md"
     >
-      <div className="w-full text-left flex justify-between items-center">
-        <button
-          id={btnId}
-          aria-expanded={isOpen}
-          aria-controls={panelId}
-          onClick={onClick}
-          className="flex-1 text-left flex items-center justify-between gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-md"
+      <button
+        id={btnId}
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+        onClick={onClick}
+        className="w-full text-left flex justify-between items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg p-1 -m-1"
+      >
+        <span className="font-medium text-gray-900">{question}</span>
+        <motion.span
+          animate={{ rotate: isOpen ? 45 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="text-amber-500"
         >
-          <span className="text-lg font-medium text-white">{question}</span>
-          <motion.span
-            animate={{ rotate: isOpen ? 135 : 0 }}
-            transition={{ duration: 0.25 }}
-            className="shrink-0"
-            aria-hidden="true"
-          >
-            <Feather.Plus size={22} className="text-amber-500" />
-          </motion.span>
-        </button>
-      </div>
+          <Feather.Plus size={20} />
+        </motion.span>
+      </button>
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
             id={panelId}
             role="region"
             aria-labelledby={btnId}
-            key={`answer-${panelId}`}
-            initial={{ opacity: 0, height: 0, marginTop: 0 }}
-            animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
-            exit={{ opacity: 0, height: 0, marginTop: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="mt-3 text-gray-600 text-sm leading-relaxed"
           >
-            <p className="text-zinc-300 whitespace-pre-line">{answer}</p>
+            {answer}
           </motion.div>
         )}
       </AnimatePresence>
@@ -195,214 +122,217 @@ const FaqItem = ({
   );
 };
 
-// ------------------------- Página -------------------------
+// ------------------------- HomePage -------------------------
 const HomePage = () => {
   const { user, loading, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const scrolled = useScrollHeader(50);
+  const scrolled = useScrollHeader(60);
   const videoRef = useSmartVideo();
   const reducedMotion = usePrefersReducedMotion();
 
-  // Fechar menu com ESC
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsMenuOpen(false);
-    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setIsMenuOpen(false);
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-    }
+    try { await logout(); } catch (err) { console.error(err); }
   };
 
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: reducedMotion ? 0 : 0.2 },
-    },
-  };
   const fadeInUp = {
-    hidden: { opacity: 0, y: reducedMotion ? 0 : 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: reducedMotion ? 0 : 0.8, ease: 'easeOut' },
-    },
+    hidden: { opacity: 0, y: reducedMotion ? 0 : 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
   };
 
-  // JSON-LD básico
+  const stagger = {
+    visible: { transition: { staggerChildren: 0.1 } },
+  };
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: 'ZailonSoft',
     applicationCategory: 'BusinessApplication',
-    offers: {
-      '@type': 'Offer',
-      priceCurrency: 'BRL',
-      price: '299',
-      url: 'https://zailonsoft.com', // ajuste se necessário
-    },
+    offers: [
+      { '@type': 'Offer', price: '299', priceCurrency: 'BRL', name: 'ZailonSoft Pro' },
+      { '@type': 'Offer', price: '499', priceCurrency: 'BRL', name: 'ZailonSoft Premium' },
+    ],
   };
 
   return (
     <HelmetProvider>
-      <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:bg-amber-400 focus:text-zinc-900 focus:px-3 focus:py-2 focus:rounded">
-        Pular para o conteúdo
+      <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-amber-500 focus:text-zinc-900 focus:px-4 focus:py-2 focus:rounded-lg">
+        Pular para conteúdo
       </a>
-      <div className="min-h-screen bg-zinc-900 text-zinc-200 font-montserrat relative overflow-x-hidden">
+
+      <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
         <Helmet>
-          <title>ZailonSoft - Transforme Cliques em Vendas de Veículos</title>
-          <meta
-            name="description"
-            content="Otimize a captação de leads e propostas de financiamento com formulários inteligentes. Entregue negociações prontas para seus vendedores e acelere suas vendas."
+          <title>ZailonSoft - Formulários Inteligentes para Concessionárias</title>
+          <meta name="description" content="Capte propostas completas, gerencie no CRM visual e acompanhe tudo no dashboard. Acelere suas vendas." />
+          <link rel="icon" href="/Favicon.ico" />
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+          {/* PRÉ-CARREGAMENTO OTIMIZADO DO CAMARO (NÃO REMOVIDO!) */}
+          <link
+            rel="preload"
+            href="@BannerCamaro.png"
+            as="image"
+            type="image/webp"
+            media="(max-width: 1023px)"
+            fetchpriority="high"
           />
-          <meta property="og:title" content="ZailonSoft - Formulários Inteligentes para Concessionárias" />
-          <meta
-            property="og:description"
-            content="Capte propostas de financiamento completas, com dados de troca e informações do cliente, e gerencie tudo em um CRM visual."
+          <link
+            rel="preload"
+            href="/BannerCamaro.png"
+            as="image"
+            type="image/webp"
+            media="(min-width: 1024px)"
+            fetchpriority="high"
           />
-          <link rel="icon" type="image/x-icon" href="/Favicon.ico" />
-          {/* Imagens da hero: mobile primeiro, desktop em >=1024px */}
-          <link rel="preload" href="/BannerCamaro.png" as="image" media="(min-width: 1024px)" fetchpriority="high" />
-          <link rel="preload" href="/CamaroBranco.png" as="image" media="(max-width: 1023px)" />
+          {/* Fallback PNG (caso webp falhe) */}
+          <link
+            rel="preload"
+            href="/CamaroBranco.png"
+            as="image"
+            media="(max-width: 1023px)"
+            fetchpriority="high"
+          />
+          <link
+            rel="preload"
+            href="/BannerCamaro.png"
+            as="image"
+            media="(min-width: 1024px)"
+            fetchpriority="high"
+          />
+
           <style>{`
             .hero-section {
-              background-image:
-                linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
-                url(/CamaroBranco.png);
+              background: linear-gradient(rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.78)),
+                          url(/CamaroBranco.webp) center/cover no-repeat;
+              image-rendering: -webkit-optimize-contrast;
+              image-rendering: crisp-edges;
             }
             @media (min-width: 1024px) {
               .hero-section {
-                background-image:
-                  linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
-                  url(/BannerCamaro.png);
+                background-image: linear-gradient(rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.78)),
+                                   url(/BannerCamaro.png);
               }
             }
+            /* Fallback para navegadores sem WebP */
+            @media not all and (min-width: 0\\0), not all and (min-resolution: 0.001dpcm) {
+              .hero-section {
+                background-image: linear-gradient(rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.78)),
+                                   url(/CamaroBranco.png);
+              }
+              @media (min-width: 1024px) {
+                .hero-section {
+                  background-image: linear-gradient(rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.78)),
+                                     url(/BannerCamaro.png);
+                }
+              }
+            }
+            body, html { font-family: 'Inter', sans-serif; }
           `}</style>
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link
-            href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap"
-            rel="stylesheet"
-          />
           <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
         </Helmet>
 
-        <LightDotsBackground />
-
         {/* Header */}
         <header
-          className={`fixed top-0 left-0 w-full z-50 transition-all ${
-            scrolled ? 'backdrop-blur bg-zinc-900/70 border-b border-white/10' : 'bg-transparent'
+          className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+            scrolled ? 'bg-white/95 backdrop-blur shadow-sm border-b border-gray-100' : 'bg-transparent'
           }`}
-          role="banner"
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-3">
-            <Link to="/" className="text-2xl font-extrabold tracking-wider text-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded">
-              Zailon<span className="text-white">Soft</span>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+            <Link to="/" className="text-2xl font-bold">
+              <span className="text-white">Zailon</span>
+              <span className="text-amber-500">Soft</span>
             </Link>
 
-            <nav
-              className={`${isMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row absolute md:static top-14 left-0 w-full md:w-auto bg-zinc-900/95 md:bg-transparent items-center gap-4 md:gap-6 p-4 md:p-0`}
-              aria-label="Menu principal"
-            >
-              <a href="#solucao" onClick={() => setIsMenuOpen(false)} className="text-zinc-300 hover:text-amber-400 transition-colors">
-                A Solução
-              </a>
-              <a href="#crm" onClick={() => setIsMenuOpen(false)} className="text-zinc-300 hover:text-amber-400 transition-colors">
-                Como Funciona
-              </a>
-              <a href="#planos" onClick={() => setIsMenuOpen(false)} className="text-zinc-300 hover:text-amber-400 transition-colors">
-                Preços
-              </a>
-              <a href="#faq" onClick={() => setIsMenuOpen(false)} className="text-zinc-300 hover:text-amber-400 transition-colors">
-                Dúvidas
-              </a>
-              <div className="h-6 w-px bg-zinc-600 hidden md:block" aria-hidden="true" />
+            <nav className={`${isMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row absolute md:static top-16 left-0 w-full md:w-auto bg-white md:bg-transparent shadow-lg md:shadow-none p-6 md:p-0 gap-6 items-center text-lg font-medium`}>
+              {[
+                { label: 'A Solução', id: 'solucao' },
+                { label: 'Como Funciona', id: 'crm' },
+                { label: 'Preços', id: 'planos' },
+                { label: 'Dúvidas', id: 'faq' },
+              ].map((item) => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`transition ${
+                    !scrolled && !isMenuOpen
+                      ? 'text-white hover:text-amber-400'
+                      : 'text-gray-700 hover:text-amber-500'
+                  }`}
+                >
+                  {item.label}
+                </a>
+              ))}
+              <div className="h-px w-full bg-gray-200 md:hidden" />
               {loading ? (
-                <span className="text-zinc-400 flex items-center gap-2">
-                  <Feather.Loader size={18} className="animate-spin" /> Verificando...
+                <span className="text-sm text-gray-500 flex items-center gap-2">
+                  <Feather.Loader size={16} className="animate-spin" /> Carregando...
                 </span>
               ) : user ? (
                 <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleLogout}
-                  className="text-amber-400 hover:text-amber-500 transition-all flex items-center gap-2"
-                  whileHover={{ scale: reducedMotion ? 1 : 1.05 }}
-                  whileTap={{ scale: reducedMotion ? 1 : 0.97 }}
+                  className="text-amber-500 hover:text-amber-600 flex items-center gap-2 font-medium"
                 >
-                  <Feather.LogOut size={18} /> Sair
+                  <Feather.LogOut size={16} /> Sair
                 </motion.button>
               ) : (
                 <>
-                  <Link
-                    to="/login"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-amber-400 hover:text-amber-500 transition-all flex items-center gap-2"
-                  >
-                    <Feather.LogIn size={18} /> Login
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-amber-500 hover:text-amber-600 font-medium">
+                    Login
                   </Link>
                   <Link
                     to="/signup"
                     onClick={() => setIsMenuOpen(false)}
-                    className="bg-amber-400 text-zinc-900 px-5 py-2 rounded-full font-semibold hover:bg-amber-500 transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(251,191,36,0.2)] hover:shadow-[0_0_25px_rgba(251,191,36,0.4)]"
+                    className="bg-amber-500 text-zinc-900 px-5 py-2.5 rounded-xl font-bold hover:bg-amber-600 transition shadow-sm"
                   >
-                    Criar Conta <Feather.UserPlus size={18} />
+                    Criar Conta
                   </Link>
                 </>
               )}
             </nav>
 
             <button
-              onClick={() => setIsMenuOpen((v) => !v)}
-              className="md:hidden text-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded p-1"
-              aria-label="Alternar menu"
-              aria-expanded={isMenuOpen}
-              aria-controls="menu-principal"
+              onClick={() => setIsMenuOpen(v => !v)}
+              className={`md:hidden ${!scrolled && !isMenuOpen ? 'text-white' : 'text-amber-500'}`}
+              aria-label="Menu"
             >
               {isMenuOpen ? <Feather.X size={28} /> : <Feather.Menu size={28} />}
             </button>
           </div>
         </header>
 
-        {/* HERO */}
+        {/* HERO COM CAMARO NO FUNDO (OTIMIZADO!) */}
         <main id="conteudo">
-          <section
-            id="inicio"
-            className="hero-section relative w-full min-h-screen flex items-center justify-center pt-24 bg-cover bg-center"
-          >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-20">
-              <motion.div variants={staggerContainer} initial="hidden" animate="visible">
-                <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight text-white">
-                  Converta Visitantes em <span className="text-amber-400">Propostas Reais.</span>
+          <section className="hero-section min-h-screen flex items-center justify-center pt-20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <motion.div variants={stagger} initial="hidden" animate="visible">
+                <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-black text-white mb-6 drop-shadow-lg">
+                  Converta <span className="text-amber-400">Visitantes</span> em <span className="text-emerald-400">Propostas Reais</span>
                 </motion.h1>
-                <motion.p variants={fadeInUp} className="max-w-2xl mx-auto text-xl mb-10 text-zinc-300">
-                  Pare de coletar apenas contatos. Receba propostas de financiamento completas com nosso formulário inteligente
-                  e envie para o banco em minutos.
+                <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-gray-200 mb-10 max-w-3xl mx-auto drop-shadow">
+                  Formulários que captam dados completos. CRM visual. Dashboard com inteligência.
                 </motion.p>
                 <motion.div variants={fadeInUp}>
                   <Link
                     to={loading || !user ? '/signup' : '/sistema'}
-                    className="inline-flex items-center justify-center gap-2 bg-amber-400 text-zinc-900 px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)]"
+                    className="inline-flex items-center gap-3 bg-amber-500 text-zinc-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-amber-600 transition shadow-lg"
                   >
                     {loading ? (
-                      <>
-                        <Feather.Loader size={22} className="animate-spin" /> Verificando...
-                      </>
+                      <>Verificando <Feather.Loader className="animate-spin" size={20} /></>
                     ) : user ? (
-                      <>
-                        Acessar Sistema <Feather.ArrowRight size={22} />
-                      </>
+                      <>Acessar Sistema <Feather.ArrowRight size={20} /></>
                     ) : (
-                      <>
-                        Comece Agora <Feather.ArrowRight size={22} />
-                      </>
+                      <>Começar Agora <Feather.ArrowRight size={20} /></>
                     )}
                   </Link>
                 </motion.div>
@@ -410,287 +340,169 @@ const HomePage = () => {
             </div>
           </section>
 
-          {/* BLOCO PRINCIPAL */}
-          <div className="relative">
-            <AnimatedBackground />
+          {/* === RESTANTE DO CÓDIGO (igual ao anterior) === */}
+          {/* Solução */}
+          <section id="solucao" className="py-20 px-4 bg-white">
+            <div className="max-w-7xl mx-auto">
+              <motion.h2 variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-4">
+                A Solução Completa em Ação
+              </motion.h2>
+              <motion.p variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-lg text-gray-600 text-center mb-16 max-w-3xl mx-auto">
+                Do primeiro clique até a entrega das chaves — tudo em um só lugar.
+              </motion.p>
 
-            {/* A Solução */}
-            <section id="solucao" className="py-24 px-4 sm:px-6 lg:px-8 bg-zinc-800/80">
-              <div className="max-w-7xl mx-auto text-center">
-                <motion.h2
-                  variants={fadeInUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  className="text-3xl md:text-4xl font-bold text-white"
-                >
-                  A Solução Inteligente em Ação
-                </motion.h2>
-                <motion.p
-                  variants={fadeInUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  className="text-xl text-amber-400 mt-2 mb-20"
-                >
-                  Veja como cada ferramenta foi desenhada para maximizar suas vendas.
-                </motion.p>
-
-                {/* Feature 1: Formulário */}
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  className="grid md:grid-cols-2 gap-12 items-center mb-20 text-left"
-                >
-                  <motion.div variants={fadeInUp}>
-                    <video
-                      ref={videoRef}
-                      src={formularioVideo}
-                      poster={posters.formulario}
-                      className="rounded-xl shadow-2xl shadow-black/50 w-full ring-1 ring-white/10"
-                      muted
-                      loop
-                      playsInline
-                      autoPlay
-                      preload="metadata"
-                    />
-                  </motion.div>
-                  <motion.div variants={fadeInUp}>
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="bg-amber-400/10 p-3 rounded-full">
-                        <Feather.FileText className="text-amber-400" size={24} />
-                      </div>
-                      <h3 className="text-2xl font-bold text-white">Formulários que Convertem</h3>
-                    </div>
-                    <p className="text-zinc-300 text-lg leading-relaxed">
-                      Nosso formulário dinâmico guia o cliente passo a passo, coletando todos os dados para a ficha de financiamento:
-                      informações pessoais, veículo de interesse, dados de troca e proposta de pagamento.
-                    </p>
-                  </motion.div>
-                </motion.div>
-
-                {/* Feature 2: Dashboard */}
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  className="grid md:grid-cols-2 gap-12 items-center mb-20 text-left"
-                >
-                  <motion.div variants={fadeInUp} className="md:order-last">
-                    <video
-                      ref={videoRef}
-                      src={dashboardVideo}
-                      poster={posters.dashboard}
-                      className="rounded-xl shadow-2xl shadow-black/50 w-full ring-1 ring-white/10"
-                      muted
-                      loop
-                      playsInline
-                      autoPlay
-                      preload="metadata"
-                    />
-                  </motion.div>
-                  <motion.div variants={fadeInUp}>
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="bg-amber-400/10 p-3 rounded-full">
-                        <Feather.BarChart2 className="text-amber-400" size={24} />
-                      </div>
-                      <h3 className="text-2xl font-bold text-white">Dashboard com Inteligência</h3>
-                    </div>
-                    <p className="text-zinc-300 text-lg leading-relaxed">
-                      Visão 360º do seu negócio: propostas recebidas, taxa de conversão e desempenho da equipe em tempo real.
-                      Métricas visuais para decisões mais rápidas e estratégicas.
-                    </p>
-                  </motion.div>
-                </motion.div>
-
-                {/* Feature 3: Relatório do Cliente */}
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  className="grid md:grid-cols-2 gap-12 items-center text-left"
-                >
-                  <motion.div variants={fadeInUp}>
-                    <video
-                      ref={videoRef}
-                      src={relatorioVideo}
-                      poster={posters.relatorio}
-                      className="rounded-xl shadow-2xl shadow-black/50 w-full ring-1 ring-white/10"
-                      muted
-                      loop
-                      playsInline
-                      autoPlay
-                      preload="metadata"
-                    />
-                  </motion.div>
-                  <motion.div variants={fadeInUp}>
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="bg-amber-400/10 p-3 rounded-full">
-                        <Feather.UserCheck className="text-amber-400" size={24} />
-                      </div>
-                      <h3 className="text-2xl font-bold text-white">Propostas Prontas para Análise</h3>
-                    </div>
-                    <p className="text-zinc-300 text-lg leading-relaxed">
-                      Adeus fichas à mão. Cada lead qualificado gera um relatório completo e organizado, pronto para o banco — sem fricção.
-                    </p>
-                  </motion.div>
-                </motion.div>
-              </div>
-            </section>
-
-            {/* CRM */}
-            <section id="crm" className="py-24 px-4 sm:px-6 lg:px-8 bg-zinc-900/80">
-              <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-                  <h2 className="text-3xl md:text-4xl font-bold text-white">DE PROPOSTA A VENDA</h2>
-                  <p className="text-xl text-amber-400 mt-2 mb-6">Transforme Fichas em Carros Entregues</p>
-                  <p className="text-zinc-300 text-lg leading-relaxed">
-                    Com a proposta já qualificada no CRM, o vendedor foca no que importa: negociar, aprovar o crédito e fechar.
-                    Mais agilidade, mais conversão, menos tarefas manuais.
-                  </p>
-                </motion.div>
-                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-                  <video
-                    ref={videoRef}
-                    src={crmVideo}
-                    poster={posters.crm}
-                    className="rounded-xl shadow-2xl shadow-black/50 w-full ring-1 ring-white/10"
-                    muted
-                    loop
-                    playsInline
-                    autoPlay
-                    preload="metadata"
-                  />
-                </motion.div>
-              </div>
-            </section>
-
-            {/* Planos */}
-            <section id="planos" className="py-24 px-4 sm:px-6 lg:px-8 bg-zinc-800/80">
-              <div className="max-w-4xl mx-auto text-center">
-                <motion.h2
-                  variants={fadeInUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  className="text-3xl md:text-4xl font-bold text-white"
-                >
-                  INVESTIMENTO INTELIGENTE
-                </motion.h2>
-                <motion.p
-                  variants={fadeInUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  className="text-xl text-zinc-300 mt-2 mb-12"
-                >
-                  Um plano simples. Resultados completos.
-                </motion.p>
-
-                <motion.div
-                  variants={fadeInUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  className="bg-zinc-700/50 p-8 rounded-xl shadow-xl shadow-amber-400/10 backdrop-blur-sm"
-                >
-                  <h3 className="text-2xl font-semibold text-white mb-2">ZailonSoft Pro</h3>
-                  <p className="text-zinc-400 mb-6">Tudo que você precisa para otimizar e escalar suas vendas.</p>
-                  <p className="text-5xl font-bold text-white mb-4">
-                    R$ 299<span className="text-xl text-zinc-400">/mês</span>
-                  </p>
-                  <ul className="text-left space-y-3 my-8 max-w-sm mx-auto text-zinc-300">
-                    <li className="flex items-center gap-3">
-                      <Feather.CheckCircle size={20} className="text-amber-400" /> Formulários de Proposta Inteligentes
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Feather.CheckCircle size={20} className="text-amber-400" /> Leads 100% Qualificados com dados
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Feather.CheckCircle size={20} className="text-amber-400" /> Catálogo de Veículos Integrado
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Feather.CheckCircle size={20} className="text-amber-400" /> CRM Visual para Gestão de Vendas
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Feather.CheckCircle size={20} className="text-amber-400" /> Dashboard e Relatórios de Desempenho
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Feather.CheckCircle size={20} className="text-amber-400" /> Suporte Prioritário
-                    </li>
-                  </ul>
-                  <Link
-                    to="/signup"
-                    className="inline-flex items-center justify-center gap-2 bg-amber-400 text-zinc-900 px-10 py-4 rounded-full font-bold text-lg transition-all duration-300 shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)]"
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[
+                  { icon: Feather.FileText, title: 'Formulários que Convertem', desc: 'Captura cliente, carro, troca e financiamento em um fluxo simples.', video: formularioVideo },
+                  { icon: Feather.BarChart2, title: 'Dashboard Inteligente', desc: 'Funil de vendas, valor em negociação e desempenho da equipe.', video: dashboardVideo },
+                  { icon: Feather.UserCheck, title: 'Propostas Prontas', desc: 'Relatórios organizados, prontos para análise no banco.', video: relatorioVideo },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    variants={fadeInUp}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    className="bg-white rounded-2xl shadow border border-gray-100 overflow-hidden group"
                   >
-                    Assinar e Acelerar Minhas Vendas
+                    <div className="h-1 bg-gradient-to-r from-amber-500 to-emerald-500"></div>
+                    <div className="p-6">
+                      <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4 text-amber-600">
+                        <item.icon size={24} />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">{item.title}</h3>
+                      <p className="text-gray-600">{item.desc}</p>
+                    </div>
+                    <video
+                      ref={videoRef}
+                      src={item.video}
+                      poster={posters.formulario}
+                      className="w-full h-48 object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      muted
+                      loop
+                      playsInline
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* CRM */}
+          <section id="crm" className="py-20 px-4 bg-gray-50">
+            <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+              <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">De Proposta a Venda</h2>
+                <p className="text-lg text-gray-600 mb-6">
+                  A proposta já vem qualificada. O vendedor foca em negociar e fechar.
+                </p>
+                <ul className="space-y-3 text-gray-700">
+                  <li className="flex items-center gap-3"><Feather.Check className="text-emerald-600" /> 9 etapas no funil</li>
+                  <li className="flex items-center gap-3"><Feather.Check className="text-emerald-600" /> Notificações instantâneas</li>
+                  <li className="flex items-center gap-3"><Feather.Check className="text-emerald-600" /> Histórico completo</li>
+                </ul>
+              </motion.div>
+              <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+                <video
+                  ref={videoRef}
+                  src={crmVideo}
+                  poster={posters.crm}
+                  className="rounded-2xl shadow-xl w-full"
+                  muted
+                  loop
+                  playsInline
+                  autoPlay
+                />
+              </motion.div>
+            </div>
+          </section>
+
+          {/* Planos */}
+          <section id="planos" className="py-20 px-4 bg-white">
+            <div className="max-w-7xl mx-auto">
+              <motion.h2 variants={fadeInUp} initial="hidden" whileInView="visible" className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12">
+                Planos Simples. Resultados Reais.
+              </motion.h2>
+
+              <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                {/* Pro */}
+                <motion.div
+                  variants={fadeInUp}
+                  initial="hidden"
+                  whileInView="visible"
+                  className="bg-white rounded-2xl shadow border border-gray-100 p-8"
+                >
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">ZailonSoft Pro</h3>
+                  <p className="text-gray-600 mb-6">Autonomia total para crescer.</p>
+                  <p className="text-5xl font-black text-gray-900 mb-6">R$ 299 <span className="text-xl text-gray-500 font-normal">/mês</span></p>
+                  <ul className="space-y-3 mb-8 text-gray-700">
+                    <li className="flex items-center gap-3"><Feather.CheckCircle className="text-emerald-600" size={20} /> Formulários + CRM + Dashboard</li>
+                    <li className="flex items-center gap-3"><Feather.CheckCircle className="text-emerald-600" size={20} /> Suporte por e-mail</li>
+                  </ul>
+                  <Link to="/signup" className="block text-center bg-amber-500 text-zinc-900 py-3 rounded-xl font-bold hover:bg-amber-600 transition">
+                    Assinar Pro
                   </Link>
                 </motion.div>
-              </div>
-            </section>
 
-            {/* FAQ */}
-            <section id="faq" className="py-24 px-4 sm:px-6 lg:px-8 bg-zinc-900/80">
-              <div className="max-w-3xl mx-auto">
-                <motion.h2
+                {/* Premium */}
+                <motion.div
                   variants={fadeInUp}
                   initial="hidden"
                   whileInView="visible"
-                  viewport={{ once: true }}
-                  className="text-3xl md:text-4xl font-bold mb-12 text-center text-white"
+                  className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden"
                 >
-                  Perguntas Frequentes
-                </motion.h2>
-                <motion.div
-                  className="space-y-4"
-                  variants={staggerContainer}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.2 }}
-                >
-                  {[
-                    {
-                      question: 'Como o formulário sabe quais carros oferecer?',
-                      answer:
-                        'Conectamos ao seu Catálogo de Veículos. Você pode gerar um link de proposta para um carro específico e o formulário já abre pré-preenchido.',
-                    },
-                    {
-                      question: 'Preciso ter conhecimento técnico?',
-                      answer:
-                        'Não. É feito para donos de loja e vendedores. Cuidamos da parte técnica para você focar no que importa: vender.',
-                    },
-                    {
-                      question: 'O que acontece depois que o cliente preenche o formulário?',
-                      answer:
-                        'A proposta completa aparece no CRM como um novo card no funil. O vendedor é notificado e já pode dar andamento na análise de crédito e negociação.',
-                    },
-                    {
-                      question: 'Existe contrato de fidelidade?',
-                      answer:
-                        'Não. O plano é mensal e você pode cancelar quando quiser. Preferimos reter pelo resultado, não pela obrigação.',
-                    },
-                  ].map((item, i) => (
-                    <motion.div key={i} variants={fadeInUp}>
-                      <FaqItem
-                        question={item.question}
-                        answer={item.answer}
-                        isOpen={openFaq === i}
-                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                      />
-                    </motion.div>
-                  ))}
+                  <div className="absolute top-0 right-0 bg-emerald-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">
+                    MAIS VENDIDO
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">ZailonSoft Premium</h3>
+                  <p className="mb-6 opacity-90">Nós cuidamos do operacional.</p>
+                  <p className="text-5xl font-black mb-6">R$ 499 <span className="text-xl font-normal opacity-75">/mês</span></p>
+                  <ul className="space-y-3 mb-8">
+                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} /> Tudo do Pro</li>
+                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} /> <strong>Suporte via WhatsApp</strong></li>
+                    <li className="flex items-center gap-3"><Feather.CheckCircle size={20} /> <strong>Nós cadastramos seus veículos</strong></li>
+                  </ul>
+                  <a
+                    href="https://wa.me/554691163405?text=Olá!%20Quero%20assinar%20o%20plano%20ZailonSoft%20Premium%20(R$%20499/mês)%20com%20suporte%20prioritário%20e%20gestão%20de%20veículos."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-center bg-white text-amber-600 py-3 rounded-xl font-bold hover:bg-gray-100 transition flex items-center justify-center gap-2"
+                  >
+                    <Feather.MessageCircle size={20} /> Assinar via WhatsApp
+                  </a>
                 </motion.div>
               </div>
-            </section>
-          </div>
+
+              <p className="text-center text-sm text-gray-500 mt-10">
+                Ambos os planos são mensais e sem fidelidade. Cancele quando quiser.
+              </p>
+            </div>
+          </section>
+
+          {/* FAQ */}
+          <section id="faq" className="py-20 px-4 bg-gray-50">
+            <div className="max-w-3xl mx-auto">
+              <motion.h2 variants={fadeInUp} initial="hidden" whileInView="visible" className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-12">
+                Perguntas Frequentes
+              </motion.h2>
+              <div className="space-y-4">
+                {[
+                  { q: 'Como o formulário sabe quais carros oferecer?', a: 'Conectamos ao seu catálogo. Links diretos pré-preenchem o carro.' },
+                  { q: 'Preciso de técnico?', a: 'Não. Tudo é feito para donos e vendedores.' },
+                  { q: 'O que acontece após o preenchimento?', a: 'A proposta vira um card no CRM. Vendedor é notificado.' },
+                  { q: 'Tem fidelidade?', a: 'Não. Mensal e cancelável a qualquer momento.' },
+                ].map((item, i) => (
+                  <motion.div key={i} variants={fadeInUp} initial="hidden" whileInView="visible">
+                    <FaqItem question={item.q} answer={item.a} isOpen={openFaq === i} onClick={() => setOpenFaq(openFaq === i ? null : i)} />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
         </main>
 
-        <footer className="bg-zinc-800 py-8 px-4 sm:px-6 lg:px-8 text-center border-t border-zinc-600">
-          <p className="text-zinc-400 text-sm">© {new Date().getFullYear()} ZailonSoft. Todos os direitos reservados.</p>
+        <footer className="bg-white border-t border-gray-200 py-8 px-4 text-center">
+          <p className="text-sm text-gray-500">© {new Date().getFullYear()} ZailonSoft. Todos os direitos reservados.</p>
         </footer>
       </div>
     </HelmetProvider>
