@@ -303,7 +303,7 @@ const HomePage = () => {
             .hero-section {
               background: linear-gradient(rgba(0,0,0,0.78), rgba(0,0,0,0.78)),
                           url('/CamaroBranco.png') center/cover no-repeat !important;
-              min-height: 100vh;
+              min-height: 80vh;
               display: flex;
               align-items: center;
             }
@@ -384,14 +384,11 @@ const HomePage = () => {
           <section className="hero-section pt-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <motion.div variants={stagger} initial="hidden" animate="visible">
-                <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-black text-white mb-6 drop-shadow-lg">
+                <motion.h1 variants={fadeInUp} className="text-4xl md:text-6xl font-black text-white mb-6 drop-shadow-lg">
                   Pare de Perder Vendas para <span className="text-amber-400">Curiosos</span> que Somem
                 </motion.h1>
-                <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto drop-shadow">
-                  Clientes perguntam, somem ou fazem propostas irreais? ZailonSoft transforma curiosos em propostas qualificadas 24h por dia, automatizando a captação de dados reais – tipo de negociação, carro de troca com imagens, e tudo mastigado no CRM para você fechar a venda.
-                </motion.p>
-                <motion.p variants={fadeInUp} className="text-xl text-emerald-300 mb-10 max-w-3xl mx-auto drop-shadow">
-                  Capte leads reais, exporte PDF pronto para o banco, e veja seu estoque se mover – sem esforço manual.
+                <motion.p variants={fadeInUp} className="text-lg md:text-xl text-gray-200 mb-8 max-w-3xl mx-auto drop-shadow">
+                  ZailonSoft transforma curiosos em propostas qualificadas 24h por dia, captando dados reais como negociação, carro de troca com imagens – tudo pronto no CRM para fechar vendas.
                 </motion.p>
                 <motion.div variants={fadeInUp}>
                   <Link
@@ -408,7 +405,7 @@ const HomePage = () => {
                       </>
                     ) : (
                       <>
-                        Comece Agora e Acelere Suas Vendas <Feather.ArrowRight size={20} />
+                        Comece Agora <Feather.ArrowRight size={20} />
                       </>
                     )}
                   </Link>
@@ -424,27 +421,43 @@ const HomePage = () => {
                 Você Perde Vendas Todo Dia Sem Saber
               </motion.h2>
               <motion.p variants={fadeInUp} initial="hidden" whileInView="visible" className="text-xl text-gray-600 mb-16 max-w-3xl mx-auto">
-                Clientes perguntam e somem. Curiosos fazem propostas irreais. Captação manual rouba seu tempo. ZailonSoft resolve isso – automatizando tudo para você focar no fechamento.
+                Clientes somem, propostas irreais e captação manual roubam seu tempo. ZailonSoft automatiza tudo para você focar no fechamento.
               </motion.p>
 
-              <div className="grid md:grid-cols-3 gap-10">
-                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" className="p-6 bg-red-50 rounded-2xl shadow">
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
+                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" className="p-8 bg-white rounded-3xl shadow-xl border border-red-100 hover:shadow-2xl transition-all duration-300">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4 mx-auto text-red-600">
+                    <Feather.UserX size={32} />
+                  </div>
                   <h3 className="text-2xl font-bold text-red-600 mb-4">Dor 1: Clientes Somem</h3>
                   <p className="text-gray-600">Perguntam preço e desaparecem. Com ZailonSoft, capture dados completos 24h – tipo de negociação, carro de troca com fotos – e transforme curiosos em leads qualificados.</p>
                 </motion.div>
-                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" className="p-6 bg-red-50 rounded-2xl shadow">
+                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" className="p-8 bg-white rounded-3xl shadow-xl border border-red-100 hover:shadow-2xl transition-all duration-300">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4 mx-auto text-red-600">
+                    <Feather.DollarSign size={32} />
+                  </div>
                   <h3 className="text-2xl font-bold text-red-600 mb-4">Dor 2: Propostas Irreais</h3>
                   <p className="text-gray-600">Propostas não palpáveis desperdiçam tempo. Nosso formulário inteligente filtra e qualifica, enviando só dados reais para o CRM – pronto para exportar em PDF e fechar.</p>
                 </motion.div>
-                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" className="p-6 bg-red-50 rounded-2xl shadow">
+                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" className="p-8 bg-white rounded-3xl shadow-xl border border-red-100 hover:shadow-2xl transition-all duration-300">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4 mx-auto text-red-600">
+                    <Feather.Edit size={32} />
+                  </div>
                   <h3 className="text-2xl font-bold text-red-600 mb-4">Dor 3: Captação Manual</h3>
                   <p className="text-gray-600">Gaste menos tempo anotando. Automatize captação: à vista, financiamento, troca com imagens. Compartilhe catálogo, cliente responde direto – tudo vai para o CRM e dashboard em tempo real.</p>
+                </motion.div>
+                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" className="p-8 bg-white rounded-3xl shadow-xl border border-red-100 hover:shadow-2xl transition-all duration-300">
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4 mx-auto text-red-600">
+                    <Feather.MessageSquare size={32} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-red-600 mb-4">Dor 4: WhatsApp Lotado</h3>
+                  <p className="text-gray-600">Mensagens de clientes desqualificados o dia todo. Responda um monte só para pegar infos que nosso formulário já captura – inclusive documentos para fechar a venda. É só entrar e fechar.</p>
                 </motion.div>
               </div>
 
               <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" className="mt-16">
-                <Link to="/signup" className="inline-flex items-center gap-3 bg-amber-500 text-zinc-900 px-10 py-5 rounded-xl font-bold text-xl hover:bg-amber-600 transition shadow-xl">
-                  Resolva Essas Dores Agora mesmo <Feather.ArrowRight size={24} />
+                <Link to="/signup" className="inline-flex items-center gap-3 bg-emerald-600 text-white px-12 py-6 rounded-2xl font-bold text-xl hover:bg-emerald-700 transition shadow-2xl hover:shadow-3xl transform hover:scale-105">
+                  Resolva Essas Dores Agora Mesmo <Feather.ArrowRight size={24} />
                 </Link>
               </motion.div>
             </div>
