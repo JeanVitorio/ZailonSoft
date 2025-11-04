@@ -241,7 +241,7 @@ export function Dashboard() {
       cards: [
         { title: 'Total de Propostas', value: totalPropostas, route: '../crm' },
         { title: 'Veículos em Estoque', value: emEstoque, route: '../catalog' },
-        { title: 'Vendas Finalizadas', value: finalizado, route: '../crm#finalizado' },
+        { title: 'Atendimentos Finalizados', value: finalizado, route: '../crm#finalizado' },
         { title: 'Valor em Negociação', value: formatToBRL(valorNegociacaoNum) },
       ],
       funnelData,
