@@ -417,21 +417,7 @@ const HomePage = () => {
               </div>
             </motion.div>
           </section>
-
-          {/* TRUST BAR */}
-          <section className="bg-white border-y border-gray-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-gray-500">
-              <span className="text-sm">Concessionárias que já confiam:</span>
-              <div className="flex items-center gap-8 opacity-70">
-                <img src="/logos/dealer1.svg" alt="Dealer 1" className="h-6" />
-                <img src="/logos/dealer2.svg" alt="Dealer 2" className="h-6" />
-                <img src="/logos/dealer3.svg" alt="Dealer 3" className="h-6" />
-                <img src="/logos/dealer4.svg" alt="Dealer 4" className="h-6" />
-              </div>
-            </div>
-          </section>
-
-          {/* BENEFÍCIOS */}
+          
           <section id="beneficios" className="py-20 px-4">
             <div className="max-w-7xl mx-auto">
               <h2 className="text-3xl md:text-5xl font-black text-gray-900 text-center mb-12">Por que o ZailonSoft vende mais</h2>
