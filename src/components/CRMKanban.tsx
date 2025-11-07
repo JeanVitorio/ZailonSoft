@@ -1,6 +1,5 @@
 // src/pages/CRMKanban.tsx
-// CRM Kanban com DnD (dnd-kit), modal de detalhes com Relatório melhorado
-// e exportação de PDF paginado via html2canvas + jsPDF.
+// Kanban com melhor contraste no header das colunas, Dialog premium e PDF “alto padrão”.
 
 import React, {
   useState,
@@ -13,7 +12,7 @@ import React, {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { produce } from 'immer';
 
-// --- UI ---
+// --- UI (shadcn/ui) ---
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -48,6 +47,8 @@ import {
   CalendarDays,
   Phone,
   User2,
+  Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 
 // --- Drag-and-Drop ---
@@ -72,7 +73,7 @@ import { CSS } from '@dnd-kit/utilities';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
-// --- API (você fornece) ---
+// --- API (já existentes no seu projeto) ---
 import {
   fetchClients,
   fetchAvailableCars,
@@ -171,7 +172,7 @@ const INITIAL_KANBAN_COLUMNS = [
 ];
 const LOCAL_STORAGE_KEY_PREFIX = 'kanban_columns_';
 
-// Parser BRL tolerante (sem \p{...})
+// BRL helpers
 const parseCurrency = (value: any) => {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (!value) return 0;
@@ -186,7 +187,6 @@ const toBRL = (value: any) =>
     parseCurrency(value),
   );
 
-// coluna válida (fallback em 'leed_recebido')
 const getClientColumnId = (state: string, kanbanColumns: any[]) => {
   if (!state) return 'leed_recebido';
   const has = kanbanColumns.some((c) => c.id === state);
@@ -216,7 +216,7 @@ const renderFilePreview = (docPath: string, isEditing: boolean, onRemove: () => 
         {isImage ? (
           <img src={docPath} alt="Preview" className="w-full h-full object-contain" />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-center text-zinc-500 hover:bg-zinc-200 p-2">
+          <div className="w-full h-full flex flex-col items-center justify-content-center text-center text-zinc-500 hover:bg-zinc-200 p-2">
             <FileText className="h-8 w-8" />
             <span className="text-xs mt-1 px-1 break-all">
               {docPath.split('/').pop()?.split('?')[0].slice(0, 24)}
@@ -276,18 +276,33 @@ function ClientCard({
   const dealTypeKey = client.bot_data?.deal_type || 'Não informado';
 
   return (
-    <Card ref={setNodeRef} style={style} {...attributes} className="touch-none bg-background/80 backdrop-blur-sm shadow-md hover:shadow-lg">
+    <Card
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      className="touch-none bg-background/80 backdrop-blur-sm shadow-md hover:shadow-lg transition-shadow"
+    >
       <CardContent className="p-3">
         <div className="flex justify-between items-start gap-2">
-          <div {...listeners} className="flex-grow cursor-grab active:cursor-grabbing min-w-0 space-y-1">
-            <h4 className="font-semibold text-sm xs:text-base truncate">
+          <div
+            {...listeners}
+            className="flex-grow cursor-grab active:cursor-grabbing min-w-0 space-y-1"
+            title="Arraste para mover"
+          >
+            <h4 className="font-semibold text-sm xs:text-base truncate leading-tight">
               {client.name || 'Cliente sem nome'}
             </h4>
-            <p className="text-xs xs:text-sm text-muted-foreground truncate">
-              {interestedVehicleName}
-            </p>
-            <p className="text-xs xs:text-sm text-muted-foreground truncate">{dealTypeKey}</p>
+
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="secondary" className="text-[10px] py-0.5 px-1.5 rounded">
+                {interestedVehicleName}
+              </Badge>
+              <span className="text-[11px] text-muted-foreground truncate">
+                {dealTypeKey}
+              </span>
+            </div>
           </div>
+
           <div className="flex-shrink-0 flex flex-col xs:flex-row items-center gap-1">
             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onViewDetails}>
               <FileText className="h-3 w-3" />
@@ -310,7 +325,7 @@ function ClientCard({
   );
 }
 
-// -------------------- Coluna com área Droppable --------------------
+// -------------------- Coluna com área Droppable (HEADER com contraste alto) --------------------
 function KanbanColumn({
   column,
   children,
@@ -341,16 +356,20 @@ function KanbanColumn({
         id={column.id}
         className={`flex flex-col gap-4 p-4 rounded-lg h-full transition-colors ${
           isOver ? 'bg-amber-50 border border-amber-200' : 'bg-muted/50'
-        }`}
+        } shadow-sm hover:shadow-md`}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        {/* Header com gradiente escuro e texto claro */}
+        <div className="sticky top-0 z-10 -m-1 -mt-1 mb-1 p-3 rounded-md text-white shadow-sm
+                        bg-[linear-gradient(135deg,#0F172A_0%,#1F2937_40%,#92400E_100%)]
+                        border border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
             <h3 className="font-semibold text-sm md:text-base truncate">{column.name}</h3>
             {!isImmutable && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 text-muted-foreground hover:text-amber-600"
+                className="h-6 w-6 text-white/80 hover:text-white hover:bg-white/10"
                 onClick={onEditClick}
                 title="Renomear coluna"
               >
@@ -358,7 +377,9 @@ function KanbanColumn({
               </Button>
             )}
           </div>
-          <Badge variant="secondary">{column.clients.length}</Badge>
+          <span className="text-[11px] font-semibold bg-white/10 px-2 py-0.5 rounded-full">
+            {column.clients.length}
+          </span>
         </div>
 
         <div
@@ -368,8 +389,10 @@ function KanbanColumn({
           <div className="space-y-3">
             {children}
             {column.clients.length === 0 && (
-              <div className="h-full min-h-[100px] flex items-center justify-center text-sm text-muted-foreground border-2 border-dashed border-muted-foreground/20 rounded-lg p-4">
-                Solte aqui
+              <div className="h-full min-h-[120px] flex flex-col items-center justify-center gap-1 text-sm text-muted-foreground border-2 border-dashed border-muted-foreground/20 rounded-xl p-6">
+                <Layers className="h-5 w-5 opacity-50" />
+                <span>Sem leads por aqui ainda</span>
+                <span className="text-xs">Arraste cartões para esta etapa</span>
               </div>
             )}
           </div>
@@ -379,16 +402,15 @@ function KanbanColumn({
   );
 }
 
-// -------------------- Helpers de PDF --------------------
+// -------------------- Helpers de PDF (premium) --------------------
 async function exportNodePaginatedToPDF(
   node: HTMLElement,
   filename: string,
   {
     scale = 2,
-    marginMM = 0,
+    marginMM = 8,
   }: { scale?: number; marginMM?: number } = {}
 ) {
-  // Canvas do conteúdo completo
   const canvas = await html2canvas(node, {
     scale,
     useCORS: true,
@@ -400,17 +422,13 @@ async function exportNodePaginatedToPDF(
     scrollY: 0,
   });
 
-  // PDF A4 em mm
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth() - marginMM * 2;
   const pageHeight = pdf.internal.pageSize.getHeight() - marginMM * 2;
 
-  // Converte px -> mm mantendo proporção
   const imgWidthMM = pageWidth;
   const imgHeightMM = (canvas.height * imgWidthMM) / canvas.width;
 
-  // Precisamos fatiar o canvas em "páginas" com altura equivalente
-  // à altura do PDF (em canvas pixels)
   const pxPerMM = canvas.width / imgWidthMM;
   const pageHeightInPx = pageHeight * pxPerMM;
 
@@ -421,15 +439,30 @@ async function exportNodePaginatedToPDF(
   pageCanvas.width = canvas.width;
   pageCanvas.height = Math.min(pageHeightInPx, canvas.height);
 
+  // Header e footer premium em cada página (faixa fina + numeração)
+  const paintHeaderFooter = (pageIndex: number) => {
+    // Header
+    pdf.setFillColor(31, 41, 55); // slate-800
+    pdf.rect(marginMM, marginMM - 4, pageWidth, 2, 'F');
+    pdf.setTextColor(146, 64, 14); // amber-700
+    pdf.setFontSize(9);
+    pdf.text('CRM – Relatório de Cliente', marginMM, marginMM - 5.5);
+    // Footer
+    pdf.setDrawColor(229, 231, 235);
+    pdf.line(marginMM, pdf.internal.pageSize.getHeight() - marginMM + 3, pdf.internal.pageSize.getWidth() - marginMM, pdf.internal.pageSize.getHeight() - marginMM + 3);
+    pdf.setTextColor(107, 114, 128);
+    pdf.setFontSize(8);
+    pdf.text(`Página ${pageIndex + 1}`, pdf.internal.pageSize.getWidth() - marginMM - 20, pdf.internal.pageSize.getHeight() - marginMM + 6);
+  };
+
+  let pageIndex = 0;
+
   while (renderedHeight < canvas.height) {
     const sliceHeight = Math.min(pageHeightInPx, canvas.height - renderedHeight);
-
-    // Ajusta altura do canvas da página se sobrar menos na última página
     if (pageCanvas.height !== sliceHeight) {
       pageCanvas.height = sliceHeight;
     }
 
-    // Recorta parte do canvas principal para o canvas da página
     pageCtx.clearRect(0, 0, pageCanvas.width, pageCanvas.height);
     pageCtx.drawImage(
       canvas,
@@ -443,25 +476,19 @@ async function exportNodePaginatedToPDF(
       sliceHeight
     );
 
-    const imgData = pageCanvas.toDataURL('image/jpeg', 0.95);
-
+    const imgData = pageCanvas.toDataURL('image/jpeg', 0.96);
     if (renderedHeight > 0) pdf.addPage();
-    pdf.addImage(
-      imgData,
-      'JPEG',
-      marginMM,
-      marginMM,
-      pageWidth,
-      (sliceHeight / pxPerMM)
-    );
 
+    paintHeaderFooter(pageIndex);
+    pdf.addImage(imgData, 'JPEG', marginMM, marginMM, pageWidth, (sliceHeight / pxPerMM));
+    pageIndex++;
     renderedHeight += sliceHeight;
   }
 
   pdf.save(filename);
 }
 
-// -------------------- Modal Detalhes do Cliente --------------------
+// -------------------- Modal Detalhes do Cliente (versão premium) --------------------
 function ClientDetailDialog({
   client,
   isOpen,
@@ -644,6 +671,7 @@ function ClientDetailDialog({
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>, path: string) =>
     handleDeepChange(path, e.target.value.replace(/\D/g, '').slice(0, 4));
 
+  const [docsBusy, setDocsBusy] = useState(false);
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'documents' | 'tradeInPhotos') => {
     const files = Array.from(e.target.files || []).map((file) => ({
       file,
@@ -652,15 +680,14 @@ function ClientDetailDialog({
     if (type === 'documents') setNewDocs((p) => [...p, ...files]);
     if (type === 'tradeInPhotos') setNewTradeInPhotos((p) => [...p, ...files]);
   };
-
   const removeNewFile = (previewUrl: string, type: 'documents' | 'tradeInPhotos') => {
     URL.revokeObjectURL(previewUrl);
     if (type === 'documents') setNewDocs((p) => p.filter((f) => f.preview !== previewUrl));
     if (type === 'tradeInPhotos')
       setNewTradeInPhotos((p) => p.filter((f) => f.preview !== previewUrl));
   };
-
   const removeExistingFile = (filePath: string, type: 'documents' | 'tradeInPhotos') => {
+    if (docsBusy) return;
     if (type === 'documents') setRemovedDocs((p) => [...new Set([...p, filePath])]);
     if (type === 'tradeInPhotos')
       setRemovedTradeInPhotos((p) => [...new Set([...p, filePath])]);
@@ -668,6 +695,7 @@ function ClientDetailDialog({
 
   const handleSave = async () => {
     try {
+      setDocsBusy(true);
       const payload = produce(formData, (draft: any) => {});
 
       const newDocUrls = await Promise.all(
@@ -743,76 +771,75 @@ function ClientDetailDialog({
         description: error?.message || 'Erro inesperado.',
         variant: 'destructive',
       });
+    } finally {
+      setDocsBusy(false);
     }
   };
 
-  // ---------- EXPORTAR PDF: pega o bloco escondido (pdfInfoRef), adiciona uma "capa" e pagina ----------
   const handleDownloadPdf = async () => {
     if (!pdfInfoRef.current) return;
-
     try {
       setIsDownloadingPdf(true);
 
-      // Cria um container temporário para conter a capa + conteúdo
       const wrapper = document.createElement('div');
       wrapper.style.position = 'fixed';
       wrapper.style.left = '-99999px';
       wrapper.style.top = '0';
-      wrapper.style.width = '800px'; // ~ A4 em px (escala 2 vai resolver nitidez)
+      wrapper.style.width = '820px';
       wrapper.style.padding = '32px';
-      wrapper.style.background = '#fff';
+      wrapper.style.background = '#ffffff';
       wrapper.style.color = '#111827';
       wrapper.style.fontFamily = 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto';
 
-      // CAPA do relatório (design mais bonito)
       const stateName =
-        KANBAN_COLUMNS_MODAL.find((c) => c.id === (formData.state || ''))?.name ||
-        'Não informado';
+        customColumns.find((c) => c.id === (formData.state || ''))?.name || 'Não informado';
       const today = new Date().toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
       });
 
+      // Capa premium
       const cover = document.createElement('div');
       cover.innerHTML = `
         <div style="
           border: 1px solid #E5E7EB;
           border-radius: 24px;
           padding: 28px;
-          background: linear-gradient(135deg,#FEF3C7 0%, #FFFBEB 100%);
+          background:
+            linear-gradient(135deg,#0F172A 0%, #1F2937 40%, #92400E 100%);
+          color: #fff;
           margin-bottom: 24px;
+          position: relative;
+          overflow: hidden;
         ">
-          <div style="display:flex; align-items:center; gap:16px;">
-            <div style="width:56px; height:56px; border-radius:16px; background:#F59E0B; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:22px;">
+          <div style="
+            position:absolute;
+            inset:auto -20% -20% auto;
+            width:360px;
+            height:360px;
+            background: radial-gradient(closest-side, rgba(255,255,255,0.14), transparent 70%);
+            transform: rotate(18deg);
+          "></div>
+          <div style="display:flex; align-items:center; gap:16px; position:relative;">
+            <div style="width:62px; height:62px; border-radius:16px; background:#F59E0B; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:22px; box-shadow: 0 6px 18px rgba(245,158,11,.35);">
               ${String(formData?.name || 'C')[0]?.toUpperCase() || 'C'}
             </div>
             <div style="flex:1;">
-              <div style="font-weight:800; font-size:22px; color:#111827; line-height:1.2; margin-bottom:2px;">
+              <div style="font-weight:800; font-size:22px; line-height:1.2; margin-bottom:2px;">
                 Relatório do Cliente
               </div>
-              <div style="color:#6B7280; font-size:13px;">Gerado em ${today}</div>
+              <div style="color:#FDE68A; font-size:13px;">Gerado em ${today}</div>
             </div>
-          </div>
-          <div style="height:10px;"></div>
-          <div style="
-            display:grid;
-            grid-template-columns: repeat(3,1fr);
-            gap:12px;
-          ">
-            <div style="background:white; border:1px solid #F3F4F6; border-radius:12px; padding:12px;">
-              <div style="font-size:12px; color:#6B7280; margin-bottom:4px;">Nome</div>
-              <div style="font-weight:700; color:#111827; font-size:14px;">${formData?.name || 'N/A'}</div>
-            </div>
-            <div style="background:white; border:1px solid #F3F4F6; border-radius:12px; padding:12px;">
-              <div style="font-size:12px; color:#6B7280; margin-bottom:4px;">Telefone</div>
-              <div style="font-weight:700; color:#111827; font-size:14px;">${formData?.phone || 'N/A'}</div>
+            <div style="display:flex; gap:8px;">
+              <span style="font-size:11px;background:rgba(255,255,255,.12);padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.2)">Status: ${stateName}</span>
+              <span style="font-size:11px;background:rgba(255,255,255,.12);padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.2)">CRM</span>
             </div>
           </div>
         </div>
       `;
 
-      // Clona o conteúdo oculto (todas as seções exceto documentos) e anexa
+      // Conteúdo clonado
       const clone = pdfInfoRef.current.cloneNode(true) as HTMLElement;
       clone.style.position = 'static';
       clone.style.left = '0';
@@ -825,11 +852,10 @@ function ClientDetailDialog({
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
 
-      // Exporta com paginação
       await exportNodePaginatedToPDF(
         wrapper,
         `Relatorio_${(formData?.name || 'Cliente').replace(/\s+/g, '_')}.pdf`,
-        { scale: 2, marginMM: 8 }
+        { scale: 2, marginMM: 10 }
       );
 
       document.body.removeChild(wrapper);
@@ -865,398 +891,384 @@ function ClientDetailDialog({
     (p: string) => !removedTradeInPhotos.includes(p),
   );
 
-  const parcelOptions = [12, 24, 36, 48, 60];
-
   const renderSectionContent = (sectionId: string, isForPdf = false) => {
+    // “Cart” com moldura sutil e título destacado
+    const SectionCard = ({ title, children }: any) => (
+      <Card className={isForPdf ? '' : 'border-amber-100'}>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-amber-600" />
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1 text-sm">{children}</CardContent>
+      </Card>
+    );
+
     switch (sectionId) {
       case 'perfil':
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Perfil do Cliente</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1 text-sm">
-              <InfoRow label="Nome">
-                {isEditing && !isForPdf ? (
-                  <Input
-                    value={formData.name || ''}
-                    onChange={(e) => handleDeepChange('name', e.target.value)}
-                  />
-                ) : (
-                  formData.name || 'N/A'
-                )}
-              </InfoRow>
-              <InfoRow label="Telefone">
-                {isEditing && !isForPdf ? (
-                  <Input
-                    value={formData.phone || ''}
-                    onChange={(e) => handleDeepChange('phone', e.target.value)}
-                  />
-                ) : (
-                  formData.phone || 'N/A'
-                )}
-              </InfoRow>
-              <InfoRow label="CPF">
-                {isEditing && !isForPdf ? (
-                  <Input
-                    value={formData.cpf || ''}
-                    onChange={(e) => handleDeepChange('cpf', e.target.value)}
-                  />
-                ) : (
-                  formData.cpf || 'N/A'
-                )}
-              </InfoRow>
-              <InfoRow label="Ocupação">
-                {isEditing && !isForPdf ? (
-                  <Input
-                    value={formData.job || ''}
-                    onChange={(e) => handleDeepChange('job', e.target.value)}
-                  />
-                ) : (
-                  formData.job || 'N/A'
-                )}
-              </InfoRow>
-              <InfoRow label="Status no Funil">
-                {isEditing && !isForPdf ? (
-                  <Popover open={statusOpen} onOpenChange={setStatusOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start font-normal">
-                        {KANBAN_COLUMNS_MODAL.find((c) => c.id === (formData.state || ''))?.name ||
-                          'Selecione...'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                      <ScrollArea className="h-48">
-                        {KANBAN_COLUMNS_MODAL.map((col) => (
-                          <div
-                            key={col.id}
-                            className="p-2 hover:bg-accent cursor-pointer text-sm"
-                            onClick={() => {
-                              handleStatusChange(col.id);
-                              setStatusOpen(false);
-                            }}
-                          >
-                            {col.name}
-                          </div>
-                        ))}
-                      </ScrollArea>
-                    </PopoverContent>
-                  </Popover>
-                ) : (
-                  KANBAN_COLUMNS_MODAL.find((c) => c.id === formData.state)?.name || 'Não informado'
-                )}
-              </InfoRow>
-            </CardContent>
-          </Card>
+          <SectionCard title="Perfil do Cliente">
+            <InfoRow label="Nome">
+              {isEditing && !isForPdf ? (
+                <Input
+                  value={formData.name || ''}
+                  onChange={(e) => handleDeepChange('name', e.target.value)}
+                />
+              ) : (
+                formData.name || 'N/A'
+              )}
+            </InfoRow>
+            <InfoRow label="Telefone">
+              {isEditing && !isForPdf ? (
+                <Input
+                  value={formData.phone || ''}
+                  onChange={(e) => handleDeepChange('phone', e.target.value)}
+                />
+              ) : (
+                formData.phone || 'N/A'
+              )}
+            </InfoRow>
+            <InfoRow label="CPF">
+              {isEditing && !isForPdf ? (
+                <Input
+                  value={formData.cpf || ''}
+                  onChange={(e) => handleDeepChange('cpf', e.target.value)}
+                />
+              ) : (
+                formData.cpf || 'N/A'
+              )}
+            </InfoRow>
+            <InfoRow label="Ocupação">
+              {isEditing && !isForPdf ? (
+                <Input
+                  value={formData.job || ''}
+                  onChange={(e) => handleDeepChange('job', e.target.value)}
+                />
+              ) : (
+                formData.job || 'N/A'
+              )}
+            </InfoRow>
+            <InfoRow label="Status no Funil">
+              {isEditing && !isForPdf ? (
+                <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start font-normal">
+                      {customColumns.find((c) => c.id === (formData.state || ''))?.name ||
+                        'Selecione...'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <ScrollArea className="h-48">
+                      {customColumns.map((col) => (
+                        <div
+                          key={col.id}
+                          className="p-2 hover:bg-accent cursor-pointer text-sm"
+                          onClick={() => {
+                            handleStatusChange(col.id);
+                            setStatusOpen(false);
+                          }}
+                        >
+                          {col.name}
+                        </div>
+                      ))}
+                    </ScrollArea>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <span className="inline-flex items-center gap-2">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500" />
+                  {customColumns.find((c) => c.id === formData.state)?.name || 'Não informado'}
+                </span>
+              )}
+            </InfoRow>
+          </SectionCard>
         );
       case 'interesse':
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Veículos de Interesse</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isEditing && !isForPdf ? (
-                <div className="space-y-2">
-                  <div className="flex flex-wrap gap-2 min-h-[24px]">
-                    {(botData.interested_vehicles || []).map((v: any) => (
-                      <Badge key={v.id} variant="secondary" className="text-base py-1 pr-1 h-auto">
-                        {v.nome}
-                        <button
-                          onClick={() => removeInterestVehicle(v.id)}
-                          className="ml-2 rounded-full hover:bg-destructive/80 p-0.5"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Input
-                        placeholder="Pesquisar e adicionar veículo..."
-                        value={vehicleSearch}
-                        onChange={(e) => setVehicleSearch(e.target.value)}
-                      />
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                      {isLoadingCars ? (
-                        <div className="p-4 text-center text-sm">Carregando...</div>
-                      ) : vehicleSearchResults.length > 0 ? (
-                        <ScrollArea className="h-[200px]">
-                          {vehicleSearchResults.map((car: any) => (
-                            <div
-                              key={car.id}
-                              onClick={() => addInterestVehicle(car)}
-                              className="p-2 hover:bg-accent cursor-pointer"
-                            >
-                              {car.nome} - {toBRL(car.preco)}
-                            </div>
-                          ))}
-                        </ScrollArea>
-                      ) : (
-                        <div className="p-4 text-center text-sm">Nenhum veículo encontrado.</div>
-                      )}
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              ) : botData.interested_vehicles?.length > 0 ? (
-                <div className="space-y-4">
+          <SectionCard title="Veículos de Interesse">
+            {isEditing && !isForPdf ? (
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2 min-h-[24px]">
                   {(botData.interested_vehicles || []).map((v: any) => (
-                    <div key={v.id} className="p-3 border rounded-md">
-                      <h4 className="font-semibold text-base mb-2">{v.nome}</h4>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                        <div className="text-muted-foreground">Ano:</div>
-                        <div>{v.ano || 'N/A'}</div>
-                        <div className="text-muted-foreground">Preço:</div>
-                        <div>{toBRL(v.preco) || 'N/A'}</div>
-                        <div className="text-muted-foreground">KM:</div>
-                        <div>{v.km ? new Intl.NumberFormat('pt-BR').format(v.km) : 'N/A'}</div>
-                      </div>
-                    </div>
+                    <Badge key={v.id} variant="secondary" className="text-base py-1 pr-1 h-auto">
+                      {v.nome}
+                      <button
+                        onClick={() => removeInterestVehicle(v.id)}
+                        className="ml-2 rounded-full hover:bg-destructive/80 p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
                   ))}
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Nenhum veículo de interesse.</p>
-              )}
-            </CardContent>
-          </Card>
-        );
-      case 'troca':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Carro para Troca</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm">
-              <InfoRow label="Modelo">
-                {isEditing && !isForPdf ? (
-                  <Input
-                    value={botData.trade_in_car?.model || ''}
-                    onChange={(e) => handleDeepChange('bot_data.trade_in_car.model', e.target.value)}
-                  />
-                ) : (
-                  botData.trade_in_car?.model || 'N/A'
-                )}
-              </InfoRow>
-              <InfoRow label="Ano">
-                {isEditing && !isForPdf ? (
-                  <Input
-                    value={botData.trade_in_car?.year || ''}
-                    onChange={(e) => handleYearChange(e, 'bot_data.trade_in_car.year')}
-                    placeholder="AAAA"
-                  />
-                ) : (
-                  botData.trade_in_car?.year || 'N/A'
-                )}
-              </InfoRow>
-              <InfoRow label="Valor Desejado">
-                {isEditing && !isForPdf ? (
-                  <Input
-                    value={botData.trade_in_car?.value || ''}
-                    onChange={(e) => handleCurrencyChange(e, 'bot_data.trade_in_car.value')}
-                    placeholder="R$ 0,00"
-                    inputMode="numeric"
-                  />
-                ) : (
-                  toBRL(botData.trade_in_car?.value) || 'N/A'
-                )}
-              </InfoRow>
-
-              {!isForPdf && (
-                <>
-                  <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] mt-4">
-                    {tradeInPhotos.map((docPath: string) =>
-                      renderFilePreview(docPath, isEditing, () =>
-                        removeExistingFile(docPath, 'tradeInPhotos'),
-                      ),
-                    )}
-                    {isEditing &&
-                      newTradeInPhotos.map((f) => (
-                        <div key={f.preview} className="relative group">
-                          <a
-                            href={f.preview}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block w-full h-32 rounded overflow-hidden bg-zinc-100 flex items-center justify-center"
-                          >
-                            <img
-                              src={f.preview}
-                              alt="Preview"
-                              className="w-full h-full object-contain"
-                            />
-                          </a>
-                          <Button
-                            size="icon"
-                            variant="destructive"
-                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
-                            onClick={() => removeNewFile(f.preview, 'tradeInPhotos')}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                  </div>
-                  {isEditing && (
-                    <>
-                      <input
-                        type="file"
-                        multiple
-                        ref={tradeInInputRef}
-                        onChange={(e) => handleFileSelect(e as any, 'tradeInPhotos')}
-                        className="hidden"
-                      />
-                      <Button
-                        variant="outline"
-                        className="w-full mt-4"
-                        onClick={() => tradeInInputRef.current?.click()}
-                      >
-                        <Upload className="h-4 w-4 mr-2" /> Adicionar Fotos
-                      </Button>
-                    </>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        );
-      case 'financiamento':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Detalhes de Financiamento</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm">
-              <InfoRow label="Valor da Entrada">
-                {isEditing && !isForPdf ? (
-                  <Input
-                    value={botData.financing_details?.entry || ''}
-                    onChange={(e) => handleCurrencyChange(e, 'bot_data.financing_details.entry')}
-                    placeholder="R$ 0,00"
-                    inputMode="numeric"
-                  />
-                ) : (
-                  toBRL(botData.financing_details?.entry) || 'N/A'
-                )}
-              </InfoRow>
-              <InfoRow label="Parcelas">
-                {isEditing && !isForPdf ? (
-                  <Popover open={parcelsOpen} onOpenChange={setParcelsOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start font-normal">
-                        {`${String(botData.financing_details?.parcels || '12')}x`}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                      <ScrollArea className="h-48">
-                        {parcelOptions.map((opt) => (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Input
+                      placeholder="Pesquisar e adicionar veículo..."
+                      value={vehicleSearch}
+                      onChange={(e) => setVehicleSearch(e.target.value)}
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    {isLoadingCars ? (
+                      <div className="p-4 text-center text-sm">Carregando...</div>
+                    ) : vehicleSearchResults.length > 0 ? (
+                      <ScrollArea className="h-[200px]">
+                        {vehicleSearchResults.map((car: any) => (
                           <div
-                            key={opt}
-                            className="p-2 hover:bg-accent cursor-pointer text-sm"
-                            onClick={() => {
-                              handleDeepChange('bot_data.financing_details.parcels', String(opt));
-                              setParcelsOpen(false);
-                            }}
+                            key={car.id}
+                            onClick={() => addInterestVehicle(car)}
+                            className="p-2 hover:bg-accent cursor-pointer"
                           >
-                            {opt}x
+                            {car.nome} - {toBRL(car.preco)}
                           </div>
                         ))}
                       </ScrollArea>
-                    </PopoverContent>
-                  </Popover>
-                ) : (
-                  `${botData.financing_details?.parcels || 'N/A'}x`
+                    ) : (
+                      <div className="p-4 text-center text-sm">Nenhum veículo encontrado.</div>
+                    )}
+                  </PopoverContent>
+                </Popover>
+              </div>
+            ) : botData.interested_vehicles?.length > 0 ? (
+              <div className="space-y-4">
+                {(botData.interested_vehicles || []).map((v: any) => (
+                  <div key={v.id} className="p-3 border rounded-md bg-white/60">
+                    <h4 className="font-semibold text-base mb-2">{v.nome}</h4>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                      <div className="text-muted-foreground">Ano:</div>
+                      <div>{v.ano || 'N/A'}</div>
+                      <div className="text-muted-foreground">Preço:</div>
+                      <div>{toBRL(v.preco) || 'N/A'}</div>
+                      <div className="text-muted-foreground">KM:</div>
+                      <div>{v.km ? new Intl.NumberFormat('pt-BR').format(v.km) : 'N/A'}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum veículo de interesse.</p>
+            )}
+          </SectionCard>
+        );
+      case 'troca':
+        return (
+          <SectionCard title="Carro para Troca">
+            <InfoRow label="Modelo">
+              {isEditing && !isForPdf ? (
+                <Input
+                  value={botData.trade_in_car?.model || ''}
+                  onChange={(e) => handleDeepChange('bot_data.trade_in_car.model', e.target.value)}
+                />
+              ) : (
+                botData.trade_in_car?.model || 'N/A'
+              )}
+            </InfoRow>
+            <InfoRow label="Ano">
+              {isEditing && !isForPdf ? (
+                <Input
+                  value={botData.trade_in_car?.year || ''}
+                  onChange={(e) => handleYearChange(e, 'bot_data.trade_in_car.year')}
+                  placeholder="AAAA"
+                />
+              ) : (
+                botData.trade_in_car?.year || 'N/A'
+              )}
+            </InfoRow>
+            <InfoRow label="Valor Desejado">
+              {isEditing && !isForPdf ? (
+                <Input
+                  value={botData.trade_in_car?.value || ''}
+                  onChange={(e) => handleCurrencyChange(e, 'bot_data.trade_in_car.value')}
+                  placeholder="R$ 0,00"
+                  inputMode="numeric"
+                />
+              ) : (
+                toBRL(botData.trade_in_car?.value) || 'N/A'
+              )}
+            </InfoRow>
+
+            {!isForPdf && (
+              <>
+                <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] mt-4">
+                  {(botData.trade_in_car?.photos || [])
+                    .filter((p: string) => !removedTradeInPhotos.includes(p))
+                    .map((docPath: string) =>
+                      renderFilePreview(docPath, isEditing, () =>
+                        removeExistingFile(docPath, 'tradeInPhotos'),
+                      ),
+                  )}
+                  {isEditing &&
+                    newTradeInPhotos.map((f) => (
+                      <div key={f.preview} className="relative group">
+                        <a
+                          href={f.preview}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block w-full h-32 rounded overflow-hidden bg-zinc-100 flex items-center justify-center"
+                        >
+                          <img
+                            src={f.preview}
+                            alt="Preview"
+                            className="w-full h-full object-contain"
+                          />
+                        </a>
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
+                          onClick={() => removeNewFile(f.preview, 'tradeInPhotos')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                </div>
+                {isEditing && (
+                  <>
+                    <input
+                      type="file"
+                      multiple
+                      ref={tradeInInputRef}
+                      onChange={(e) => handleFileSelect(e as any, 'tradeInPhotos')}
+                      className="hidden"
+                    />
+                    <Button
+                      variant="outline"
+                      className="w-full mt-4"
+                      onClick={() => tradeInInputRef.current?.click()}
+                    >
+                      <Upload className="h-4 w-4 mr-2" /> Adicionar Fotos
+                    </Button>
+                  </>
                 )}
-              </InfoRow>
-            </CardContent>
-          </Card>
+              </>
+            )}
+          </SectionCard>
+        );
+      case 'financiamento':
+        return (
+          <SectionCard title="Detalhes de Financiamento">
+            <InfoRow label="Valor da Entrada">
+              {isEditing && !isForPdf ? (
+                <Input
+                  value={botData.financing_details?.entry || ''}
+                  onChange={(e) => handleCurrencyChange(e, 'bot_data.financing_details.entry')}
+                  placeholder="R$ 0,00"
+                  inputMode="numeric"
+                />
+              ) : (
+                toBRL(botData.financing_details?.entry) || 'N/A'
+              )}
+            </InfoRow>
+            <InfoRow label="Parcelas">
+              {isEditing && !isForPdf ? (
+                <Popover open={parcelsOpen} onOpenChange={setParcelsOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start font-normal">
+                      {`${String(botData.financing_details?.parcels || '12')}x`}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <ScrollArea className="h-48">
+                      {[12, 24, 36, 48, 60].map((opt) => (
+                        <div
+                          key={opt}
+                          className="p-2 hover:bg-accent cursor-pointer text-sm"
+                          onClick={() => {
+                            handleDeepChange('bot_data.financing_details.parcels', String(opt));
+                            setParcelsOpen(false);
+                          }}
+                        >
+                          {opt}x
+                        </div>
+                      ))}
+                    </ScrollArea>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                `${botData.financing_details?.parcels || 'N/A'}x`
+              )}
+            </InfoRow>
+          </SectionCard>
         );
       case 'visita':
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Agendamento de Visita</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm">
-              <InfoRow label="Data">
-                {isEditing && !isForPdf ? (
-                  <Input
-                    type="date"
-                    value={botData.visit_details?.day || ''}
-                    onChange={(e) => handleDeepChange('bot_data.visit_details.day', e.target.value)}
-                  />
-                ) : (
-                  botData.visit_details?.day || 'N/A'
-                )}
-              </InfoRow>
-              <InfoRow label="Horário">
-                {isEditing && !isForPdf ? (
-                  <Input
-                    type="time"
-                    value={botData.visit_details?.time || ''}
-                    onChange={(e) => handleDeepChange('bot_data.visit_details.time', e.target.value)}
-                  />
-                ) : (
-                  botData.visit_details?.time || 'N/A'
-                )}
-              </InfoRow>
-            </CardContent>
-          </Card>
+          <SectionCard title="Agendamento de Visita">
+            <InfoRow label="Data">
+              {isEditing && !isForPdf ? (
+                <Input
+                  type="date"
+                  value={botData.visit_details?.day || ''}
+                  onChange={(e) => handleDeepChange('bot_data.visit_details.day', e.target.value)}
+                />
+              ) : (
+                botData.visit_details?.day || 'N/A'
+              )}
+            </InfoRow>
+            <InfoRow label="Horário">
+              {isEditing && !isForPdf ? (
+                <Input
+                  type="time"
+                  value={botData.visit_details?.time || ''}
+                  onChange={(e) => handleDeepChange('bot_data.visit_details.time', e.target.value)}
+                />
+              ) : (
+                botData.visit_details?.time || 'N/A'
+              )}
+            </InfoRow>
+          </SectionCard>
         );
       case 'documentos':
         if (isForPdf) return null;
         return (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Documentos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(8rem,1fr))]">
-                {visibleDocuments.map((docPath: string) =>
-                  renderFilePreview(docPath, isEditing, () => removeExistingFile(docPath, 'documents')),
-                )}
-                {isEditing &&
-                  newDocs.map((f) => (
-                    <div key={f.preview} className="relative group">
-                      <a
-                        href={f.preview}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block w-full h-32 rounded overflow-hidden bg-zinc-100 flex items-center justify-center"
-                      >
-                        <img src={f.preview} alt="Preview" className="w-full h-full object-contain" />
-                      </a>
-                      <Button
-                        size="icon"
-                        variant="destructive"
-                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
-                        onClick={() => removeNewFile(f.preview, 'documents')}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-              </div>
-              {isEditing && (
-                <>
-                  <input
-                    type="file"
-                    multiple
-                    ref={docInputRef}
-                    onChange={(e) => handleFileSelect(e as any, 'documents')}
-                    className="hidden"
-                  />
-                  <Button
-                    variant="outline"
-                    className="w-full mt-4"
-                    onClick={() => docInputRef.current?.click()}
-                  >
-                    <Upload className="h-4 w-4 mr-2" /> Adicionar Documentos
-                  </Button>
-                </>
+          <SectionCard title="Documentos">
+            <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(8rem,1fr))]">
+              {visibleDocuments.map((docPath: string) =>
+                renderFilePreview(docPath, isEditing, () => removeExistingFile(docPath, 'documents')),
               )}
-            </CardContent>
-          </Card>
+              {isEditing &&
+                newDocs.map((f) => (
+                  <div key={f.preview} className="relative group">
+                    <a
+                      href={f.preview}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full h-32 rounded overflow-hidden bg-zinc-100 flex items-center justify-center"
+                    >
+                      <img src={f.preview} alt="Preview" className="w-full h-full object-contain" />
+                    </a>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
+                      onClick={() => removeNewFile(f.preview, 'documents')}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+            </div>
+            {isEditing && (
+              <>
+                <input
+                  type="file"
+                  multiple
+                  ref={docInputRef}
+                  onChange={(e) => handleFileSelect(e as any, 'documents')}
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={() => docInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" /> Adicionar Documentos
+                </Button>
+              </>
+            )}
+          </SectionCard>
         );
       default:
         return <div>Selecione uma seção</div>;
@@ -1265,29 +1277,48 @@ function ClientDetailDialog({
 
   if (!client) return null;
 
+  // HERO premium no topo do dialog
+  const stateName = customColumns.find((c) => c.id === (formData.state || ''))?.name || '—';
+  const initials = String(formData?.name || 'C')
+    .split(' ')
+    .map((s) => s[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-[95vw] md:max-w-6xl max-h-[90vh] p-0 flex flex-col">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b">
-          <div className="flex justify-between items-center flex-wrap gap-2">
-            <div>
-              <DialogTitle className="text-lg md:text-xl flex items-center gap-2">
-                <User2 className="h-5 w-5 text-amber-600" />
-                {formData.name || 'Detalhes do Cliente'}
-              </DialogTitle>
-              <DialogDescription className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                <Phone className="h-3.5 w-3.5" />
-                {formData.phone || '—'}
-              </DialogDescription>
+      <DialogContent className="w-full max-w-[95vw] md:max-w-6xl max-h-[92vh] p-0 flex flex-col overflow-hidden">
+        {/* HERO */}
+        <div className="relative px-6 pt-6 pb-4 border-b
+                        bg-[linear-gradient(135deg,#0F172A_0%,#1F2937_40%,#92400E_100%)]
+                        text-white">
+          <div className="absolute right-0 bottom-0 translate-x-6 translate-y-6 opacity-30 pointer-events-none">
+            <Sparkles className="h-24 w-24" />
+          </div>
+          <div className="flex items-center justify-between gap-4 relative">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-12 w-12 rounded-xl bg-amber-500 flex items-center justify-center font-extrabold shadow-lg">
+                {initials}
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="text-lg md:text-xl truncate">
+                  {formData.name || 'Detalhes do Cliente'}
+                </DialogTitle>
+                <DialogDescription className="mt-0.5 text-[12px] text-amber-100 flex items-center gap-2">
+                  <Phone className="h-3.5 w-3.5" />
+                  {formData.phone || '—'}
+                </DialogDescription>
+              </div>
             </div>
-
             <div className="flex items-center gap-2">
               {!isEditing && (
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="secondary"
                   onClick={handleDownloadPdf}
                   disabled={isDownloadingPdf}
+                  className="bg-white/15 hover:bg-white/25 border-white/20"
                 >
                   {isDownloadingPdf ? (
                     <>
@@ -1312,19 +1343,46 @@ function ClientDetailDialog({
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setIsEditing(false)}
+                    onClick={() => {
+                      setIsEditing(false);
+                    }}
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                   >
                     <XCircle className="h-4 w-4 mr-2" /> Cancelar
                   </Button>
                 </>
               ) : (
-                <Button size="sm" onClick={() => setIsEditing(true)}>
+                <Button size="sm" onClick={() => setIsEditing(true)} className="bg-white text-slate-900 hover:bg-zinc-100">
                   <Edit className="h-4 w-4 mr-2" /> Editar
                 </Button>
               )}
             </div>
           </div>
-        </DialogHeader>
+
+          {/* Métricas rápidas */}
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="rounded-lg px-3 py-2 bg-white/10 border border-white/15">
+              <div className="text-[11px] opacity-80">Status</div>
+              <div className="text-sm font-semibold">{stateName}</div>
+            </div>
+            <div className="rounded-lg px-3 py-2 bg-white/10 border border-white/15">
+              <div className="text-[11px] opacity-80">Tipo de Negócio</div>
+              <div className="text-sm font-semibold">{formData?.bot_data?.deal_type || '—'}</div>
+            </div>
+            <div className="rounded-lg px-3 py-2 bg-white/10 border border-white/15">
+              <div className="text-[11px] opacity-80">Entrada (se houver)</div>
+              <div className="text-sm font-semibold">
+                {toBRL(formData?.bot_data?.financing_details?.entry || 0)}
+              </div>
+            </div>
+            <div className="rounded-lg px-3 py-2 bg-white/10 border border-white/15">
+              <div className="text-[11px] opacity-80">Parcelas</div>
+              <div className="text-sm font-semibold">
+                {formData?.bot_data?.financing_details?.parcels || '—'}x
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Navegação mobile */}
         <div className="p-4 border-b block md:hidden">
@@ -1332,13 +1390,30 @@ function ClientDetailDialog({
             <PopoverTrigger asChild>
               <Button variant="outline" className="w-full justify-start">
                 <span className="truncate">
-                  {navSections.find((s) => s.id === activeSection)?.label || 'Navegar...'}
+                  {(['perfil','interesse','troca','financiamento','visita','documentos'] as const)
+                    .includes(activeSection as any)
+                    ? ([
+                        { id: 'perfil', label: 'Perfil'},
+                        { id: 'interesse', label: 'Interesses'},
+                        { id: 'troca', label: 'Troca'},
+                        { id: 'financiamento', label: 'Financiamento'},
+                        { id: 'visita', label: 'Visita'},
+                        { id: 'documentos', label: 'Documentos'},
+                      ].find(s => s.id === activeSection)?.label)
+                    : 'Navegar...'}
                 </span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
               <ScrollArea className="h-48">
-                {navSections.map((section) => (
+                {[
+                  { id: 'perfil', label: 'Perfil', icon: User2 },
+                  { id: 'interesse', label: 'Interesses', icon: Search },
+                  ...( (formData?.bot_data?.deal_type === 'troca') ? [{ id: 'troca', label: 'Troca', icon: ChevronRight }] : []),
+                  ...( (formData?.bot_data?.deal_type === 'financiamento' || formData?.bot_data?.payment_method === 'financiamento') ? [{ id: 'financiamento', label: 'Financiamento', icon: ChevronRight }] : []),
+                  ...( (formData?.bot_data?.deal_type === 'visita') ? [{ id: 'visita', label: 'Visita', icon: CalendarDays }] : []),
+                  { id: 'documentos', label: 'Documentos', icon: FileText },
+                ].map((section:any) => (
                   <div
                     key={section.id}
                     className="p-2 hover:bg-accent cursor-pointer text-sm flex items-center gap-2"
@@ -1357,10 +1432,17 @@ function ClientDetailDialog({
         </div>
 
         <div className="flex-1 flex min-h-0">
-          <aside className="border-r bg-muted/30 hidden md:block w-[250px] flex-shrink-0">
+          <aside className="border-r bg-muted/30 hidden md:block w-[260px] flex-shrink-0">
             <ScrollArea className="h-full py-4">
               <nav className="px-4 space-y-1">
-                {navSections.map((section) => (
+                {[
+                  { id: 'perfil', label: 'Perfil', icon: User2, show: true },
+                  { id: 'interesse', label: 'Interesses', icon: Search, show: true },
+                  { id: 'troca', label: 'Troca', icon: ChevronRight, show: formData?.bot_data?.deal_type === 'troca' },
+                  { id: 'financiamento', label: 'Financiamento', icon: ChevronRight, show: (formData?.bot_data?.deal_type === 'financiamento' || formData?.bot_data?.payment_method === 'financiamento') },
+                  { id: 'visita', label: 'Visita', icon: CalendarDays, show: formData?.bot_data?.deal_type === 'visita' },
+                  { id: 'documentos', label: 'Documentos', icon: FileText, show: true },
+                ].filter(s=>s.show).map((section:any) => (
                   <Button
                     key={section.id}
                     variant={activeSection === section.id ? 'secondary' : 'ghost'}
@@ -1375,23 +1457,28 @@ function ClientDetailDialog({
             </ScrollArea>
           </aside>
 
-          <main className="flex-1 min-w-0">
+          <main className="flex-1 min-w-0 bg-white">
             <ScrollArea className="h-full">
+              {/* faixa sutil */}
+              <div className="h-1 bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 opacity-60" />
               <div className="p-6 space-y-6">{renderSectionContent(activeSection)}</div>
             </ScrollArea>
           </main>
         </div>
 
-        {/* Conteúdo oculto p/ geração de PDF (sem "Documentos") */}
+        {/* Conteúdo oculto p/ PDF (sem Documentos) */}
         <div
           ref={pdfInfoRef}
-          className="absolute -left-[9999px] top-0 bg-white space-y-8 p-8 w-[800px] text-black"
+          className="absolute -left-[9999px] top-0 bg-white space-y-8 p-8 w-[820px] text-black"
         >
-          {navSections
-            .filter((section) => section.id !== 'documentos')
+          {/* cabeçalho interno das seções com divisórias “clean” */}
+          {['perfil','interesse','troca','financiamento','visita']
+            .filter((s) => s !== 'troca' ? true : (formData?.bot_data?.deal_type === 'troca'))
+            .filter((s) => s !== 'financiamento' ? true : (formData?.bot_data?.deal_type === 'financiamento' || formData?.bot_data?.payment_method === 'financiamento'))
+            .filter((s) => s !== 'visita' ? true : (formData?.bot_data?.deal_type === 'visita'))
             .map((section) => (
-              <div key={`pdf-info-${section.id}`} style={{ breakInside: 'avoid' }}>
-                {renderSectionContent(section.id, true)}
+              <div key={`pdf-info-${section}`} style={{ breakInside: 'avoid' }}>
+                {renderSectionContent(section, true)}
               </div>
             ))}
         </div>
@@ -1430,13 +1517,11 @@ function CRMKanbanContent() {
   const [isDraggingSlider, setIsDraggingSlider] = useState(false);
   const newColumnNameRef = useRef('');
 
-  // Persistência das colunas
   useEffect(() => {
     const storageKey = `${LOCAL_STORAGE_KEY_PREFIX}${LOJA_ID_ATUAL}`;
     localStorage.setItem(storageKey, JSON.stringify(kanbanColumns));
   }, [kanbanColumns]);
 
-  // CRUD de colunas
   const handleCreateColumn = (name: string) => {
     if (!name.trim()) {
       toast({
@@ -1517,7 +1602,7 @@ function CRMKanbanContent() {
     queryClient.invalidateQueries({ queryKey: ['clients'] });
   };
 
-  // Sensores DnD (suporte touch melhor)
+  // Sensores DnD
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
@@ -1535,7 +1620,7 @@ function CRMKanbanContent() {
     initialData: [],
   });
 
-  // slider -> progress
+  // Slider progress
   const handleScroll = () => {
     if (boardRef.current && !isDraggingSlider) {
       const { scrollLeft, scrollWidth, clientWidth } = boardRef.current;
@@ -1592,7 +1677,7 @@ function CRMKanbanContent() {
   }, [kanbanColumns.length, searchTerm, isDraggingSlider]);
 
   // Mutations
-  const updateStatusMutation = useMutation({
+  const { mutate: mutateStatus } = useMutation({
     mutationFn: updateClientStatus,
     onSuccess: () => {
       toast({ title: 'Sucesso', description: 'Cliente movido.' });
@@ -1682,17 +1767,14 @@ function CRMKanbanContent() {
     let destColumnId: string | null = null;
     const overId = String(over.id);
 
-    // 1) Se soltou em cima de um card, pega a coluna desse card
     const overClient = clients.find((c: any) => c.chat_id === overId);
     if (overClient) {
       destColumnId = getClientColumnId(overClient.bot_data?.state, kanbanColumns);
     } else {
-      // 2) Se soltou na própria coluna (useDroppable id === column.id)
       const isColumn = kanbanColumns.some((c: any) => c.id === overId);
       if (isColumn) {
         destColumnId = overId;
       } else {
-        // 3) fallback: tenta pegar containerId do dnd-kit (quando disponível)
         const containerId = over.data?.current?.sortable?.containerId;
         if (kanbanColumns.some((c: any) => c.id === containerId)) {
           destColumnId = containerId;
@@ -1703,11 +1785,10 @@ function CRMKanbanContent() {
     const sourceColumnId = getClientColumnId(activeClientData?.bot_data?.state, kanbanColumns);
 
     if (destColumnId && sourceColumnId !== destColumnId) {
-      updateStatusMutation.mutate({ chatId: activeClientId, newState: destColumnId });
+      mutateStatus({ chatId: activeClientId, newState: destColumnId });
     }
   }
 
-  const handleDeleteRequest = (chatId: string) => setClientToDelete(chatId);
   const handleConfirmDelete = () => {
     if (clientToDelete) deleteMutation.mutate(clientToDelete);
     setClientToDelete(null);
@@ -1730,7 +1811,15 @@ function CRMKanbanContent() {
     <>
       <div className="space-y-6 p-4 md:p-6 h-screen overflow-y-hidden">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl md:text-3xl font-bold">CRM - Funil de Vendas</h1>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">CRM – Funil de Vendas</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Organize, avance e conclua negócios com mais rapidez.
+            </p>
+          </div>
+          <Badge className="text-sm px-3 py-1 rounded-full">
+            {Array.isArray(clients) ? clients.length : 0} leads
+          </Badge>
         </div>
 
         <div className="flex justify-between items-center gap-2">
@@ -1753,16 +1842,16 @@ function CRMKanbanContent() {
         {/* Slider de rolagem horizontal */}
         <div
           ref={sliderRef}
-          className="relative w-full h-2 bg-gray-200 rounded-full mt-2 cursor-pointer"
+          className="relative w-full h-2 bg-gradient-to-r from-zinc-200 to-zinc-100 rounded-full mt-2 cursor-pointer"
           onMouseDown={(e) => handleSliderStart(e.clientX)}
           onTouchStart={(e) => handleSliderStart(e.touches[0].clientX)}
         >
           <div
-            className="absolute top-0 left-0 h-full bg-amber-500 rounded-full transition-all duration-100 ease-linear pointer-events-none"
+            className="absolute top-0 left-0 h-full bg-amber-500/70 rounded-full transition-all duration-100 ease-linear pointer-events-none"
             style={{ width: `${scrollProgress}%` }}
           />
           <div
-            className="absolute top-1/2 -translate-y-1/2 h-4 w-4 bg-amber-600 rounded-full shadow-md z-10 cursor-grab"
+            className="absolute top-1/2 -translate-y-1/2 h-4 w-4 bg-amber-600 rounded-full shadow-md z-10 cursor-grab active:scale-95 transition-transform"
             style={{ left: `calc(${scrollProgress}% - 8px)` }}
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -1777,11 +1866,38 @@ function CRMKanbanContent() {
 
         <DndContext
           sensors={sensors}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
+          onDragStart={(e)=> {
+            const client = filteredClients.find((c: any) => c.chat_id === e.active.id);
+            setActiveClient(client || null);
+          }}
+          onDragEnd={(e)=> {
+            const { active, over } = e;
+            setActiveClient(null);
+            if (!over) return;
+            const activeClientId = active.id;
+            const overId = String(over.id);
+            const overClient = clients.find((c: any) => c.chat_id === overId);
+            let destColumnId: string | null = null;
+            if (overClient) {
+              destColumnId = getClientColumnId(overClient.bot_data?.state, kanbanColumns);
+            } else if (kanbanColumns.some((c: any) => c.id === overId)) {
+              destColumnId = overId;
+            } else {
+              const containerId = over.data?.current?.sortable?.containerId;
+              if (kanbanColumns.some((c: any) => c.id === containerId)) destColumnId = containerId;
+            }
+            const activeClientData = clients.find((c: any) => c.chat_id === activeClientId);
+            const sourceColumnId = getClientColumnId(activeClientData?.bot_data?.state, kanbanColumns);
+            if (destColumnId && sourceColumnId !== destColumnId) {
+              mutateStatus({ chatId: activeClientId, newState: destColumnId });
+            }
+          }}
           collisionDetection={closestCenter}
         >
-          <div ref={boardRef} className="w-full overflow-x-auto pb-4 scroll-smooth">
+          <div
+            ref={boardRef}
+            className="w-full overflow-x-auto pb-4 scroll-smooth [mask-image:linear-gradient(to right,transparent,black_8%,black_92%,transparent)]"
+          >
             <div className="flex flex-nowrap gap-4 md:gap-6 items-start h-full">
               {columns.length > 0 ? (
                 columns.map((column: any) => {
@@ -1803,7 +1919,7 @@ function CRMKanbanContent() {
                           <ClientCard
                             key={client.chat_id}
                             client={client}
-                            onDelete={handleDeleteRequest}
+                            onDelete={(chatId) => setClientToDelete(chatId)}
                             onViewDetails={() => setDetailedClient(client)}
                           />
                         ))}
@@ -1827,7 +1943,7 @@ function CRMKanbanContent() {
         </DndContext>
       </div>
 
-      {/* Modal de detalhes */}
+      {/* Modal de detalhes premium */}
       {detailedClient && (
         <ClientDetailDialog
           client={detailedClient}
