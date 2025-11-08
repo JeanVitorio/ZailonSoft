@@ -1,30 +1,42 @@
 // src/pages/PublicCarFormPage.tsx
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import * as Feather from 'react-feather';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '../components/ui/use-toast';
 import { Progress } from '@/components/ui/progress';
 import imageCompression from 'browser-image-compression';
 
+// Componentes do fluxo
 import {
   StepPersonalData, StepFileUpload, StepPaymentType, StepFinancing,
   StepTradeDetails, StepVisitDetails,
   FormData, ClientPayload, Car, Files
 } from '../components/AddClient';
 
-// >>> Usa o serviço que já grava created_at/updated_at de forma explícita
-import { createClientRecord } from '@/services/createClient';
-import { fetchCarDetails } from '@/services/api';
+// API dos carros
+import { fetchCarDetails } from '../services/api';
+
+// ✅ Supabase (singleton para evitar “Multiple GoTrueClient instances”)
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+
+declare global {
+  interface Window { __supabase__?: SupabaseClient }
+}
+const supabase: SupabaseClient =
+  window.__supabase__ ??
+  createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+window.__supabase__ = supabase;
+
+// -------------------------------------------------------------------------------------
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeInOut' } }
 };
 
-// --- Helpers de moeda ---
+// Helpers de moeda
 const parseCurrency = (value: string | number): number => {
   if (typeof value === 'number') return value;
   if (!value || typeof value !== 'string') return 0;
@@ -38,7 +50,7 @@ const formatCurrency = (value: string | number): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
 };
 
-// --- Card de detalhes do veículo ---
+// Card de detalhes do veículo
 function CarDetailsDisplay({ vehicle }: { vehicle: Car }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -50,7 +62,6 @@ function CarDetailsDisplay({ vehicle }: { vehicle: Car }) {
   };
 
   const toggleDescription = () => setIsDescriptionExpanded((v) => !v);
-
   const currentImages = vehicle.imagens || [];
 
   return (
@@ -141,7 +152,7 @@ function CarDetailsDisplay({ vehicle }: { vehicle: Car }) {
   );
 }
 
-// --- Passo local: tipo de negócio ---
+// Passo local: tipo de negócio
 const StepDealType = ({
   setDealType,
   nextStep
@@ -185,7 +196,7 @@ const StepDealType = ({
   );
 };
 
-// --- Summary ---
+// Summary
 function StepSummary({
   formData, files, dealType, paymentType
 }: { formData: FormData; files: Files; dealType: string; paymentType: string; }) {
@@ -274,7 +285,7 @@ function StepSummary({
   );
 }
 
-// --- Estado inicial ---
+// Estado inicial
 const initialFormData: FormData = {
   name: '', phone: '', cpf: '', job: '', state: 'inicial',
   interested_vehicles: [],
@@ -284,7 +295,7 @@ const initialFormData: FormData = {
 };
 const initialFiles: Files = { documents: [], trade_in_photos: [] };
 
-// --- Página principal ---
+// Página principal
 export function PublicCarFormPage() {
   const { carId } = useParams<{ carId: string }>();
   const navigate = useNavigate();
@@ -311,9 +322,41 @@ export function PublicCarFormPage() {
     }
   }, [interestedCar]);
 
+  // ✅ Mutação: insere diretamente na tabela `clients` com `id` gerado
   const mutation = useMutation({
-    mutationFn: ({ clientPayload, files, lojaId }: { clientPayload: ClientPayload; files: Files; lojaId: string }) =>
-      createClientRecord({ clientPayload, files, lojaId }),
+    mutationFn: async ({
+      clientPayload,
+      lojaId,
+    }: { clientPayload: ClientPayload; lojaId: string }) => {
+      // Monta o objeto exatamente como o schema espera
+      const rowToInsert = {
+        id: clientPayload.id,                         // 👈 OBRIGATÓRIO (não há DEFAULT no BD)
+        chat_id: clientPayload.chat_id,               // NOT NULL UNIQUE
+        name: clientPayload.name ?? null,
+        phone: clientPayload.phone ?? null,
+        cpf: clientPayload.cpf ?? null,
+        job: clientPayload.job ?? null,
+        state: 'proposta_web',
+        payment_method: clientPayload.payment_method ?? null,
+        rg_number: null,
+        incomeProof: null,
+        rg_photo: null,
+        visit_details: clientPayload.visit_details ?? null, // jsonb
+        bot_data: clientPayload.bot_data ?? null,           // jsonb
+        deal_type: clientPayload.deal_type ?? null,
+        financing_details: clientPayload.financing_details ?? '',   // text NOT NULL DEFAULT ''
+        interested_vehicles: clientPayload.interested_vehicles ?? '', // text NOT NULL DEFAULT ''
+        trade_in_car: clientPayload.trade_in_car ?? '',             // text NOT NULL DEFAULT ''
+        loja_id: lojaId ?? null
+      };
+
+      const { error } = await supabase.from('clients').insert(rowToInsert);
+      if (error) {
+        // repassa o mesmo formato do seu service anterior
+        throw new Error(`Erro ao salvar formulário: ${error.message}`);
+      }
+      return true;
+    },
     onSuccess: () => {
       toast({ title: 'Sucesso!', description: 'Proposta enviada com sucesso.' });
       queryClient.invalidateQueries({ queryKey: ['carDetails', carId] });
@@ -329,7 +372,7 @@ export function PublicCarFormPage() {
     }
   });
 
-  // Compressão de imagens
+  // Compressão de imagens (mantida)
   const compressImage = async (imageFile: File): Promise<File> => {
     const options = {
       maxSizeMB: 1,
@@ -386,7 +429,7 @@ export function PublicCarFormPage() {
     }
   };
 
-  // Validação por etapa
+  // Fluxo de passos
   const flowSteps = useMemo(() => {
     if (!interestedCar) return [];
     const personal = { id: 'personal', title: 'Seus Dados', icon: Feather.UserPlus };
@@ -418,6 +461,7 @@ export function PublicCarFormPage() {
     return dealType ? [...steps, summary] : [];
   }, [dealType, paymentType, formData.trade_in_car.value, interestedCar]);
 
+  // Validação
   const validateStep = (): boolean => {
     const currentStepId = flowSteps[step - 1]?.id;
     if (!currentStepId) return true;
@@ -461,6 +505,7 @@ export function PublicCarFormPage() {
   const nextStep = () => { if (validateStep()) setStep((prev) => prev + 1); };
   const prevStep = () => { setStep((prev) => prev - 1); setValidationError(null); };
 
+  // Submit: monta payload e insere
   const handleSubmit = () => {
     if (!validateStep()) return;
     if (!interestedCar?.loja_id) {
@@ -470,6 +515,8 @@ export function PublicCarFormPage() {
     const finalDealType = dealType === 'comum' ? paymentType : dealType;
 
     const payload: ClientPayload = {
+      id: crypto.randomUUID(),                 // ✅ necessário porque sua tabela não tem DEFAULT para id
+      chat_id: formData.phone,                 // NOT NULL UNIQUE (você já usa o telefone)
       name: formData.name,
       phone: formData.phone,
       cpf: formData.cpf,
@@ -477,10 +524,14 @@ export function PublicCarFormPage() {
       state: 'proposta_web',
       deal_type: finalDealType,
       payment_method: paymentType,
-      interested_vehicles: formData.interested_vehicles,
-      trade_in_car: formData.trade_in_car,
-      financing_details: formData.financing_details,
-      visit_details: formData.visit_details,
+
+      // Campos text no BD (stringify)
+      interested_vehicles: JSON.stringify(formData.interested_vehicles ?? []),
+      trade_in_car: JSON.stringify(formData.trade_in_car ?? {}),
+      financing_details: JSON.stringify(formData.financing_details ?? {}),
+
+      // jsonb e auxiliares
+      visit_details: formData.visit_details ?? null,
       bot_data: {
         state: 'proposta_web',
         deal_type: finalDealType,
@@ -491,7 +542,7 @@ export function PublicCarFormPage() {
       }
     };
 
-    mutation.mutate({ clientPayload: payload, files, lojaId: interestedCar.loja_id });
+    mutation.mutate({ clientPayload: payload, lojaId: interestedCar.loja_id });
   };
 
   if (isLoadingCar) return <div className="text-center py-20 text-zinc-600">Carregando detalhes do veículo...</div>;
