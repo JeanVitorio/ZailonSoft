@@ -358,7 +358,7 @@ const HomePage = () => {
                     Leads <span className="text-amber-500">prontos para fechar</span> automaticamente
                   </motion.h1>
                   <motion.p variants={fadeInUp} className="mt-5 text-lg md:text-xl text-gray-600 max-w-2xl">
-                    O ZailonSoft capta, qualifica e organiza tudo no CRM. Você recebe propostas completas — com negociação, fotos do carro de troca e intenção real.
+                    O ZailonSoft capta, qualifica e organiza tudo no CRM. Você recebe propostas completas com negociação, fotos do carro de troca e intenção real.
                   </motion.p>
 
                   <motion.div variants={fadeInUp} className="mt-8 flex flex-col sm:flex-row gap-3">
