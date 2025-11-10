@@ -632,9 +632,9 @@ const HomePage = () => {
               <h2 className="text-3xl md:text-5xl font-black text-center text-gray-900 mb-12">Perguntas Frequentes</h2>
               <div className="space-y-6">
                 {[
-                  { q: 'Como o formulário sabe quais carros oferecer?', a: 'Integramos ao seu catálogo — links diretos pré-preenchem o carro.' },
-                  { q: 'Preciso de técnico?', a: 'Não. Foi pensado para donos e vendedores.' },
-                  { q: 'O que acontece após o preenchimento?', a: 'A proposta vira card no CRM e o vendedor é notificado.' },
+                  { q: 'Como o formulário sabe quais carros oferecer?', a: 'Integramos ao seu catálogo, links diretos pré-preenchem o carro.' },
+                  { q: 'Preciso de conhecimento técnico?', a: 'Não, foi pensado para lojas de veículos e seus proprietários e vendedores.' },
+                  { q: 'O que acontece após o preenchimento?', a: 'A proposta vira card no CRM e o vendedor apenas entra para fechar negócio.' },
                   { q: 'Tem fidelidade?', a: 'Não. Mensal e cancelável a qualquer momento.' },
                 ].map((item, i) => (
                   <FaqItem key={i} question={item.q} answer={item.a} isOpen={openFaq === i} onClick={() => setOpenFaq(openFaq === i ? null : i)} />
