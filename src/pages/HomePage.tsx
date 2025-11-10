@@ -424,7 +424,7 @@ const HomePage = () => {
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                   { icon: Feather.UserCheck, title: 'Leads qualificados', copy: 'Captação 24/7 com negociação e troca (fotos).' },
-                  { icon: Feather.Edit, title: 'Menos atrito', copy: 'Cliente preenche direto no formulário — sem perguntas repetidas.' },
+                  { icon: Feather.Edit, title: 'Menos atrito', copy: 'Cliente preenche direto no formulário sem perguntas repetidas.' },
                   { icon: Feather.FolderPlus, title: 'CRM pronto', copy: 'Propostas viram cards editáveis com PDF pro banco.' },
                   { icon: Feather.BarChart2, title: 'Visão total', copy: 'Dashboard em tempo real do funil e dos vendedores.' },
                 ].map((c, i) => (
@@ -504,7 +504,7 @@ const HomePage = () => {
                 <Metric value="R$ 0" label="fidelidade ou taxa de cancelamento" />
               </div>
 
-              <div className="mt-12 grid md:grid-cols-3 gap-6">
+              {/* <div className="mt-12 grid md:grid-cols-3 gap-6">
                 {[
                   { name: 'Léo, Gestor de Vendas', quote: 'Em 2 semanas dobramos propostas que fazem sentido. O time foca em fechar.', store: 'Concessionária Regional' },
                   { name: 'Cíntia, Diretora', quote: 'Chega com entrada, fotos da troca e dados certos. O CRM já vem pronto.', store: 'Multimarcas Centro' },
@@ -517,7 +517,7 @@ const HomePage = () => {
                     </footer>
                   </blockquote>
                 ))}
-              </div>
+              </div> */}
             </div>
           </section>
 
