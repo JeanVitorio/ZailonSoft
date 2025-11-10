@@ -633,7 +633,7 @@ const HomePage = () => {
               <div className="space-y-6">
                 {[
                   { q: 'Como o formulário sabe quais carros oferecer?', a: 'Integramos ao seu catálogo, links diretos pré-preenchem o carro.' },
-                  { q: 'Preciso de conhecimento técnico?', a: 'Não, foi pensado para lojas de veículos e seus proprietários e vendedores.' },
+                  { q: 'Preciso de conhecimento técnico?', a: 'Não, foi desenvolvido exclusivamente para lojas de veículos, abrangendo tanto proprietários quanto vendedores.' },
                   { q: 'O que acontece após o preenchimento?', a: 'A proposta vira card no CRM e o vendedor apenas entra para fechar negócio.' },
                   { q: 'Tem fidelidade?', a: 'Não. Mensal e cancelável a qualquer momento.' },
                 ].map((item, i) => (
