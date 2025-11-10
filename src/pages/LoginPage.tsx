@@ -108,9 +108,11 @@ export function LoginPage() {
           <div className="mx-auto grid w-[350px] gap-6 bg-white/70 p-6 rounded-lg border border-zinc-200 shadow-sm backdrop-blur-sm">
             <div className="grid gap-2 text-center">
               <div className="flex justify-center items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
-                  <Feather.BarChart2 className="w-7 h-7 text-white" />
-                </div>
+                <img
+                  src="/favicon.ico"
+                  alt="Logo ZailonSoft"
+                  className="w-12 h-12 rounded-lg"
+                />
                 <div>
                   <h1 className="text-3xl font-bold text-zinc-900">
                     Zailon<span className="text-amber-500">Soft</span>

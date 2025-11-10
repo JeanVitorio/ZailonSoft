@@ -60,9 +60,11 @@ export function SignUpPage() {
                 >
                     <div className="grid gap-2 text-center">
                         <div className="flex justify-center items-center gap-4 mb-4">
-                            <div className="w-14 h-14 rounded-lg bg-amber-500 flex items-center justify-center">
-                                <UserPlus className="w-8 h-8 text-white" />
-                            </div>
+                            <img
+                                src="/favicon.ico"
+                                alt="Logo ZailonSoft"
+                                className="w-14 h-14 rounded-lg"
+                            />
                             <div>
                                 <h1 className="text-3xl font-bold text-zinc-900">ZailonSoft</h1>
                                 <p className="text-balance text-zinc-600">CRM Automotivo</p>
