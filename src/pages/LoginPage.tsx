@@ -139,7 +139,7 @@ export function LoginPage() {
                 <div className="flex items-center justify-between">
                   <label htmlFor="password" className="text-zinc-800 font-medium">Senha</label>
                   <Link
-                    to="/forgot-password"
+                    to="https://wa.me/554691163405?text=Esqueci%20a%20senha%20de%20usuário%20do%20sistema%20ZailonSoft"
                     className="text-sm text-amber-500 hover:text-amber-600 transition-colors"
                   >
                     Esqueceu a sua senha?
