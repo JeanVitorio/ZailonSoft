@@ -111,7 +111,7 @@ export function SignUpPage() {
             </div>
             <div className="hidden bg-zinc-100 lg:block">
                 <img
-                    src="https://images.unsplash.com/photo-1554224155-8d044b4a15e3?q=80&w=2070&auto=format&fit=crop"
+                    src="/CamaroBranco.png"
                     alt="Imagem de uma pessoa assinando um contrato de um carro"
                     className="h-full w-full object-cover"
                 />
