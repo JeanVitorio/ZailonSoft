@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import {
   fetchAvailableCars,
   updateVehicle as updateVehicleInSupabase,
@@ -59,8 +59,8 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
     description: getDesc(vehicle),
     ano: getYear(vehicle) as any,
     year: getYear(vehicle) as any,
-    preco: String(getPriceRaw(vehicle)),
-    price: String(getPriceRaw(vehicle)),
+    preco: formatCurrency(getPriceRaw(vehicle)).replace('R$ ', ''), // Formatted without 'R$'
+    price: formatCurrency(getPriceRaw(vehicle)).replace('R$ ', ''),
     imagens: getImages(vehicle) as any,
     images: getImages(vehicle) as any,
   });
@@ -77,8 +77,8 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
       description: getDesc(vehicle),
       ano: getYear(vehicle) as any,
       year: getYear(vehicle) as any,
-      preco: String(getPriceRaw(vehicle)),
-      price: String(getPriceRaw(vehicle)),
+      preco: formatCurrency(getPriceRaw(vehicle)).replace('R$ ', ''),
+      price: formatCurrency(getPriceRaw(vehicle)).replace('R$ ', ''),
       imagens: getImages(vehicle) as any,
       images: getImages(vehicle) as any,
     });
@@ -91,23 +91,34 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
     setData((prev) => ({ ...prev, preco: formatted, price: formatted }));
   };
 
+  const validateData = (): boolean => {
+    if (!getName(data).trim()) {
+      toast({ title: 'Erro', description: 'O nome é obrigatório.', variant: 'destructive' });
+      return false;
+    }
+    const yearNum = parseInt(getYear(data) as string, 10);
+    if (isNaN(yearNum) || yearNum < 1900 || yearNum > new Date().getFullYear() + 1) {
+      toast({ title: 'Erro', description: 'Ano inválido.', variant: 'destructive' });
+      return false;
+    }
+    if (parsePrice(getPriceRaw(data)) <= 0) {
+      toast({ title: 'Erro', description: 'Preço deve ser maior que zero.', variant: 'destructive' });
+      return false;
+    }
+    return true;
+  };
+
   const save = useMutation({
     mutationFn: () =>
       updateVehicleInSupabase({
         carId: (vehicle as any).id,
-        // escreve PT e EN para manter compatibilidade até padronizar no backend
+        // Apenas colunas PT reais da tabela 'cars' (evita erro de coluna inexistente)
+        // imagens é tratado separadamente via newImages (append)
         updatedData: {
-          ...data,
           nome: getName(data),
-          name: getName(data),
           descricao: getDesc(data),
-          description: getDesc(data),
-          ano: getYear(data),
-          year: getYear(data),
-          preco: parsePrice((data as any).preco ?? (data as any).price),
-          price: parsePrice((data as any).preco ?? (data as any).price),
-          imagens: getImages(data),
-          images: getImages(data),
+          ano: Number(getYear(data)),
+          preco: (data as any).preco,
         },
         newImages: imgs,
       }),
@@ -115,6 +126,15 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
       toast({ title: 'Salvo!' });
       qc.invalidateQueries({ queryKey: ['vehicles'] });
       setEdit(false);
+      setImgs([]); // Limpa novas imagens após sucesso
+    },
+    onError: (error: any) => {
+      console.error('Erro ao salvar edição:', error); // Debug no console
+      toast({
+        title: 'Erro ao salvar',
+        description: error?.message || 'Falha ao atualizar o veículo. Verifique os dados e tente novamente.',
+        variant: 'destructive',
+      });
     },
   });
 
@@ -145,10 +165,13 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
                   Cancelar
                 </button>
                 <button
-                  onClick={() => save.mutate()}
-                  className="px-5 py-2 bg-amber-500 text-white rounded-xl shadow hover:bg-amber-600 transition"
+                  onClick={() => {
+                    if (validateData()) save.mutate();
+                  }}
+                  disabled={save.isPending}
+                  className="px-5 py-2 bg-amber-500 text-white rounded-xl shadow hover:bg-amber-600 transition disabled:opacity-50"
                 >
-                  Salvar
+                  {save.isPending ? 'Salvando...' : 'Salvar'}
                 </button>
               </>
             ) : (
@@ -318,12 +341,6 @@ export function VehicleCatalog() {
     toast({ title: 'Copiado!', description: 'Link do catálogo' });
   };
 
-  const copyForm = (id: string) => {
-    const url = `${window.location.origin}/form-proposta/${id}`;
-    navigator.clipboard.writeText(url);
-    toast({ title: 'Copiado!', description: 'Link do formulário' });
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-10">
@@ -458,6 +475,8 @@ export function VehicleCatalog() {
         {/* MODAL */}
         <Dialog open={!!car} onOpenChange={(o) => !o && setCar(null)}>
           <DialogContent className="max-w-6xl p-0 overflow-hidden rounded-2xl">
+            {/* Adicionado DialogTitle oculto para acessibilidade (resolve warning Radix) */}
+            <DialogTitle className="sr-only">Detalhes do Veículo</DialogTitle>
             {car && <CarDetailsView vehicle={car} onBack={() => setCar(null)} />}
           </DialogContent>
         </Dialog>
