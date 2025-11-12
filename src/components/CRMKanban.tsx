@@ -684,9 +684,6 @@ function PdfNegotiation({
       <div className="p-8 pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-amber-100 border border-amber-300 grid place-items-center text-amber-800 font-bold text-xl">
-              {initials}
-            </div>
             <div>
               <h1 className="text-2xl font-bold leading-tight">Negociação</h1>
               <p className="text-sm text-gray-600 mt-1">
@@ -1041,9 +1038,6 @@ function AtendimentoDialog({
           <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500" />
           <div className="px-5 pt-4 pb-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-amber-500/15 border border-amber-500/30 grid place-items-center text-amber-700 font-semibold">
-                {initials}
-              </div>
               <div>
                 <DialogTitle className="text-lg md:text-xl leading-tight">
                   {data?.name || "Atendimento"}
