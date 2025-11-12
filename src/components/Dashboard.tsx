@@ -17,7 +17,6 @@ import {
 import { Line } from 'react-chartjs-2';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-
 import {
   fetchClients,
   fetchAvailableCars,
@@ -26,9 +25,7 @@ import {
   Car as CarType,
 } from '@/services/api';
 import { useAuth } from '@/auth/AuthContext';
-
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler, Legend);
-
 /* ===========================
    CONFIG / CONSTANTES
    =========================== */
@@ -42,7 +39,6 @@ const FUNIL_ETAPAS: { id: string; label: string }[] = [
   { id: 'vendido',          label: 'Vendido' },
   { id: 'perdido',          label: 'Perdido' },
 ];
-
 // Auxiliares legados ainda presentes em alguns dados
 const AGUARDANDO_IDS = [
   'aguardando_interesse',
@@ -51,12 +47,10 @@ const AGUARDANDO_IDS = [
   'aguardando_opcao_pagamento',
 ];
 const DADOS_IDS = ['dados_troca', 'dados_visita', 'dados_financiamento'];
-
 const formatToBRL = (v: number | string) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(
     typeof v === 'number' ? v : Number(v || 0)
   );
-
 /* ===========================
    PARSERS / HELPERS
    =========================== */
@@ -72,7 +66,6 @@ const parseCurrency = (v: any): number => {
   n = digits.length >= 3 ? Number(digits) / 100 : Number(digits);
   return Number.isFinite(n) ? n : 0;
 };
-
 const tryEpoch = (v: any): Date | null => {
   if (v == null) return null;
   const s = String(v).trim();
@@ -87,7 +80,6 @@ const tryISOorNative = (v: any): Date | null => {
   return isNaN(d.getTime()) ? null : d;
 };
 const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
-
 const tryYMD_HM = (dateStr: any, timeStr?: any): Date | null => {
   if (!dateStr) return null;
   const s = String(dateStr).trim();
@@ -110,32 +102,25 @@ const tryDMY_HM = (dateStr: any, timeStr?: any): Date | null => {
   const d = new Date(`${y}-${mm}-${dd}T${t}:00`);
   return isNaN(d.getTime()) ? null : d;
 };
-
 /** Normaliza estados (novos + legado) para os IDs do funil do CRM */
 const normalizaEstadoParaFunil = (raw: any): string => {
   const s = String(raw || '').trim().toLowerCase();
-
   // Vazio/“inicial”/“leed_recebido” começam em Novo Lead
   if (!s || s === 'inicial' || s === 'leed_recebido') return 'novo_lead';
-
   // Legados → novos
   if (s === 'triagem' || s === 'contato' || s === 'em_contato') return 'em_contato';
   if (s === 'visita' || s === 'visita_agendada') return 'qualificado';
   if (s === 'proposta' || s === 'proposta_enviada') return 'proposta_enviada';
   if (s === 'em_negociacao' || s === 'negociacao' || s === 'reservado') return 'negociacao_final';
-
   // Estados já válidos no CRM atual passam direto
   const valid = new Set(FUNIL_ETAPAS.map(f => f.id));
   if (valid.has(s)) return s;
-
   // Grupos auxiliares antigos
   if (AGUARDANDO_IDS.includes(s)) return 'em_contato';
   if (DADOS_IDS.includes(s)) return 'qualificado';
-
   // Fallback seguro
   return 'novo_lead';
 };
-
 /** Data de referência geral (primeiro contato) */
 const getClientRefDate = (c: any): Date | null => {
   const bd = c?.bot_data ?? {};
@@ -154,7 +139,6 @@ const getClientRefDate = (c: any): Date | null => {
   }
   return null;
 };
-
 /** Data de envio do formulário (fallback para ref date) */
 const getFormSubmittedAt = (c: any): Date | null => {
   const bd = c?.bot_data ?? {};
@@ -170,12 +154,10 @@ const getFormSubmittedAt = (c: any): Date | null => {
   }
   return getClientRefDate(c);
 };
-
 /** Preço provável do veículo */
 const pickVehiclePrice = (client: ClientType): number => {
   const b: any = client?.bot_data ?? {};
   const candidates: any[] = [];
-
   if (Array.isArray(b?.interested_vehicles)) {
     for (const it of b.interested_vehicles) {
       if (!it) continue;
@@ -186,23 +168,19 @@ const pickVehiclePrice = (client: ClientType): number => {
   if (iv) candidates.push(iv.preco, iv.valor, iv.price, iv.preco_tabela, iv.preco_sugerido, iv.preco_anunciado);
   const vehicle = b?.vehicle;
   if (vehicle) candidates.push(vehicle.preco, vehicle.valor, vehicle.price, vehicle.preco_tabela, vehicle.preco_sugerido);
-
   candidates.push(
     b?.vehicle_price, b?.valor_negociacao, b?.valor_negociacao_total,
     b?.budget?.value, b?.orcamento?.valor, b?.negociacao?.valor
   );
-
   const parsed = candidates.map(parseCurrency).filter((x) => Number.isFinite(x) && x > 0);
   return parsed.length ? Math.max(...parsed) : 0;
 };
-
 /** Data da visita (robusto) */
 const getVisitAtRobusto = (client: any): Date | null => {
   const rootVD = client?.visit_details ?? {};
   const bd = client?.bot_data ?? {};
   const ag = bd?.agendamento ?? rootVD?.agendamento ?? {};
   const vdCRM = bd?.visit_details ?? {};
-
   const direct = [
     rootVD?.visit_at, rootVD?.datetime, rootVD?.dateTime, rootVD?.when, rootVD?.timestamp,
     vdCRM?.visit_at, vdCRM?.datetime, vdCRM?.dateTime, vdCRM?.when, vdCRM?.timestamp,
@@ -213,7 +191,6 @@ const getVisitAtRobusto = (client: any): Date | null => {
     const d = tryEpoch(c) || tryISOorNative(c) || tryDMY_HM(c) || tryYMD_HM(c);
     if (d) return d;
   }
-
   const dateCandidates = [
     vdCRM?.day, vdCRM?.date, vdCRM?.dia, vdCRM?.data,
     rootVD?.day, rootVD?.date, rootVD?.dia, rootVD?.data,
@@ -230,7 +207,6 @@ const getVisitAtRobusto = (client: any): Date | null => {
       if (d1) return d1;
     }
   }
-
   const epochish = [vdCRM?.day, vdCRM?.datetime, rootVD?.datetime, bd?.visit_at, ag?.date]
     .find((x) => x != null && /^\d{10,13}$/.test(String(x)));
   if (epochish) {
@@ -239,7 +215,6 @@ const getVisitAtRobusto = (client: any): Date | null => {
   }
   return null;
 };
-
 /* ===========================
    CALENDÁRIO — helpers
    =========================== */
@@ -265,22 +240,74 @@ const isSameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() &&
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate();
-
 /* ===========================
    DASHBOARD
    =========================== */
 type RangeMode = 'today' | '7d' | '30d' | 'custom';
-
+// ---------- NOVO: normalização robusta do TIPO DE NEGÓCIO ----------
+type DealType = 'À vista' | 'Financiado' | 'Troca' | 'Visita' | 'Outros';
+/** Detecta se há veículo de troca preenchido em campos comuns */
+const hasTradeInFlag = (c: any): boolean => {
+  const bd = c?.bot_data ?? {};
+  // Simple flags
+  const simple = [bd?.tem_troca, bd?.has_trade_in, bd?.troca];
+  for (const v of simple) {
+    if (v && v !== 'false' && v !== false) return true;
+  }
+  // Trade_in_car fields
+  const trades = [c?.trade_in_car, bd?.trade_in_car].filter(Boolean);
+  for (let tr of trades) {
+    if (typeof tr === 'string' && tr.trim()) {
+      try {
+        tr = JSON.parse(tr);
+      } catch {
+        continue;
+      }
+    }
+    if (typeof tr !== 'object' || tr == null) continue;
+    if (
+      (Array.isArray(tr.photos) && tr.photos.length) ||
+      (Array.isArray(tr.images) && tr.images.length) ||
+      (Array.isArray(tr.imagens) && tr.imagens.length) ||
+      tr.model ||
+      tr.year ||
+      tr.value ||
+      tr.modelo ||
+      tr.ano ||
+      tr.valor ||
+      tr.descricao ||
+      tr.description
+    ) return true;
+  }
+  return false;
+};
+/** Decide a categoria única do cliente, alinhado com a lógica do CRM */
+const getDealType = (c: any): DealType => {
+  const bd = c?.bot_data ?? {};
+  const txt = (s: any) => String(s || "").toLowerCase();
+  const deal = txt(bd?.deal_type || c?.deal_type);
+  const pay = txt(bd?.payment_method || c?.payment_method);
+  const visit = bd?.visit_details || {};
+  const hasTrade = !!bd?.trade_in_car &&
+    (Array.isArray(bd.trade_in_car?.imagens) ||
+     Array.isArray(bd.trade_in_car?.images) ||
+     bd.trade_in_car?.modelo ||
+     bd.trade_in_car?.descricao ||
+     hasTradeInFlag(c)); // Merge para robustez
+  if (hasTrade || deal.includes("troca") || pay.includes("troca")) return 'Troca';
+  if (deal.includes("financ") || pay.includes("financ") || pay.includes("parcel")) return 'Financiado';
+  if (deal.includes("vista") || pay.includes("vista") || pay.includes("pix") || pay.includes("dinheiro")) return 'À vista';
+  if (visit?.day || visit?.time) return 'Visita';
+  return 'Outros';
+};
 export function Dashboard() {
   const navigate = useNavigate();
   const dashboardRef = useRef<HTMLDivElement>(null);
   const { lojaId, isLoading: authLoading } = useAuth();
-
   // -------- Filtro global (termina em HOJE)
   const [mode, setMode] = useState<RangeMode>('7d'); // padrão: últimos 7 dias
   const [customStart, setCustomStart] = useState<string>('');
   const [customEnd, setCustomEnd] = useState<string>(''); // agora usado
-
   const computeRange = (): { start: Date; end: Date; label: string } => {
     const now = new Date();
     let end = new Date(now);
@@ -306,15 +333,12 @@ export function Dashboard() {
     return { start, end, label };
   };
   const activeRange = computeRange();
-
   // Calendário
   const [calMonth, setCalMonth] = useState<Date>(() => { const d = new Date(); d.setDate(1); return d; });
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [clientOpen, setClientOpen] = useState<ClientType | null>(null);
-
   const { data: storeDetailsData } = useQuery({ queryKey: ['storeDetails'], queryFn: fetchStoreDetails });
-
   const { data: clientsRaw = [], isLoading: cLoading } = useQuery<ClientType[]>({
     queryKey: ['clients', lojaId],
     queryFn: fetchClients,
@@ -322,14 +346,12 @@ export function Dashboard() {
     initialData: [],
     refetchInterval: 10000,
   });
-
   const { data: vehicles = [], isLoading: vLoading } = useQuery<CarType[]>({
     queryKey: ['vehicles', lojaId],
     queryFn: () => fetchAvailableCars(lojaId!),
     enabled: !!lojaId,
     initialData: [],
   });
-
   // --- Clientes para MÉTRICAS (passado + hoje)
   const metricClients = useMemo(() => {
     const { start, end } = activeRange;
@@ -339,7 +361,6 @@ export function Dashboard() {
       return d >= start && d <= end;
     });
   }, [clientsRaw, activeRange.start.getTime(), activeRange.end.getTime()]);
-
   // --- Total de FORMULÁRIOS dentro do período (usando data ref)
   const totalFormularios = useMemo(() => {
     const { start, end } = activeRange;
@@ -351,7 +372,6 @@ export function Dashboard() {
     }
     return count;
   }, [clientsRaw, activeRange.start.getTime(), activeRange.end.getTime()]);
-
   // --- VISITAS: do início do período para FRENTE (inclui futuro)
   const visitsAll = useMemo(() => {
     const { start } = activeRange;
@@ -366,7 +386,6 @@ export function Dashboard() {
     }
     return map;
   }, [clientsRaw, activeRange.start.getTime()]);
-
   const visitsCount = visitsAll.size;
   const visitsFlatSorted = useMemo(() => {
     const out: Array<{ client: ClientType; date: Date }> = [];
@@ -375,11 +394,9 @@ export function Dashboard() {
     }
     return out.sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [visitsAll]);
-
   /* ---------- DADOS DERIVADOS (FUNIL CRM) ---------- */
   const dashboardData = useMemo(() => {
     const stateOf = (c: any) => String(c?.bot_data?.state || c?.state || '').toLowerCase();
-
     // Contagem por etapa do funil (normalizado)
     const funilCounts: Record<string, number> = Object.fromEntries(
       FUNIL_ETAPAS.map(({ id }) => [id, 0])
@@ -388,28 +405,20 @@ export function Dashboard() {
       const sNorm = normalizaEstadoParaFunil(stateOf(c));
       funilCounts[sNorm] += 1;
     }
-
-    // Tipos de negócio
-    const tipoOrdemFixa: Array<'À vista' | 'Financiado' | 'Troca'> = ['À vista', 'Financiado', 'Troca'];
-    const tipoCountBase = { 'À vista': 0, 'Financiado': 0, Troca: 0 } as Record<(typeof tipoOrdemFixa)[number], number>;
+    // Tipos de negócio — alinhado com CRM
+    const tipoOrdemFixa: DealType[] = ['À vista', 'Financiado', 'Troca', 'Visita', 'Outros'];
+    const tipoCountBase: Record<DealType, number> = { 'À vista': 0, 'Financiado': 0, 'Troca': 0, 'Visita': 0, 'Outros': 0 };
     const tipoCount = metricClients.reduce((acc, c) => {
-      const tipoRaw = c?.bot_data?.deal_type;
-      if (!tipoRaw) return acc;
-      const normalized = String(tipoRaw).toLowerCase();
-      if (normalized.includes('vista')) acc['À vista'] += 1;
-      else if (normalized.includes('financ')) acc['Financiado'] += 1;
-      else if (normalized.includes('troca')) acc['Troca'] += 1;
+      const t = getDealType(c);
+      acc[t] += 1;
       return acc;
     }, { ...tipoCountBase });
-
     // Valor em negociação: exclui vendidos
     const valorNegociacaoNum = metricClients
       .filter((c) => normalizaEstadoParaFunil(stateOf(c)) !== 'vendido')
       .reduce((acc, c) => acc + pickVehiclePrice(c), 0);
-
     const funnelLabels = FUNIL_ETAPAS.map((f) => f.label);
     const funnelValues = FUNIL_ETAPAS.map((f) => funilCounts[f.id]);
-
     const funnelData = {
       labels: funnelLabels,
       datasets: [
@@ -429,7 +438,6 @@ export function Dashboard() {
         },
       ],
     };
-
     const tipoData = {
       labels: tipoOrdemFixa,
       datasets: [
@@ -449,12 +457,9 @@ export function Dashboard() {
         },
       ],
     };
-
     const maxFunnel = Math.max(1, ...funnelValues);
     const maxTipo = Math.max(1, ...tipoOrdemFixa.map((k) => tipoCount[k]));
-
     const vendas = funilCounts['vendido'] || 0;
-
     return {
       cards: [
         { title: 'Total de Formulários', value: totalFormularios },
@@ -470,7 +475,6 @@ export function Dashboard() {
       valorNegociacao: formatToBRL(valorNegociacaoNum),
     };
   }, [metricClients, vehicles.length, visitsCount, totalFormularios]);
-
   const baseChartOptions = useMemo(
     () =>
       ({
@@ -495,7 +499,6 @@ export function Dashboard() {
     ...baseChartOptions,
     scales: { ...baseChartOptions.scales, y: { ...baseChartOptions.scales.y, suggestedMax: dashboardData.maxTipo } },
   }), [baseChartOptions, dashboardData.maxTipo]);
-
   /* ---------- Exportação PDF ---------- */
   const exportToPDFFull = useCallback(async () => {
     if (!dashboardRef.current) return;
@@ -515,7 +518,6 @@ export function Dashboard() {
     const imgWidth = pageWidth;
     const ratio = imgWidth / canvas.width;
     const imgFullHeight = canvas.height * ratio;
-
     if (imgFullHeight <= pageHeight) {
       pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgFullHeight);
     } else {
@@ -541,7 +543,6 @@ export function Dashboard() {
     }
     pdf.save(`Dashboard_${storeDetailsData?.nome || 'Zailon'}_${new Date().toLocaleDateString('pt-BR')}.pdf`);
   }, [storeDetailsData?.nome]);
-
   /* ---------- Loading ---------- */
   if (authLoading || cLoading || vLoading) {
     return (
@@ -550,12 +551,10 @@ export function Dashboard() {
       </div>
     );
   }
-
   /* ===========================
      UI
      =========================== */
   const monthWeeks = getMonthMatrix(calMonth);
-
   const monthVisitMap = new Map<string, number>();
   for (const [, bucket] of visitsAll) {
     if (bucket.date.getMonth() !== calMonth.getMonth() || bucket.date.getFullYear() !== calMonth.getFullYear())
@@ -563,22 +562,18 @@ export function Dashboard() {
     const k = `${bucket.date.getFullYear()}-${pad2(bucket.date.getMonth() + 1)}-${pad2(bucket.date.getDate())}`;
     monthVisitMap.set(k, bucket.clients.length);
   }
-
   const openDrawerForDate = (d: Date) => {
     setSelectedDate(d);
     setClientOpen(null);
     setDrawerOpen(true);
   };
-
   const selectedDateKey =
     selectedDate ? `${selectedDate.getFullYear()}-${pad2(selectedDate.getMonth() + 1)}-${pad2(selectedDate.getDate())}` : '';
   const selectedBucket = selectedDateKey ? visitsAll.get(selectedDateKey) : undefined;
-
   const rangeBadge =
     mode === 'custom'
       ? `De ${customStart || '—'} até ${customEnd || 'hoje'} • Visitas futuras incluídas`
       : `${activeRange.label} • Visitas futuras incluídas`;
-
   return (
     <div ref={dashboardRef} className="min-h-screen bg-transparent">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
@@ -608,7 +603,6 @@ export function Dashboard() {
               </div>
             </div>
           </div>
-
         {/* Filtro compacto */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div className="flex items-center gap-1 bg-white border rounded-xl p-1">
@@ -637,7 +631,6 @@ export function Dashboard() {
                 Personalizado
               </button>
             </div>
-
             {mode === 'custom' && (
               <div className="flex items-center gap-2">
                 <input
@@ -655,7 +648,6 @@ export function Dashboard() {
                 />
               </div>
             )}
-
             <button
               onClick={exportToPDFFull}
               className="px-4 py-2 bg-emerald-600 text-white rounded-xl shadow hover:bg-emerald-700 transition flex items-center gap-2 text-sm font-medium whitespace-nowrap"
@@ -665,7 +657,6 @@ export function Dashboard() {
             </button>
           </div>
         </div>
-
         {/* CARDS */}
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-8">
           {dashboardData.cards.map((card, i) => (
@@ -683,7 +674,6 @@ export function Dashboard() {
             </motion.div>
           ))}
         </div>
-
         {/* GRÁFICOS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white rounded-2xl shadow border border-gray-100 p-6">
@@ -692,13 +682,12 @@ export function Dashboard() {
               <Line data={dashboardData.funnelData} options={funnelOptions} />
             </div>
           </motion.div>
-
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white rounded-2xl shadow border border-gray-100 p-6">
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 text-center">Tipo de Negócio</h2>
             <div className="h-56 sm:h-72">
               <Line data={dashboardData.tipoData} options={tipoOptions} />
             </div>
-            <div className="grid grid-cols-3 gap-4 mt-4 text-center">
+            <div className="grid grid-cols-5 gap-4 mt-4 text-center">
               {dashboardData.tipoData.labels.map((label: any, i: number) => (
                 <div key={i} className="text-xs">
                   <div className="font-bold text-gray-900 text-lg">
@@ -710,7 +699,6 @@ export function Dashboard() {
             </div>
           </motion.div>
         </div>
-
         {/* VALOR EM NEGOCIAÇÃO */}
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-6">
           <div className="bg-gradient-to-r from-amber-500 to-yellow-500 rounded-3xl p-6 sm:p-8 text-center shadow-2xl">
@@ -718,7 +706,6 @@ export function Dashboard() {
             <p className="text-4xl sm:text-6xl font-black text-zinc-900 mt-3">{dashboardData.valorNegociacao}</p>
           </div>
         </motion.div>
-
         {/* VISITAS — Calendário + Próximas */}
         <div className="mt-8 grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* CALENDÁRIO */}
@@ -745,7 +732,6 @@ export function Dashboard() {
                 </button>
               </div>
             </div>
-
             <div className="overflow-x-auto">
               <div className="min-w-[560px]">
                 <div className="grid grid-cols-7 text-[11px] sm:text-xs font-semibold text-gray-500 mb-2">
@@ -753,7 +739,6 @@ export function Dashboard() {
                     <div key={d} className="text-center py-1">{d}</div>
                   ))}
                 </div>
-
                 <div className="grid grid-rows-6 gap-2">
                   {getMonthMatrix(calMonth).map((week, wi) => (
                     <div key={`w-${wi}`} className="grid grid-cols-7 gap-2">
@@ -762,7 +747,6 @@ export function Dashboard() {
                         const k = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
                         const count = monthVisitMap.get(k) || 0;
                         const today = isSameDay(d, new Date());
-
                         return (
                           <button
                             key={`d-${wi}-${di}`}
@@ -803,12 +787,10 @@ export function Dashboard() {
                 </div>
               </div>
             </div>
-
             <p className="text-[11px] text-gray-500 mt-3">
               * Toque em um dia com visitas para abrir a lista no painel.
             </p>
           </div>
-
           {/* PRÓXIMAS VISITAS */}
           <div className="bg-white rounded-2xl shadow border border-gray-100 p-4 sm:p-6">
             <h3 className="text-base sm:text-lg font-bold mb-3">Próximas visitas</h3>
@@ -839,12 +821,10 @@ export function Dashboard() {
             </div>
           </div>
         </div>
-
         <div className="mt-10 text-center text-[11px] text-gray-500">
           <p>Zailon Intelligence • Atualizado agora</p>
         </div>
       </div>
-
       {/* PAINEL LATERAL */}
       <div
         className={[
@@ -860,7 +840,6 @@ export function Dashboard() {
           ].join(' ')}
           onClick={() => setDrawerOpen(false)}
         />
-
         <aside
           className={[
             'absolute right-0 top-0 h-full w-full sm:w-[420px] bg-white shadow-2xl border-l transition-transform',
@@ -895,7 +874,6 @@ export function Dashboard() {
               <Feather.X />
             </button>
           </div>
-
           <div className="p-4 sm:p-5 h-[calc(100%-120px)] overflow-auto pb-28">
             {!selectedBucket || selectedBucket.clients.length === 0 ? (
               <div className="text-sm text-gray-500">Nenhum cliente nesta data.</div>
@@ -942,7 +920,6 @@ export function Dashboard() {
               </div>
             )}
           </div>
-
           <div className="absolute bottom-0 left-0 right-0 p-3 bg-white border-t">
             {clientOpen ? (
               <button
@@ -968,7 +945,6 @@ export function Dashboard() {
     </div>
   );
 }
-
 /* ===========================
    Card “gourmetizado” do cliente
    =========================== */
@@ -982,18 +958,15 @@ function ClientOverviewCard({ client, onBack }: { client: any; onBack: () => voi
       return null;
     } catch { return null; }
   })();
-
   const whatsappHref = client?.phone
     ? `https://wa.me/${String(client.phone).replace(/\D+/g, '')}`
     : '';
-
   const Field = ({ label, children }: any) => (
     <div className="text-[11px] sm:text-xs">
       <div className="text-gray-500 mb-1">{label}</div>
       <div className="bg-gray-50 border rounded-lg px-3 py-2 text-gray-800">{children || '—'}</div>
     </div>
   );
-
   return (
     <div className="space-y-3">
       <div className="flex items-start justify-between">
@@ -1005,9 +978,8 @@ function ClientOverviewCard({ client, onBack }: { client: any; onBack: () => voi
           {(bd?.state || client?.state || '').replace(/_/g, ' ') || '—'}
         </div>
       </div>
-
       <div className="grid grid-cols-1 gap-3">
-        <Field label="Tipo de negócio">{bd?.deal_type || '—'}</Field>
+        <Field label="Tipo de negócio">{bd?.deal_type || client?.deal_type || '—'}</Field>
         <Field label="Veículo de interesse">{interested?.nome || '—'}</Field>
         <Field label="Orçamento">{bd?.budget?.value ? formatToBRL(parseCurrency(bd?.budget?.value)) : '—'}</Field>
         <Field label="Valor alvo do veículo">
@@ -1017,7 +989,6 @@ function ClientOverviewCard({ client, onBack }: { client: any; onBack: () => voi
           {bd?.notes || bd?.observacoes || 'Sem observações.'}
         </Field>
       </div>
-
       {whatsappHref && (
         <a
           href={whatsappHref}
@@ -1032,5 +1003,4 @@ function ClientOverviewCard({ client, onBack }: { client: any; onBack: () => voi
     </div>
   );
 }
-
 export default Dashboard;
