@@ -32,6 +32,18 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip,
 /* ===========================
    CONFIG / CONSTANTES
    =========================== */
+/** Funil alinhado ao CRM/Kanban */
+const FUNIL_ETAPAS: { id: string; label: string }[] = [
+  { id: 'novo_lead',        label: 'Novo Lead' },
+  { id: 'em_contato',       label: 'Em Contato' },
+  { id: 'qualificado',      label: 'Qualificado' },
+  { id: 'proposta_enviada', label: 'Proposta Enviada' },
+  { id: 'negociacao_final', label: 'Negociação Final' },
+  { id: 'vendido',          label: 'Vendido' },
+  { id: 'perdido',          label: 'Perdido' },
+];
+
+// Auxiliares legados ainda presentes em alguns dados
 const AGUARDANDO_IDS = [
   'aguardando_interesse',
   'aguardando_escolha_carro',
@@ -40,9 +52,9 @@ const AGUARDANDO_IDS = [
 ];
 const DADOS_IDS = ['dados_troca', 'dados_visita', 'dados_financiamento'];
 
-const formatToBRL = (v: number) =>
+const formatToBRL = (v: number | string) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(
-    Number.isFinite(v) ? v : 0
+    typeof v === 'number' ? v : Number(v || 0)
   );
 
 /* ===========================
@@ -99,6 +111,31 @@ const tryDMY_HM = (dateStr: any, timeStr?: any): Date | null => {
   return isNaN(d.getTime()) ? null : d;
 };
 
+/** Normaliza estados (novos + legado) para os IDs do funil do CRM */
+const normalizaEstadoParaFunil = (raw: any): string => {
+  const s = String(raw || '').trim().toLowerCase();
+
+  // Vazio/“inicial”/“leed_recebido” começam em Novo Lead
+  if (!s || s === 'inicial' || s === 'leed_recebido') return 'novo_lead';
+
+  // Legados → novos
+  if (s === 'triagem' || s === 'contato' || s === 'em_contato') return 'em_contato';
+  if (s === 'visita' || s === 'visita_agendada') return 'qualificado';
+  if (s === 'proposta' || s === 'proposta_enviada') return 'proposta_enviada';
+  if (s === 'em_negociacao' || s === 'negociacao' || s === 'reservado') return 'negociacao_final';
+
+  // Estados já válidos no CRM atual passam direto
+  const valid = new Set(FUNIL_ETAPAS.map(f => f.id));
+  if (valid.has(s)) return s;
+
+  // Grupos auxiliares antigos
+  if (AGUARDANDO_IDS.includes(s)) return 'em_contato';
+  if (DADOS_IDS.includes(s)) return 'qualificado';
+
+  // Fallback seguro
+  return 'novo_lead';
+};
+
 /** Data de referência geral (primeiro contato) */
 const getClientRefDate = (c: any): Date | null => {
   const bd = c?.bot_data ?? {};
@@ -118,33 +155,19 @@ const getClientRefDate = (c: any): Date | null => {
   return null;
 };
 
-/** Data de envio do formulário (mais assertiva) */
+/** Data de envio do formulário (fallback para ref date) */
 const getFormSubmittedAt = (c: any): Date | null => {
   const bd = c?.bot_data ?? {};
   const candidates = [
-    c?.form_submitted_at,
-    c?.form_created_at,
-    c?.submitted_at,
-    c?.form?.submitted_at,
-    c?.form?.created_at,
-
-    bd?.form_submitted_at,
-    bd?.form_created_at,
-    bd?.submitted_at,
-    bd?.form?.submitted_at,
-    bd?.form?.created_at,
-    bd?.formulario?.submitted_at,
-    bd?.formulario?.created_at,
-    bd?.formulario?.enviado_em,
-    bd?.answers?.submitted_at,
-    bd?.answers?.created_at,
+    c?.form_submitted_at, c?.form_created_at, c?.submitted_at, c?.form?.submitted_at, c?.form?.created_at,
+    bd?.form_submitted_at, bd?.form_created_at, bd?.submitted_at, bd?.form?.submitted_at, bd?.form?.created_at,
+    bd?.formulario?.submitted_at, bd?.formulario?.created_at, bd?.formulario?.enviado_em,
+    bd?.answers?.submitted_at, bd?.answers?.created_at,
   ];
   for (const v of candidates) {
     const d = tryEpoch(v) || tryISOorNative(v) || tryDMY_HM(v) || tryYMD_HM(v);
     if (d) return d;
   }
-
-  // fallback: se não achar, usa a ref geral (não ideal, mas melhor que contar zero)
   return getClientRefDate(c);
 };
 
@@ -156,9 +179,7 @@ const pickVehiclePrice = (client: ClientType): number => {
   if (Array.isArray(b?.interested_vehicles)) {
     for (const it of b.interested_vehicles) {
       if (!it) continue;
-      candidates.push(
-        it.preco, it.valor, it.price, it.preco_tabela, it.preco_sugerido, it.preco_anunciado
-      );
+      candidates.push(it.preco, it.valor, it.price, it.preco_tabela, it.preco_sugerido, it.preco_anunciado);
     }
   }
   const iv = b?.interested_vehicle;
@@ -319,12 +340,12 @@ export function Dashboard() {
     });
   }, [clientsRaw, activeRange.start.getTime(), activeRange.end.getTime()]);
 
-  // --- Total de FORMULÁRIOS dentro do período (usa data real de envio)
+  // --- Total de FORMULÁRIOS dentro do período (usando data ref)
   const totalFormularios = useMemo(() => {
     const { start, end } = activeRange;
     let count = 0;
     for (const c of clientsRaw) {
-      const d = getClientRefDate(c); // Use getClientRefDate for all types
+      const d = getClientRefDate(c);
       if (!d) continue;
       if (d >= start && d <= end) count += 1;
     }
@@ -355,17 +376,24 @@ export function Dashboard() {
     return out.sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [visitsAll]);
 
-  /* ---------- DADOS DERIVADOS ---------- */
+  /* ---------- DADOS DERIVADOS (FUNIL CRM) ---------- */
   const dashboardData = useMemo(() => {
-    const novoLead = metricClients.filter((c) => (c.bot_data?.state || c.state) === 'leed_recebido').length;
-    const aguardando = metricClients.filter((c) => AGUARDANDO_IDS.includes(c.bot_data?.state || c.state)).length;
-    const dados = metricClients.filter((c) => DADOS_IDS.includes(c.bot_data?.state || c.state)).length;
-    const finalizado = metricClients.filter((c) => (c.bot_data?.state || c.state) === 'finalizado').length;
+    const stateOf = (c: any) => String(c?.bot_data?.state || c?.state || '').toLowerCase();
 
+    // Contagem por etapa do funil (normalizado)
+    const funilCounts: Record<string, number> = Object.fromEntries(
+      FUNIL_ETAPAS.map(({ id }) => [id, 0])
+    );
+    for (const c of metricClients) {
+      const sNorm = normalizaEstadoParaFunil(stateOf(c));
+      funilCounts[sNorm] += 1;
+    }
+
+    // Tipos de negócio
     const tipoOrdemFixa: Array<'À vista' | 'Financiado' | 'Troca'> = ['À vista', 'Financiado', 'Troca'];
     const tipoCountBase = { 'À vista': 0, 'Financiado': 0, Troca: 0 } as Record<(typeof tipoOrdemFixa)[number], number>;
     const tipoCount = metricClients.reduce((acc, c) => {
-      const tipoRaw = c.bot_data?.deal_type;
+      const tipoRaw = c?.bot_data?.deal_type;
       if (!tipoRaw) return acc;
       const normalized = String(tipoRaw).toLowerCase();
       if (normalized.includes('vista')) acc['À vista'] += 1;
@@ -374,15 +402,19 @@ export function Dashboard() {
       return acc;
     }, { ...tipoCountBase });
 
+    // Valor em negociação: exclui vendidos
     const valorNegociacaoNum = metricClients
-      .filter((c) => (c.bot_data?.state || c.state) !== 'finalizado')
+      .filter((c) => normalizaEstadoParaFunil(stateOf(c)) !== 'vendido')
       .reduce((acc, c) => acc + pickVehiclePrice(c), 0);
 
+    const funnelLabels = FUNIL_ETAPAS.map((f) => f.label);
+    const funnelValues = FUNIL_ETAPAS.map((f) => funilCounts[f.id]);
+
     const funnelData = {
-      labels: ['Novo Lead', 'Aguardando', 'Dados', 'Finalizado'],
+      labels: funnelLabels,
       datasets: [
         {
-          data: [novoLead, aguardando, dados, finalizado],
+          data: funnelValues,
           borderColor: '#f59e0b',
           backgroundColor: 'rgba(251, 158, 11, 0.08)',
           tension: 0.35,
@@ -418,15 +450,17 @@ export function Dashboard() {
       ],
     };
 
-    const maxFunnel = Math.max(1, novoLead, aguardando, dados, finalizado);
+    const maxFunnel = Math.max(1, ...funnelValues);
     const maxTipo = Math.max(1, ...tipoOrdemFixa.map((k) => tipoCount[k]));
+
+    const vendas = funilCounts['vendido'] || 0;
 
     return {
       cards: [
         { title: 'Total de Formulários', value: totalFormularios },
-        { title: 'Visitas Marcadas (dias)', value: visitsCount, route: '../crm#dados_visita' },
+        { title: 'Visitas Marcadas (dias)', value: visitsCount, route: '../crm#qualificado' },
         { title: 'Veículos em Estoque', value: vehicles.length, route: '../catalog' },
-        { title: 'Atendimentos Finalizados', value: finalizado, route: '../crm#finalizado' },
+        { title: 'Vendas (Vendido)', value: vendas, route: '../crm#vendido' },
         { title: 'Valor em Negociação', value: formatToBRL(valorNegociacaoNum) },
       ],
       funnelData,
@@ -575,7 +609,7 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* Filtro compacto */}
+        {/* Filtro compacto */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div className="flex items-center gap-1 bg-white border rounded-xl p-1">
               <button
@@ -892,14 +926,14 @@ export function Dashboard() {
                       )}
                       {!!(c as any)?.bot_data?.interested_vehicles && (
                         <div className="text-[11px] text-gray-500 mt-1">
-                          Interesse:{' '}
+                          Interesse{' '}
                           {(() => {
                             const iv = (c as any).bot_data.interested_vehicles;
                             try {
                               const arr = typeof iv === 'string' ? JSON.parse(iv) : iv;
-                              if (Array.isArray(arr) && arr[0]?.nome) return arr[0].nome;
+                              if (Array.isArray(arr) && arr[0]?.nome) return `• ${arr[0].nome}`;
                             } catch {}
-                            return '—';
+                            return '';
                           })()}
                         </div>
                       )}
