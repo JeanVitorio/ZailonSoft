@@ -1,12 +1,18 @@
-// src/pages/CRMAtendimento.tsx
-// CRM de Atendimento (pós-formulário): Kanban com DnD, modal responsivo,
-// leitura dos dados do formulário (somente leitura) e colunas focadas em marcos.
+// src/components/CRMKanban.tsx
+// Kanban + Modal Premium + PDF (página exclusiva para "Negociação")
 // Requisitos: react, @tanstack/react-query, dnd-kit, shadcn/ui, lucide-react, html2canvas, jspdf
-// APIs do seu projeto: fetchClients, updateClientStatus, updateClientDetails, deleteClient.
-
-import React, { useEffect, useMemo, useReducer, useState, useContext, useRef, useCallback } from "react";
+// APIs esperadas: fetchClients, updateClientStatus, updateClientDetails, deleteClient
+// Opcional (caso use fallback de imagens de troca via BD/API): endpoint GET /api/trade-car-images?chatId=...
+import React, {
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+  useContext,
+  useRef,
+  useCallback,
+} from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
 import {
   DndContext,
   DragOverlay,
@@ -23,7 +29,6 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
 // --- UI (shadcn) ---
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -58,12 +63,15 @@ import {
   Link2,
   Flag,
   FileDown,
+  FileText,
+  FolderOpenDot,
+  Images,
+  ClipboardList,
+  RefreshCw,
 } from "lucide-react";
-
 // --- PDF ---
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-
 // --- API (seu projeto) ---
 import {
   fetchClients,
@@ -71,7 +79,6 @@ import {
   updateClientDetails,
   deleteClient,
 } from "@/services/api";
-
 // =========================== Toast simples ===========================
 const ToastContext = React.createContext<any>(null);
 function toastReducer(state: any[], action: any) {
@@ -145,21 +152,25 @@ const useToast = () => {
     },
   };
 };
-
 // =========================== Utils ===========================
+function parsePrice(value: any): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  const s = String(value ?? "").trim();
+  if (!s) return 0;
+  const brlLike = s
+    .replace(/\s+/g, "")
+    .replace(/R\$\s?/gi, "")
+    .replace(/\./g, "")
+    .replace(/,/, ".");
+  const n = Number(brlLike);
+  if (Number.isFinite(n)) return n;
+  const digits = s.replace(/\D+/g, "");
+  return digits ? (digits.length >= 3 ? Number(digits) / 100 : Number(digits)) : 0;
+}
 const toBRL = (value: any) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-    typeof value === "number" ? value : Number(value || 0)
+    parsePrice(value)
   );
-function parseISOOrNull(v?: string | null) {
-  try {
-    if (!v) return null;
-    const d = new Date(v);
-    return isNaN(d.getTime()) ? null : d;
-  } catch {
-    return null;
-  }
-}
 function fmtDateTime(d?: string | Date | null) {
   const date = typeof d === "string" ? new Date(d) : d;
   if (!date) return "N/A";
@@ -191,12 +202,8 @@ function interestedVehicleFromBot(bot_data: any) {
   } catch {}
   return "—";
 }
-
 // =========================== Colunas & migração ===========================
-// Versão do schema localStorage (altere se mexer nas colunas)
 const KANBAN_SCHEMA_VERSION = 3;
-
-// Colunas focadas em marcos
 const COLUNAS_FOCO_EM_MARCOS = [
   { id: "novo_lead", name: "Novo Lead", isDefault: true, order: 1 },
   { id: "em_contato", name: "Em Contato", isDefault: false, order: 2 },
@@ -206,22 +213,19 @@ const COLUNAS_FOCO_EM_MARCOS = [
   { id: "vendido", name: "Vendido", isDefault: false, order: 6 },
   { id: "perdido", name: "Perdido", isDefault: false, order: 7 },
 ];
-
 const LOJA_ID_ATUAL = "loja_default";
 const LOCAL_STORAGE_KEY_PREFIX = "kanban_columns_";
 const LOCAL_STORAGE_META_PREFIX = "kanban_meta_";
-
 function normalizaEstadoParaColuna(value?: string | null): string {
   const s = String(value || "").trim().toLowerCase();
-  // 👇 Correção: qualquer vazio/"inicial"/"leed_recebido" cai em "novo_lead"
   if (!s || s === "inicial" || s === "leed_recebido") return "novo_lead";
-  // Se vier um estado desconhecido, também forçamos "novo_lead"
   const valid = new Set(COLUNAS_FOCO_EM_MARCOS.map((c) => c.id));
   return valid.has(s) ? s : "novo_lead";
 }
-
 // =========================== Helpers de negócio ===========================
-function dealType(bot_data: any): "troca" | "financiamento" | "à vista" | "visita" | "—" {
+function dealType(
+  bot_data: any
+): "troca" | "financiamento" | "à vista" | "visita" | "—" {
   const txt = (s?: string) => String(s || "").toLowerCase();
   const deal = txt(bot_data?.deal_type);
   const pay = txt(bot_data?.payment_method);
@@ -230,12 +234,18 @@ function dealType(bot_data: any): "troca" | "financiamento" | "à vista" | "visi
     !!bot_data?.trade_in_car &&
     (Array.isArray(bot_data.trade_in_car?.imagens) ||
       Array.isArray(bot_data.trade_in_car?.images) ||
+      Array.isArray(bot_data.trade_in_car?.photos) ||
       bot_data.trade_in_car?.modelo ||
       bot_data.trade_in_car?.descricao);
-
   if (hasTrade || deal.includes("troca") || pay.includes("troca")) return "troca";
-  if (deal.includes("financ") || pay.includes("financ") || pay.includes("parcel")) return "financiamento";
-  if (deal.includes("vista") || pay.includes("vista") || pay.includes("pix") || pay.includes("dinheiro"))
+  if (deal.includes("financ") || pay.includes("financ") || pay.includes("parcel"))
+    return "financiamento";
+  if (
+    deal.includes("vista") ||
+    pay.includes("vista") ||
+    pay.includes("pix") ||
+    pay.includes("dinheiro")
+  )
     return "à vista";
   if (visit?.day || visit?.time) return "visita";
   return "—";
@@ -243,11 +253,39 @@ function dealType(bot_data: any): "troca" | "financiamento" | "à vista" | "visi
 function tradeImagesFromBot(bot_data: any): string[] {
   const t = bot_data?.trade_in_car || {};
   const imgs: string[] = []
-    .concat(Array.isArray(t?.imagens) ? t.imagens : [], Array.isArray(t?.images) ? t.images : [])
+    .concat(Array.isArray(t?.imagens) ? t.imagens : [], Array.isArray(t?.images) ? t.images : [], Array.isArray(t?.photos) ? t.photos : [])
     .filter((u) => typeof u === "string" && /^https?:\/\//.test(u));
   return imgs;
 }
-
+// =========================== Hook: buscar imagens do veículo de troca ===========================
+// Tenta (1) bot_data.trade_in_car, (2) API fallback /api/trade-car-images?chatId=...
+function useTradeCarImages(client: any) {
+  const chatId = client?.chat_id;
+  const bot = client?.bot_data || {};
+  const localImgs = tradeImagesFromBot(bot);
+  const enabled = !!chatId && localImgs.length === 0;
+  const { data, isFetching, error } = useQuery({
+    queryKey: ["trade-car-images", chatId],
+    enabled,
+    queryFn: async () => {
+      try {
+        const res = await fetch(`/api/trade-car-images?chatId=${encodeURIComponent(chatId)}`);
+        if (!res.ok) throw new Error("Falha ao buscar imagens de troca");
+        const json = await res.json();
+        // Esperado: { images: string[] }
+        const arr = Array.isArray(json?.images) ? json.images : [];
+        return arr.filter((u: any) => typeof u === "string" && /^https?:\/\//.test(u));
+      } catch (err) {
+        console.error("Error fetching trade images:", err);
+        return [];
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  if (error) console.warn("Trade images fetch error for chatId", chatId, error);
+  const merged = localImgs.length ? localImgs : (data || []);
+  return { images: merged, isFetching };
+}
 // =========================== Card Arrastável ===========================
 function SortableCard({
   client,
@@ -260,7 +298,6 @@ function SortableCard({
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: client.chat_id });
-
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -268,31 +305,29 @@ function SortableCard({
     zIndex: isDragging ? 10 : 0,
     touchAction: "none",
   };
-
+  const tipo = dealType(client.bot_data);
+  // Use the hook to fetch if local missing (fix for new version)
+  const { images: imgsTroca, isFetching } = useTradeCarImages(client);
   const vehicle = interestedVehicleFromBot(client.bot_data);
   const seller = client.owner || "—";
-  const tipo = dealType(client.bot_data);
-  const imgsTroca = tipo === "troca" ? tradeImagesFromBot(client.bot_data) : [];
-
   const tipoBadge = (
     <Badge variant={tipo === "—" ? "outline" : "secondary"}>
       <MessageSquare className="h-3 w-3 mr-1" />
       {tipo.toUpperCase()}
     </Badge>
   );
-
   return (
-    <Card ref={setNodeRef} style={style} {...attributes} className="bg-background/80">
+    <Card ref={setNodeRef} style={style} {...attributes} className="bg-background/80 border-border/60">
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className="font-semibold text-sm truncate">{client.name || "Sem nome"}</h4>
+              <h4 className="font-semibold text-sm truncate">
+                {client.name || "Sem nome"}
+              </h4>
               {priorityBadge(client.priority)}
             </div>
-
             <p className="text-xs text-muted-foreground truncate">{vehicle}</p>
-
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <Badge variant="secondary">
                 <User2 className="h-3 w-3 mr-1" /> {seller}
@@ -304,25 +339,27 @@ function SortableCard({
                 </Badge>
               ) : null}
             </div>
-
-            {imgsTroca.length > 0 && (
+            {tipo === "troca" && (
               <div className="mt-2 flex gap-1.5">
-                {imgsTroca.slice(0, 4).map((src, i) => (
-                  <a
-                    key={i}
-                    href={src}
-                    target="_blank"
-                    rel="noreferrer"
-                    title="Imagem do veículo de troca"
-                    className="block w-10 h-10 rounded border overflow-hidden"
-                  >
-                    <img src={src} className="w-full h-full object-cover" />
-                  </a>
-                ))}
+                {isFetching ? (
+                  <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+                ) : imgsTroca.length > 0 ? (
+                  imgsTroca.slice(0, 4).map((src, i) => (
+                    <a
+                      key={i}
+                      href={src}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Imagem do veículo de troca"
+                      className="block w-10 h-10 rounded border overflow-hidden"
+                    >
+                      <img src={src} className="w-full h-full object-cover" />
+                    </a>
+                  ))
+                ) : null}
               </div>
             )}
           </div>
-
           <div className="flex flex-col items-end gap-1">
             <Button variant="ghost" size="icon" className="h-7 w-7" {...listeners} title="Arrastar">
               <MoveRight className="h-4 w-4" />
@@ -347,7 +384,6 @@ function SortableCard({
     </Card>
   );
 }
-
 // =========================== Coluna (droppable) ===========================
 function Column({
   columnId,
@@ -363,7 +399,6 @@ function Column({
   onDelete: (chatId: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: columnId });
-
   return (
     <div className="w-[280px] sm:w-72 flex-shrink-0">
       <div
@@ -384,12 +419,7 @@ function Column({
           >
             <div className="space-y-3">
               {items.map((c) => (
-                <SortableCard
-                  key={c.chat_id}
-                  client={c}
-                  onOpen={() => onOpen(c)}
-                  onDelete={onDelete}
-                />
+                <SortableCard key={c.chat_id} client={c} onOpen={() => onOpen(c)} onDelete={onDelete} />
               ))}
               {items.length === 0 && (
                 <div className="h-[100px] border-2 border-dashed rounded-md text-sm text-muted-foreground grid place-items-center">
@@ -403,38 +433,384 @@ function Column({
     </div>
   );
 }
-
-// =========================== Modal (Atendimento) ===========================
-const InfoRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="grid grid-cols-1 md:grid-cols-3 items-start gap-3 border-b py-2 last:border-none">
-    <Label className="text-left md:text-right text-muted-foreground text-xs font-semibold">
-      {label}
-    </Label>
-    <div className="col-span-2 text-sm min-w-0">{children}</div>
-  </div>
-);
-
-// Helpers de normalização (estilo Catálogo) para o card de vitrine no diálogo
+// =========================== PDF Components ===========================
+// Normalização para uso nos 2 PDFs
+function normalizeClientForPdf(client: any) {
+  const c = { ...client };
+  try {
+    if (c?.bot_data?.interested_vehicles && typeof c.bot_data.interested_vehicles === "string") {
+      c.bot_data.interested_vehicles = JSON.parse(c.bot_data.interested_vehicles);
+    }
+    if (typeof c?.bot_data?.trade_in_car === "string" && c.bot_data.trade_in_car.trim()) {
+      c.bot_data.trade_in_car = JSON.parse(c.bot_data.trade_in_car);
+    }
+    if (typeof c?.bot_data?.financing_details === "string" && c.bot_data.financing_details.trim()) {
+      c.bot_data.financing_details = JSON.parse(c.bot_data.financing_details);
+    }
+    if (typeof c?.bot_data?.visit_details === "string" && c.bot_data.visit_details.trim()) {
+      c.bot_data.visit_details = JSON.parse(c.bot_data.visit_details);
+    }
+    if (typeof c?.documents === "string" && c.documents.trim()) {
+      c.documents = JSON.parse(c.documents);
+    }
+    if (typeof c?.trade_in_car === "string" && c.trade_in_car.trim()) {
+      c.trade_in_car = JSON.parse(c.trade_in_car);
+    }
+  } catch {}
+  return c;
+}
+function initialsFromName(name?: string) {
+  return (
+    (name || "")
+      .split(" ")
+      .map((p) => p[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "CL"
+  );
+}
+// ---------- Página 1: PDF Main (tudo MENOS Negociação) ----------
+function PdfMain({ client, externalTradeImages }: { client: any; externalTradeImages: string[] }) {
+  const normalized = React.useMemo(() => normalizeClientForPdf(client), [client]);
+  const bot = normalized?.bot_data || {};
+  const interested = interestedVehicleFromBot(bot);
+  const interestedVehicles: any[] = Array.isArray(bot?.interested_vehicles)
+    ? bot.interested_vehicles
+    : [];
+  const chosen = interestedVehicles?.length ? interestedVehicles[0] : null;
+  const chosenTitle = chosen?.nome ?? chosen?.name ?? null;
+  const chosenYear = chosen?.ano ?? chosen?.year ?? null;
+  const chosenPrice = chosen?.preco ?? chosen?.price ?? null;
+  const chosenImgs: string[] = (chosen?.imagens ?? chosen?.images ?? []) as string[];
+  const chosenImg0 =
+    (chosenImgs && chosenImgs[0]) ||
+    "https://placehold.co/600x400/f3f4f6/9ca3af?text=Sem+Foto";
+  // Arquivos/Imagens (incluindo imagens do veículo de troca)
+  const documents = Array.isArray(normalized?.documents) ? normalized?.documents : [];
+  const tradeImages =
+    externalTradeImages && externalTradeImages.length
+      ? externalTradeImages
+      : (normalized?.bot_data?.trade_in_car?.imagens ||
+          normalized?.bot_data?.trade_in_car?.images ||
+          []) || [];
+  const allImages: { src: string; label: string }[] = [];
+  if (normalized?.rg_photo) allImages.push({ src: normalized.rg_photo, label: "Foto RG" });
+  if (normalized?.incomeProof) allImages.push({ src: normalized.incomeProof, label: "Comprovante Renda" });
+  (documents || []).forEach((doc: string, i: number) => {
+    if (doc) allImages.push({ src: doc, label: `Documento ${i + 1}` });
+  });
+  (tradeImages || []).forEach((img: string, i: number) => {
+    if (img) allImages.push({ src: img, label: `Imagem Troca ${i + 1}` });
+  });
+  const initials = initialsFromName(normalized?.name);
+  return (
+    <div
+      id="pdf-main"
+      className="w-[794px] bg-white text-gray-900 font-sans text-base leading-relaxed antialiased"
+    >
+      {/* Topbar */}
+      <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500" />
+      {/* Header */}
+      <div className="p-8 pb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold leading-tight">
+                Ficha do Cliente: {normalized?.name || "Cliente"}
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">Gerado em {fmtDateTime(new Date())}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Body */}
+      <div className="px-8 pb-8 space-y-8">
+        {/* Dados do Cliente */}
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-2 rounded-t-lg">
+            <ClipboardList className="w-5 h-5 text-amber-600" />
+            <h3 className="font-semibold text-lg">Dados do Cliente</h3>
+          </div>
+          <div className="p-6 grid grid-cols-2 gap-6 text-sm">
+            <div>
+              <p className="text-gray-500 font-medium">Nome</p>
+              <p className="mt-1">{normalized?.name || "—"}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 font-medium">Telefone</p>
+              <p className="mt-1">{normalized?.phone || "—"}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 font-medium">CPF</p>
+              <p className="mt-1">{normalized?.cpf || "—"}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 font-medium">Ocupação</p>
+              <p className="mt-1">{normalized?.job || "—"}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 font-medium">Vendedor</p>
+              <p className="mt-1">{normalized?.owner || "—"}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 font-medium">Visita</p>
+              <p className="mt-1">
+                {normalized?.appointment_at ? fmtDateTime(normalized.appointment_at) : "—"}
+              </p>
+            </div>
+          </div>
+        </div>
+        {/* Resumo do Interesse */}
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-2 rounded-t-lg">
+            <ClipboardList className="w-5 h-5 text-amber-600" />
+            <h3 className="font-semibold text-lg">Resumo do Interesse</h3>
+          </div>
+          <div className="p-6 grid grid-cols-2 gap-6 text-sm">
+            <div>
+              <p className="text-gray-500 font-medium">Interesse</p>
+              <p className="mt-1">{interested}</p>
+            </div>
+          </div>
+          {chosenTitle && (
+            <div className="px-6 pb-6">
+              <div className="rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm">
+                <div className="grid md:grid-cols-2">
+                  <div className="h-48 bg-gray-50 flex items-center justify-center">
+                    <img
+                      src={chosenImg0}
+                      alt={chosenTitle}
+                      className="max-w-full max-h-full object-contain"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="p-6 space-y-3">
+                    <h4 className="font-bold text-xl leading-tight text-gray-900">{chosenTitle}</h4>
+                    <p className="text-base text-gray-600 flex items-center gap-2">
+                      <CalendarDays className="w-5 h-5" /> {chosenYear ?? "—"}
+                    </p>
+                    {chosenPrice != null && (
+                      <p className="text-2xl font-bold text-amber-600">{toBRL(chosenPrice)}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        {/* Observações */}
+        {(normalized?.notes || normalized?.report) && (
+          <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-2 rounded-t-lg">
+              <FileText className="w-5 h-5 text-amber-600" />
+              <h3 className="font-semibold text-lg">Observações</h3>
+            </div>
+            <div className="p-6 text-sm space-y-6">
+              {normalized?.notes && (
+                <div>
+                  <p className="text-gray-500 font-medium mb-2">Notas (interno)</p>
+                  <p className="whitespace-pre-wrap break-words">{normalized.notes}</p>
+                </div>
+              )}
+              {normalized?.report && (
+                <div>
+                  <p className="text-gray-500 font-medium mb-2">Relatório</p>
+                  <p className="whitespace-pre-wrap break-words">{normalized.report}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {/* Arquivos & Imagens */}
+        {/* {allImages.length > 0 && (
+          <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-2 rounded-t-lg">
+              <FolderOpenDot className="w-5 h-5 text-amber-600" />
+              <h3 className="font-semibold text-lg">Arquivos & Imagens</h3>
+            </div>
+            <div className="p-6 grid grid-cols-3 gap-6">
+              {allImages.map(({ src, label }, i) => (
+                <div key={i} className="text-center">
+                  <div className="w-full h-36 rounded-md overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
+                    <img src={src} alt={label} className="max-w-full max-h-full object-contain" loading="lazy" />
+                  </div>
+                  <p className="mt-2 text-sm text-gray-600">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )} */}
+      </div>
+      {/* Footer */}
+      <div className="px-8 pb-8 pt-4 text-sm text-gray-500 border-t border-gray-200">
+        Documento gerado automaticamente pelo CRM • {new Date().getFullYear()}
+      </div>
+    </div>
+  );
+}
+// ---------- Página 2: PDF Negotiation (apenas Negociação) ----------
+function PdfNegotiation({
+  client,
+  externalTradeImages,
+}: {
+  client: any;
+  externalTradeImages: string[];
+}) {
+  const normalized = React.useMemo(() => normalizeClientForPdf(client), [client]);
+  const bot = normalized?.bot_data || {};
+  const tipo = dealType(bot);
+  const tradeInCar = bot?.trade_in_car || normalized?.trade_in_car || {};
+  const financingDetails = bot?.financing_details || {};
+  const visitDetails = bot?.visit_details || {};
+  const chosenTradeImages =
+    (externalTradeImages && externalTradeImages.length ? externalTradeImages : []) ||
+    (tradeInCar?.imagens || tradeInCar?.images || []);
+  const tradeModel = tradeInCar?.modelo ?? tradeInCar?.model ?? null;
+  const tradeYear = tradeInCar?.ano ?? tradeInCar?.year ?? null;
+  const tradePrice = tradeInCar?.valor ?? tradeInCar?.value ?? null;
+  const tradeImg0 =
+    (Array.isArray(chosenTradeImages) && chosenTradeImages[0]) ||
+    "https://placehold.co/600x400/f3f4f6/9ca3af?text=Sem+Foto";
+  const tradeTitle = tradeModel ? `${tradeModel} (${tradeYear ?? "—"})` : null;
+  const initials = initialsFromName(normalized?.name);
+  return (
+    <div
+      id="pdf-negociacao"
+      className="w-[794px] bg-white text-gray-900 font-sans text-base leading-relaxed antialiased"
+    >
+      {/* Topbar */}
+      <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500" />
+      {/* Header */}
+      <div className="p-8 pb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-full bg-amber-100 border border-amber-300 grid place-items-center text-amber-800 font-bold text-xl">
+              {initials}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold leading-tight">Negociação</h1>
+              <p className="text-sm text-gray-600 mt-1">
+                Cliente: {normalized?.name || "—"} • Gerado em {fmtDateTime(new Date())}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Body (apenas Negociação) */}
+      <div className="px-8 pb-8 space-y-8">
+        <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-2 rounded-t-lg">
+            <FileText className="w-5 h-5 text-amber-600" />
+            <h3 className="font-semibold text-lg">Detalhes da Negociação</h3>
+          </div>
+          <div className="p-6 grid grid-cols-2 gap-6 text-sm">
+            <div>
+              <p className="text-gray-500 font-medium">Tipo</p>
+              <p className="mt-1">{tipo.toUpperCase()}</p>
+            </div>
+            {tipo === "visita" && (
+              <>
+                <div>
+                  <p className="text-gray-500 font-medium">Data</p>
+                  <p className="mt-1">{visitDetails?.day || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 font-medium">Hora</p>
+                  <p className="mt-1">{visitDetails?.time || "—"}</p>
+                </div>
+              </>
+            )}
+            {tipo === "troca" && (
+              <>
+                <div>
+                  <p className="text-gray-500 font-medium">Modelo</p>
+                  <p className="mt-1">{tradeModel || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 font-medium">Ano</p>
+                  <p className="mt-1">{tradeYear || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 font-medium">Valor Desejado</p>
+                  <p className="mt-1">{toBRL(tradePrice)}</p>
+                </div>
+              </>
+            )}
+            {tipo === "financiamento" && (
+              <>
+                <div>
+                  <p className="text-gray-500 font-medium">Entrada</p>
+                  <p className="mt-1">{toBRL(financingDetails?.entry)}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 font-medium">Parcelas</p>
+                  <p className="mt-1">{financingDetails?.parcels || "—"}</p>
+                </div>
+              </>
+            )}
+          </div>
+          {/* Vitrine do veículo de troca */}
+          {tipo === "troca" && tradeTitle && (
+            <div className="px-6 pb-6">
+              <div className="rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm">
+                <div className="grid md:grid-cols-2">
+                  <div className="h-48 bg-gray-50 flex items-center justify-center">
+                    <img
+                      src={tradeImg0}
+                      alt={tradeTitle}
+                      className="max-w-full max-h-full object-contain"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="p-6 space-y-3">
+                    <h4 className="font-bold text-xl leading-tight text-gray-900">{tradeTitle}</h4>
+                    {tradePrice != null && (
+                      <p className="text-2xl font-bold text-amber-600">{toBRL(tradePrice)}</p>
+                    )}
+                  </div>
+                </div>
+                {Array.isArray(chosenTradeImages) && chosenTradeImages.length > 1 && (
+                  <div className="p-6 border-t border-gray-200">
+                    <h5 className="font-semibold text-base mb-4">Outras Imagens do Veículo de Troca</h5>
+                    <div className="grid grid-cols-4 gap-4">
+                      {chosenTradeImages.slice(1, 5).map((src, i) => (
+                        <div key={i} className="rounded-md border overflow-hidden bg-gray-50">
+                          <img src={src} className="w-full h-24 object-contain" loading="lazy" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      {/* Footer */}
+      <div className="px-8 pb-8 pt-4 text-sm text-gray-500 border-t border-gray-200">
+        Documento gerado automaticamente pelo CRM • {new Date().getFullYear()}
+      </div>
+    </div>
+  );
+}
+// =========================== Modal (Atendimento) — versão Premium ===========================
+const InfoRow = ({ label, children }: { label: string; children: React.ReactNode }) => {
+  if (!children || children === "N/A" || children === "" || (Array.isArray(children) && children.length === 0))
+    return null;
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 items-start gap-3 py-2">
+      <Label className="text-left md:text-right text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
+        {label}
+      </Label>
+      <div className="col-span-2 text-sm min-w-0">{children}</div>
+    </div>
+  );
+};
 const getNameCat = (c: any) => c?.nome ?? c?.name ?? "";
-const getDescCat = (c: any) => c?.descricao ?? c?.description ?? "";
 const getYearCat = (c: any) => c?.ano ?? c?.year ?? "";
 const getPriceRawCat = (c: any) => c?.preco ?? c?.price ?? 0;
 const getImagesCat = (c: any) => c?.imagens ?? c?.images ?? [];
-const parsePriceCat = (v: any) => {
-  if (typeof v === "number" && Number.isFinite(v)) return v;
-  const s = String(v ?? "").trim();
-  if (!s) return 0;
-  const brlLike = s.replace(/\s+/g, "").replace(/R\$\s?/gi, "").replace(/\./g, "").replace(/,/, ".");
-  const n = Number(brlLike);
-  if (Number.isFinite(n)) return n;
-  const digits = s.replace(/\D+/g, "");
-  return digits ? (digits.length >= 3 ? Number(digits) / 100 : Number(digits)) : 0;
-};
-const formatCurrencyCat = (v: any) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 }).format(
-    parsePriceCat(v)
-  );
-
+const formatCurrencyCat = (v: any) => toBRL(v);
 function AtendimentoDialog({
   open,
   onOpenChange,
@@ -450,20 +826,34 @@ function AtendimentoDialog({
 }) {
   const [data, setData] = useState<any>({});
   const [saving, setSaving] = useState(false);
-  const pdfRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
-
-  // normaliza bot_data
+  const [tab, setTab] = useState<"resumo" | "form" | "arquivos" | "troca">("resumo");
+  // --- PDF refs (duas páginas): Main e Negociação
+  const pdfMainRef = useRef<HTMLDivElement>(null);
+  const pdfNegRef = useRef<HTMLDivElement>(null);
+  // Hook de imagens de troca (busca BD/api caso não tenha no bot_data)
+  const { images: tradeCarImages, isFetching: isFetchingTradeImages } = useTradeCarImages(client || {});
   const normalizeClient = (raw: any) => {
     const c = { ...raw };
     try {
       if (c.bot_data?.interested_vehicles && typeof c.bot_data.interested_vehicles === "string") {
         c.bot_data.interested_vehicles = JSON.parse(c.bot_data.interested_vehicles);
       }
+      if (typeof c.bot_data?.trade_in_car === "string" && c.bot_data.trade_in_car.trim()) {
+        c.bot_data.trade_in_car = JSON.parse(c.bot_data.trade_in_car);
+      }
+      if (typeof c.bot_data?.financing_details === "string" && c.bot_data.financing_details.trim()) {
+        c.bot_data.financing_details = JSON.parse(c.bot_data.financing_details);
+      }
+      if (typeof c.bot_data?.visit_details === "string" && c.bot_data.visit_details.trim()) {
+        c.bot_data.visit_details = JSON.parse(c.bot_data.visit_details);
+      }
+      if (typeof c.documents === "string" && c.documents.trim()) {
+        c.documents = JSON.parse(c.documents);
+      }
     } catch {}
     return c;
   };
-
   useEffect(() => {
     if (open && client) {
       setData(
@@ -472,11 +862,10 @@ function AtendimentoDialog({
           priority: client?.priority || "normal",
         })
       );
+      setTab("resumo");
     }
   }, [open, client]);
-
   if (!client) return null;
-
   const set = (path: string, value: any) => {
     setData((prev: any) => {
       const clone = structuredClone(prev);
@@ -487,9 +876,9 @@ function AtendimentoDialog({
       return clone;
     });
   };
-
-  const quickWhats = client?.phone ? `https://wa.me/55${String(client.phone).replace(/\D/g, "")}` : "";
-
+  const quickWhats = client?.phone
+    ? `https://wa.me/55${String(client.phone).replace(/\D/g, "")}`
+    : "";
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -511,41 +900,101 @@ function AtendimentoDialog({
       setSaving(false);
     }
   };
-
+  // ===== Exportar PDF (duas páginas: MAIN e NEGOCIAÇÃO EM PÁGINA PRÓPRIA) =====
   const exportClientPDF = useCallback(async () => {
-    if (!pdfRef.current) return;
+    if (!pdfMainRef.current || !pdfNegRef.current) return;
     try {
       setExporting(true);
-      const el = pdfRef.current;
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      // Helpers
+      async function renderCanvas(el: HTMLDivElement) {
+        const originalStyle = el.style.cssText;
+        el.style.position = "absolute";
+        el.style.left = "-10000px";
+        el.style.top = "0px";
+        el.style.width = "794px";
+        el.style.clip = "auto";
+        el.style.overflow = "visible";
+        el.style.margin = "0";
+        el.style.padding = "0";
+        el.style.opacity = "1";
+        el.style.zIndex = "-1";
+        const canvas = await html2canvas(el, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: 800,
+          windowHeight: Math.max(1200, el.scrollHeight || 1200),
+        });
+        el.style.cssText = originalStyle;
+        return canvas;
+      }
+      // Renderiza páginas
+      const mainCanvas = await renderCanvas(pdfMainRef.current);
+      const negCanvas = await renderCanvas(pdfNegRef.current);
       const pdf = new jsPDF("p", "mm", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const ratio = pageWidth / canvas.width;
-      const imgHeight = canvas.height * ratio;
-      if (imgHeight <= pdf.internal.pageSize.getHeight()) {
-        pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pageWidth, imgHeight);
-      } else {
-        // simples: cortar em páginas
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const sliceHeightPx = pageHeight / ratio;
-        let renderedHeight = 0;
+      const pageWidth = pdf.internal.pageSize.getWidth(); // ~210mm
+      const pageHeight = pdf.internal.pageSize.getHeight(); // ~297mm
+      // --- Página 1 (MAIN) -> slice se precisar (várias páginas)
+      {
+        const imgWidthPx = mainCanvas.width;
+        const imgHeightPx = mainCanvas.height;
+        const ratio = pageWidth / imgWidthPx;
+        const sliceHeightPx = Math.floor(pageHeight / ratio);
+        let rendered = 0;
+        let pageCount = 0;
+        const MAX_PAGES = 40;
         const pageCanvas = document.createElement("canvas");
         const ctx = pageCanvas.getContext("2d")!;
-        while (renderedHeight < canvas.height) {
-          const sliceHeight = Math.min(sliceHeightPx, canvas.height - renderedHeight);
-          pageCanvas.width = canvas.width;
-          pageCanvas.height = sliceHeight;
+        while (rendered < imgHeightPx && pageCount < MAX_PAGES) {
+          const currentSlice = Math.min(sliceHeightPx, imgHeightPx - rendered);
+          pageCanvas.width = imgWidthPx;
+          pageCanvas.height = currentSlice;
           ctx.clearRect(0, 0, pageCanvas.width, pageCanvas.height);
-          ctx.drawImage(canvas, 0, renderedHeight, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
-          const h = sliceHeight * ratio;
-          if (renderedHeight === 0) {
-            pdf.addImage(pageCanvas.toDataURL("image/png"), "PNG", 0, 0, pageWidth, h);
+          ctx.drawImage(
+            mainCanvas,
+            0,
+            rendered,
+            imgWidthPx,
+            currentSlice,
+            0,
+            0,
+            imgWidthPx,
+            currentSlice
+          );
+          const pdfImgHeight = currentSlice * ratio;
+          if (pageCount === 0) {
+            pdf.addImage(pageCanvas.toDataURL("image/png"), "PNG", 0, 0, pageWidth, pdfImgHeight);
           } else {
             pdf.addPage();
-            pdf.addImage(pageCanvas.toDataURL("image/png"), "PNG", 0, 0, pageWidth, h);
+            pdf.addImage(pageCanvas.toDataURL("image/png"), "PNG", 0, 0, pageWidth, pdfImgHeight);
           }
-          renderedHeight += sliceHeight;
+          rendered += currentSlice;
+          pageCount++;
         }
+      }
+      // --- Página 2 (NEGOCIAÇÃO) -> 1 página única
+      {
+        pdf.addPage();
+        const imgWidthPx = negCanvas.width;
+        const imgHeightPx = negCanvas.height;
+        // Escalar mantendo proporção para caber em UMA página
+        const wRatio = pageWidth / imgWidthPx;
+        const hRatio = pageHeight / imgHeightPx;
+        const fitRatio = Math.min(wRatio, hRatio);
+        const drawWidth = imgWidthPx * fitRatio;
+        const drawHeight = imgHeightPx * fitRatio;
+        const offsetX = (pageWidth - drawWidth) / 2;
+        const offsetY = (pageHeight - drawHeight) / 2;
+        pdf.addImage(
+          negCanvas.toDataURL("image/png"),
+          "PNG",
+          offsetX,
+          offsetY,
+          drawWidth,
+          drawHeight
+        );
       }
       const nameSafe = (client?.name || "Cliente").replace(/[^\p{L}\p{N}\s_-]+/gu, "");
       pdf.save(`Atendimento_${nameSafe}_${new Date().toLocaleDateString("pt-BR")}.pdf`);
@@ -553,363 +1002,507 @@ function AtendimentoDialog({
       setExporting(false);
     }
   }, [client?.name]);
-
   const bot = data?.bot_data || {};
-  const interestedVehicles: any[] = Array.isArray(bot?.interested_vehicles) ? bot.interested_vehicles : [];
-
+  const interestedVehicles: any[] = Array.isArray(bot?.interested_vehicles)
+    ? bot.interested_vehicles
+    : [];
+  const tradeInCar = bot?.trade_in_car || {};
+  const financingDetails = bot?.financing_details || {};
+  const visitDetails = bot?.visit_details || {};
+  const documents = Array.isArray(data?.documents) ? data.documents : [];
+  const tipo = dealType(bot);
+  // Imagens agregadas (docs + troca)
+  const allImages: { src: string; label: string }[] = [];
+  if (data?.rg_photo) allImages.push({ src: data.rg_photo, label: "Foto RG" });
+  if (data?.incomeProof) allImages.push({ src: data.incomeProof, label: "Comprovante Renda" });
+  documents.forEach((doc: string, i: number) => {
+    if (doc) allImages.push({ src: doc, label: `Documento ${i + 1}` });
+  });
+  (tradeCarImages || []).forEach((img: string, i: number) => {
+    if (img) allImages.push({ src: img, label: `Imagem Troca ${i + 1}` });
+  });
+  const initials = initialsFromName(data?.name);
+  // Vitrine para troca no dialog
+  const tradeTitle = tradeInCar?.modelo ? `${tradeInCar.modelo} (${tradeInCar?.ano ?? "—"})` : null;
+  const tradePrice = tradeInCar?.valor ?? tradeInCar?.value ?? null;
+  const tradeImg0 = tradeCarImages[0] || "https://placehold.co/600x400/f3f4f6/9ca3af?text=Sem+Foto";
+  // Dynamic tabs
+  const tabsList = [
+    { id: "resumo" as const, label: "Resumo", icon: <ClipboardList className="w-3.5 h-3.5 mr-1" /> },
+    { id: "form" as const, label: "Formulário", icon: <FileText className="w-3.5 h-3.5 mr-1" /> },
+    ...(tipo === "troca" ? [{ id: "troca" as const, label: "Troca", icon: <RefreshCw className="w-3.5 h-3.5 mr-1" /> }] : []),
+    { id: "arquivos" as const, label: "Arquivos", icon: <Images className="w-3.5 h-3.5 mr-1" /> },
+  ];
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-screen-lg md:max-w-5xl p-0">
-        <div className="max-h-[92vh] flex flex-col">
-          <DialogHeader className="px-5 pt-5 pb-3 border-b">
-            <DialogTitle className="text-lg md:text-xl flex items-center gap-2">
-              <User2 className="h-5 w-5 text-amber-600" />
-              {data?.name || "Atendimento"}
-            </DialogTitle>
-            <DialogDescription className="flex items-center gap-2">
-              <Phone className="h-3.5 w-3.5" />
-              {data?.phone || "—"}
-              {quickWhats ? (
-                <a
-                  target="_blank"
-                  rel="noreferrer"
-                  href={quickWhats}
-                  className="inline-flex items-center gap-1 text-emerald-700 hover:underline ml-2"
-                >
-                  <Link2 className="h-3.5 w-3.5" /> WhatsApp
-                </a>
-              ) : null}
-            </DialogDescription>
-          </DialogHeader>
-
-          <ScrollArea className="flex-1">
-            <div ref={pdfRef} className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Roteiro */}
-              <Card>
-                <CardHeader className="py-3">
-                  <CardTitle className="text-sm">Roteiro</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-3 items-center gap-2">
-                    <Label className="text-xs text-muted-foreground">Vendedor</Label>
-                    <Input
-                      className="col-span-2 h-9"
-                      placeholder="Nome do vendedor"
-                      value={data.owner || ""}
-                      onChange={(e) => set("owner", e.target.value)}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-3 items-center gap-2">
-                    <Label className="text-xs text-muted-foreground">Prioridade</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="col-span-2 justify-start">
-                          <Flag className="h-3.5 w-3.5 mr-2" />
-                          {(data.priority || "normal").toUpperCase()}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="p-2 w-44">
-                        {["alta", "normal", "baixa"].map((p) => (
-                          <Button
-                            key={p}
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => set("priority", p)}
-                          >
-                            {p.toUpperCase()}
+      <DialogContent className="w-full max-w-screen-lg md:max-w-5xl p-0 overflow-hidden">
+        {/* Header gourmetizado */}
+        <div className="relative">
+          <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500" />
+          <div className="px-5 pt-4 pb-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-amber-500/15 border border-amber-500/30 grid place-items-center text-amber-700 font-semibold">
+                {initials}
+              </div>
+              <div>
+                <DialogTitle className="text-lg md:text-xl leading-tight">
+                  {data?.name || "Atendimento"}
+                </DialogTitle>
+                <DialogDescription className="text-xs md:text-sm">
+                  <span className="inline-flex items-center gap-1 text-muted-foreground">
+                    <Phone className="h-3.5 w-3.5" />
+                    {data?.phone || "—"}
+                    {data?.phone && (
+                      <a
+                        target="_blank"
+                        rel="noreferrer"
+                        href={quickWhats}
+                        className="inline-flex items-center gap-1 ml-2 text-emerald-700 hover:underline"
+                      >
+                        <Link2 className="h-3.5 w-3.5" /> WhatsApp
+                      </a>
+                    )}
+                  </span>
+                </DialogDescription>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {priorityBadge(data?.priority)}
+              {data?.channel ? <Badge variant="outline">{data.channel}</Badge> : null}
+            </div>
+          </div>
+        </div>
+        {/* Tabs */}
+        <div className="px-5 pt-2">
+          <div className="inline-flex rounded-lg border bg-muted/50 p-1 text-sm">
+            {tabsList.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`px-3 py-1.5 rounded-md inline-flex items-center transition ${
+                  tab === t.id ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.icon}
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <ScrollArea className="max-h-[70vh]">
+          <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Resumo */}
+            {tab === "resumo" && (
+              <>
+                {/* Roteiro */}
+                <Card className="border-border/60">
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-sm">Roteiro</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-3 items-center gap-2">
+                      <Label className="text-xs text-muted-foreground">Vendedor</Label>
+                      <Input
+                        className="col-span-2 h-9"
+                        placeholder="Nome do vendedor"
+                        value={data.owner || ""}
+                        onChange={(e) => set("owner", e.target.value)}
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 items-center gap-2">
+                      <Label className="text-xs text-muted-foreground">Prioridade</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="col-span-2 justify-start">
+                            <Flag className="h-3.5 w-3.5 mr-2" />
+                            {(data.priority || "normal").toUpperCase()}
                           </Button>
-                        ))}
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  <div className="grid grid-cols-3 items-center gap-2">
-                    <Label className="text-xs text-muted-foreground">Canal</Label>
-                    <Input
-                      className="col-span-2 h-9"
-                      placeholder="WhatsApp / Ligação / Instagram / Site..."
-                      value={data.channel || ""}
-                      onChange={(e) => set("channel", e.target.value)}
+                        </PopoverTrigger>
+                        <PopoverContent className="p-2 w-44">
+                          {["alta", "normal", "baixa"].map((p) => (
+                            <Button
+                              key={p}
+                              variant="ghost"
+                              className="w-full justify-start"
+                              onClick={() => set("priority", p)}
+                            >
+                              {p.toUpperCase()}
+                            </Button>
+                          ))}
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="grid grid-cols-3 items-center gap-2">
+                      <Label className="text-xs text-muted-foreground">Canal</Label>
+                      <Input
+                        className="col-span-2 h-9"
+                        placeholder="WhatsApp / Ligação / Instagram / Site..."
+                        value={data.channel || ""}
+                        onChange={(e) => set("channel", e.target.value)}
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 items-center gap-2">
+                      <Label className="text-xs text-muted-foreground">Próx. ação</Label>
+                      <Input
+                        type="datetime-local"
+                        className="col-span-2 h-9"
+                        value={data.next_action_at?.slice(0, 16) || ""}
+                        onChange={(e) => set("next_action_at", e.target.value)}
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 items-center gap-2">
+                      <Label className="text-xs text-muted-foreground">Visita</Label>
+                      <Input
+                        type="datetime-local"
+                        className="col-span-2 h-9"
+                        value={data.appointment_at?.slice(0, 16) || ""}
+                        onChange={(e) => set("appointment_at", e.target.value)}
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 items-center gap-2">
+                      <Label className="text-xs text-muted-foreground">Reserva até</Label>
+                      <Input
+                        type="datetime-local"
+                        className="col-span-2 h-9"
+                        value={data.reservation_expires_at?.slice(0, 16) || ""}
+                        onChange={(e) => set("reservation_expires_at", e.target.value)}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+                {/* Notas */}
+                <Card className="border-border/60">
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-sm">Notas (interno)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Textarea
+                      placeholder="Observações, próximos passos, objeções, etc."
+                      value={data.notes || ""}
+                      onChange={(e) => set("notes", e.target.value)}
+                      className="min-h-[180px]"
                     />
-                  </div>
-
-                  <div className="grid grid-cols-3 items-center gap-2">
-                    <Label className="text-xs text-muted-foreground">Próx. ação</Label>
-                    <Input
-                      type="datetime-local"
-                      className="col-span-2 h-9"
-                      value={data.next_action_at?.slice(0, 16) || ""}
-                      onChange={(e) => set("next_action_at", e.target.value)}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-3 items-center gap-2">
-                    <Label className="text-xs text-muted-foreground">Visita</Label>
-                    <Input
-                      type="datetime-local"
-                      className="col-span-2 h-9"
-                      value={data.appointment_at?.slice(0, 16) || ""}
-                      onChange={(e) => set("appointment_at", e.target.value)}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-3 items-center gap-2">
-                    <Label className="text-xs text-muted-foreground">Reserva até</Label>
-                    <Input
-                      type="datetime-local"
-                      className="col-span-2 h-9"
-                      value={data.reservation_expires_at?.slice(0, 16) || ""}
-                      onChange={(e) => set("reservation_expires_at", e.target.value)}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Notas */}
-              <Card>
-                <CardHeader className="py-3">
-                  <CardTitle className="text-sm">Notas (interno)</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Textarea
-                    placeholder="Observações, próximos passos, objeções, etc."
-                    value={data.notes || ""}
-                    onChange={(e) => set("notes", e.target.value)}
-                    className="min-h-[140px]"
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Veículo de interesse (estilo catálogo) */}
-              {(() => {
-                const chosen =
-                  Array.isArray(interestedVehicles) && interestedVehicles.length
-                    ? interestedVehicles[0]
-                    : null;
-                if (!chosen) return null;
-
-                const title = getNameCat(chosen) || "Sem título";
-                const year = getYearCat(chosen) || "—";
-                const price = getPriceRawCat(chosen);
-                const desc = getDescCat(chosen) || "Sem descrição";
-                const imgs = (getImagesCat(chosen) as string[]) || [];
-                const img0 =
-                  imgs?.[0] ||
-                  "https://placehold.co/600x400/f3f4f6/9ca3af?text=Sem+Foto";
-
-                return (
-                  <div className="lg:col-span-2">
-                    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow">
-                      <div className="h-1.5 bg-gradient-to-r from-amber-500 to-yellow-500" />
-                      <div className="grid md:grid-cols-2 gap-0">
-                        <div className="aspect-video bg-gray-100">
-                          <img src={img0} alt={title} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="p-5 space-y-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <h3 className="font-semibold text-gray-900 text-lg leading-tight">
-                                {title}
-                              </h3>
-                              <p className="text-sm text-gray-500 flex items-center gap-2 mt-1">
-                                <CalendarDays className="w-4 h-4" /> {year}
+                  </CardContent>
+                </Card>
+                {/* Vitrine (interesse) */}
+                {(() => {
+                  const chosen =
+                    Array.isArray(interestedVehicles) && interestedVehicles.length
+                      ? interestedVehicles[0]
+                      : null;
+                  if (!chosen) return null;
+                  const title = getNameCat(chosen) || "Sem título";
+                  const year = getYearCat(chosen) || "—";
+                  const price = getPriceRawCat(chosen);
+                  const imgs = (getImagesCat(chosen) as string[]) || [];
+                  const img0 =
+                    imgs?.[0] ||
+                    "https://placehold.co/600x400/f3f4f6/9ca3af?text=Sem+Foto";
+                  return (
+                    <div className="lg:col-span-2">
+                      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+                        <div className="h-1.5 bg-gradient-to-r from-amber-500 to-yellow-500" />
+                        <div className="grid md:grid-cols-2 gap-0">
+                          <div className="h-48 bg-gray-100">
+                            <img src={img0} alt={title} className="w-full h-full object-contain" />
+                          </div>
+                          <div className="p-5 space-y-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <h3 className="font-semibold text-gray-900 text-lg leading-tight">
+                                  {title}
+                                </h3>
+                                <p className="text-sm text-gray-500 flex items-center gap-2 mt-1">
+                                  <CalendarDays className="w-4 h-4" /> {year}
+                                </p>
+                              </div>
+                              <p className="text-xl font-bold text-amber-600 whitespace-nowrap">
+                                {formatCurrencyCat(price)}
                               </p>
                             </div>
-                            <p className="text-xl font-bold text-amber-600 whitespace-nowrap">
-                              {formatCurrencyCat(price)}
-                            </p>
                           </div>
-                          <p className="text-sm text-gray-700">{desc}</p>
-                          {imgs?.length > 1 && (
-                            <div className="grid grid-cols-5 gap-2 pt-2">
-                              {imgs.slice(0, 5).map((src, i) => (
-                                <a
-                                  key={i}
-                                  href={src}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="block rounded-lg border overflow-hidden"
-                                >
-                                  <img src={src} className="w-full h-20 object-cover" />
-                                </a>
-                              ))}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })()}
-
-              {/* Desfecho */}
-              <Card className="lg:col-span-2">
-                <CardHeader className="py-3">
-                  <CardTitle className="text-sm">Desfecho</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Resultado</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start">
-                          <ChevronRight className="h-3.5 w-3.5 mr-2" />
-                          {(data.outcome || "—").toUpperCase()}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="p-2">
-                        {["", "vendido", "perdido"].map((v) => (
-                          <Button
-                            key={v || "vazio"}
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => set("outcome", v || null)}
-                          >
-                            {(v || "—").toUpperCase()}
+                  );
+                })()}
+                {/* Desfecho */}
+                <Card className="lg:col-span-2 border-border/60">
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-sm">Desfecho</CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Resultado</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start">
+                            <ChevronRight className="h-3.5 w-3.5 mr-2" />
+                            {(data.outcome || "—").toUpperCase()}
                           </Button>
-                        ))}
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Motivo (vendido)</Label>
-                    <Input
-                      placeholder="Ex.: melhor avaliação na troca"
-                      value={data.won_reason || ""}
-                      onChange={(e) => set("won_reason", e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                      <ThumbsDown className="h-3.5 w-3.5" /> Motivo (perdido)
-                    </Label>
-                    <Input
-                      placeholder="Ex.: preço/financiamento/tempo"
-                      value={data.lost_reason || ""}
-                      onChange={(e) => set("lost_reason", e.target.value)}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Dados do formulário (somente leitura) */}
-              <Card className="lg:col-span-2">
+                        </PopoverTrigger>
+                        <PopoverContent className="p-2">
+                          {["", "vendido", "perdido"].map((v) => (
+                            <Button
+                              key={v || "vazio"}
+                              variant="ghost"
+                              className="w-full justify-start"
+                              onClick={() => set("outcome", v || null)}
+                            >
+                              {(v || "—").toUpperCase()}
+                            </Button>
+                          ))}
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Motivo (vendido)</Label>
+                      <Input
+                        placeholder="Ex.: melhor avaliação na troca"
+                        value={data.won_reason || ""}
+                        onChange={(e) => set("won_reason", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                        <ThumbsDown className="h-3.5 w-3.5" /> Motivo (perdido)
+                      </Label>
+                      <Input
+                        placeholder="Ex.: preço/financiamento/tempo"
+                        value={data.lost_reason || ""}
+                        onChange={(e) => set("lost_reason", e.target.value)}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+            {/* Formulário (Somente leitura) */}
+            {tab === "form" && (
+              <Card className="lg:col-span-2 border-border/60">
                 <CardHeader className="py-3">
                   <CardTitle className="text-sm">Dados do Formulário (somente leitura)</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="border rounded-md p-3">
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="rounded-lg border p-4">
                     <h4 className="font-semibold mb-2">Perfil</h4>
-                    <div className="space-y-1">
-                      <InfoRow label="Nome">{data?.name || "N/A"}</InfoRow>
-                      <InfoRow label="Telefone">{data?.phone || "N/A"}</InfoRow>
-                      <InfoRow label="CPF">{data?.cpf || "N/A"}</InfoRow>
-                      <InfoRow label="Ocupação">{data?.job || "N/A"}</InfoRow>
-                      <InfoRow label="Etapa (form)">{data?.form_stage || "N/A"}</InfoRow>
-                      <InfoRow label="Tipo negociação">{bot?.deal_type || "N/A"}</InfoRow>
-                      <InfoRow label="Pagamento">{bot?.payment_method || "N/A"}</InfoRow>
+                    <div className="divide-y">
+                      <InfoRow label="Nome">{data?.name}</InfoRow>
+                      <InfoRow label="Telefone">{data?.phone}</InfoRow>
+                      <InfoRow label="CPF">{data?.cpf}</InfoRow>
+                      <InfoRow label="Ocupação">{data?.job}</InfoRow>
+                      <InfoRow label="Etapa (form)">{bot?.state || data?.state}</InfoRow>
+                      <InfoRow label="Tipo negociação">{bot?.deal_type || data?.deal_type}</InfoRow>
+                      <InfoRow label="Pagamento">{bot?.payment_method || data?.payment_method}</InfoRow>
+                      <InfoRow label="RG Número">{data?.rg_number}</InfoRow>
+                      <InfoRow label="Relatório">{data?.report}</InfoRow>
                     </div>
                   </div>
-
-                  <div className="border rounded-md p-3">
-                    <h4 className="font-semibold mb-2">Visita</h4>
-                    <div className="space-y-1">
-                      <InfoRow label="Data">
-                        {bot?.visit_details?.day || "N/A"}
-                      </InfoRow>
-                      <InfoRow label="Hora">
-                        {bot?.visit_details?.time || "N/A"}
-                      </InfoRow>
+                  {dealType(bot) === "visita" && (
+                    <div className="rounded-lg border p-4">
+                      <h4 className="font-semibold mb-2">Visita</h4>
+                      <div className="divide-y">
+                        <InfoRow label="Data">{visitDetails?.day}</InfoRow>
+                        <InfoRow label="Hora">{visitDetails?.time}</InfoRow>
+                      </div>
                     </div>
+                  )}
+                  {dealType(bot) === "troca" && (
+                    <div className="rounded-lg border p-4">
+                      <h4 className="font-semibold mb-2">Troca</h4>
+                      <div className="divide-y">
+                        <InfoRow label="Modelo">{tradeInCar?.modelo || tradeInCar?.model}</InfoRow>
+                        <InfoRow label="Ano">{tradeInCar?.ano || tradeInCar?.year}</InfoRow>
+                        <InfoRow label="Valor Desejado">{toBRL(tradeInCar?.valor || tradeInCar?.value)}</InfoRow>
+                        <InfoRow label="Descrição">{tradeInCar?.descricao || tradeInCar?.description}</InfoRow>
+                      </div>
+                      {/* Vitrine do veículo de troca no dialog */}
+                      {tradeTitle && (
+                        <div className="mt-4">
+                          <div className="rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm">
+                            <div className="grid md:grid-cols-2">
+                              <div className="h-48 bg-gray-50 flex items-center justify-center">
+                                {isFetchingTradeImages ? (
+                                  <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+                                ) : (
+                                  <img
+                                    src={tradeImg0}
+                                    alt={tradeTitle}
+                                    className="max-w-full max-h-full object-contain"
+                                    loading="lazy"
+                                  />
+                                )}
+                              </div>
+                              <div className="p-6 space-y-3">
+                                <h4 className="font-bold text-xl leading-tight text-gray-900">{tradeTitle}</h4>
+                                {tradePrice != null && (
+                                  <p className="text-2xl font-bold text-amber-600">{toBRL(tradePrice)}</p>
+                                )}
+                              </div>
+                            </div>
+                            {tradeCarImages.length > 1 && (
+                              <div className="p-6 border-t border-gray-200">
+                                <h5 className="font-semibold text-base mb-4">Outras Imagens do Veículo de Troca</h5>
+                                <div className="grid grid-cols-4 gap-4">
+                                  {tradeCarImages.slice(1, 5).map((src, i) => (
+                                    <div key={i} className="rounded-md border overflow-hidden bg-gray-50">
+                                      <img src={src} className="w-full h-24 object-contain" loading="lazy" />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {dealType(bot) === "financiamento" && (
+                    <div className="rounded-lg border p-4">
+                      <h4 className="font-semibold mb-2">Financiamento</h4>
+                      <div className="divide-y">
+                        <InfoRow label="Entrada">{toBRL(financingDetails.entry)}</InfoRow>
+                        <InfoRow label="Parcelas">{financingDetails.parcels}</InfoRow>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+            {/* Troca tab */}
+            {tab === "troca" && (
+              <Card className="lg:col-span-2 border-border/60">
+                <CardHeader className="py-3">
+                  <CardTitle className="text-sm">Detalhes da Troca</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="rounded-lg border p-4">
+                    <h4 className="font-semibold mb-2">Veículo de Troca</h4>
+                    <div className="divide-y text-sm">
+                      <InfoRow label="Modelo">{tradeInCar?.modelo || tradeInCar?.model || "—"}</InfoRow>
+                      <InfoRow label="Ano">{tradeInCar?.ano || tradeInCar?.year || "—"}</InfoRow>
+                      <InfoRow label="Valor Desejado">{toBRL(tradeInCar?.valor || tradeInCar?.value) || "—"}</InfoRow>
+                      <InfoRow label="Descrição">{tradeInCar?.descricao || tradeInCar?.description || "—"}</InfoRow>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border p-4">
+                    <h4 className="font-semibold mb-2">Imagens do Veículo de Troca</h4>
+                    {isFetchingTradeImages ? (
+                      <Loader2 className="h-8 w-8 animate-spin text-amber-600 mx-auto" />
+                    ) : tradeCarImages.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center">Nenhuma imagem disponível.</p>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {tradeCarImages.map((src, i) => (
+                          <div key={i} className="text-center">
+                            <a
+                              href={src}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block rounded-lg border overflow-hidden shadow-sm hover:shadow-md transition"
+                            >
+                              <img src={src} alt={`Imagem Troca ${i + 1}`} className="w-full h-32 object-contain" />
+                            </a>
+                            <p className="text-xs mt-1">Imagem {i + 1}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          </ScrollArea>
-
-          <DialogFooter className="px-5 py-4 border-t">
-            <div className="mr-auto flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                onClick={() => onMove(client.chat_id, "reservado")}
-                title="Mover para Reservado"
-              >
-                <CalendarDays className="h-4 w-4 mr-2" /> Reservar
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => onMove(client.chat_id, "vendido")}
-                title="Marcar como Vendido"
-              >
-                <CheckCircle2 className="h-4 w-4 mr-2" /> Vendido
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => onMove(client.chat_id, "perdido")}
-                title="Marcar como Perdido"
-              >
-                <ThumbsDown className="h-4 w-4 mr-2" /> Perdido
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={exportClientPDF}
-                disabled={exporting}
-                title="Exportar PDF deste atendimento"
-              >
-                {exporting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando PDF...
-                  </>
-                ) : (
-                  <>
-                    <FileDown className="h-4 w-4 mr-2" /> Exportar PDF
-                  </>
-                )}
-              </Button>
-
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-amber-500 hover:bg-amber-600 text-white"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Salvando...
-                  </>
-                ) : (
-                  <>Salvar alterações</>
-                )}
-              </Button>
-            </div>
-          </DialogFooter>
+            )}
+            {/* Arquivos (somente visual) */}
+            {tab === "arquivos" && (
+              <Card className="lg:col-span-2 border-border/60">
+                <CardHeader className="py-3">
+                  <CardTitle className="text-sm">Arquivos enviados</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {allImages.length === 0 ? (
+                    <div className="text-sm text-muted-foreground">Nenhum arquivo enviado.</div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {allImages.map(({ src, label }, i) => (
+                        <div key={i} className="text-center">
+                          <a
+                            href={src}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block rounded-lg border overflow-hidden shadow-sm hover:shadow-md transition"
+                          >
+                            <img src={src} alt={label} className="w-full h-32 object-contain" />
+                          </a>
+                          <p className="text-xs mt-1">{label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </ScrollArea>
+        {/* Rodapé com ações */}
+        <DialogFooter className="px-5 py-4 border-t bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="mr-auto flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => onMove(client.chat_id, "reservado")} title="Mover para Reservado">
+              <CalendarDays className="h-4 w-4 mr-2" /> Reservar
+            </Button>
+            <Button variant="outline" onClick={() => onMove(client.chat_id, "vendido")} title="Marcar como Vendido">
+              <CheckCircle2 className="h-4 w-4 mr-2" /> Vendido
+            </Button>
+            <Button variant="outline" onClick={() => onMove(client.chat_id, "perdido")} title="Marcar como Perdido">
+              <ThumbsDown className="h-4 w-4 mr-2" /> Perdido
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={exportClientPDF} disabled={exporting} title="Exportar PDF do atendimento">
+              {exporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando PDF...
+                </>
+              ) : (
+                <>
+                  <FileDown className="h-4 w-4 mr-2" /> Exportar PDF
+                </>
+              )}
+            </Button>
+            <Button onClick={handleSave} disabled={saving} className="bg-amber-500 hover:bg-amber-600 text-white">
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Salvando...
+                </>
+              ) : (
+                <>Salvar alterações</>
+              )}
+            </Button>
+          </div>
+        </DialogFooter>
+        {/* ====== Área oculta para renderizar o PDF (DUAS PÁGINAS) ====== */}
+        <div className="sr-only absolute -left-[99999px] top-0" aria-hidden>
+          <div ref={pdfMainRef}>
+            <PdfMain client={data} externalTradeImages={tradeCarImages} />
+          </div>
+          <div ref={pdfNegRef}>
+            <PdfNegotiation client={data} externalTradeImages={tradeCarImages} />
+          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-
 // =========================== Página (Kanban) ===========================
-function CRMAtendimentoContent() {
+function CRMKanbanContent() {
   const { toast } = useToast();
   const qc = useQueryClient();
-
   const [search, setSearch] = useState("");
   const [active, setActive] = useState<any>(null);
   const [modal, setModal] = useState<any>(null);
-
-  // Sensores drag
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 5 } })
   );
-
-  // Colunas com migração de versão
   const [kanbanColumns, setKanbanColumns] = useState(() => {
     const key = `${LOCAL_STORAGE_KEY_PREFIX}${LOJA_ID_ATUAL}`;
     const metaKey = `${LOCAL_STORAGE_META_PREFIX}${LOJA_ID_ATUAL}`;
@@ -924,7 +1517,10 @@ function CRMAtendimentoContent() {
       return saved ? JSON.parse(saved) : COLUNAS_FOCO_EM_MARCOS;
     } catch {
       localStorage.setItem(key, JSON.stringify(COLUNAS_FOCO_EM_MARCOS));
-      localStorage.setItem(`${LOCAL_STORAGE_META_PREFIX}${LOJA_ID_ATUAL}`, JSON.stringify({ version: KANBAN_SCHEMA_VERSION }));
+      localStorage.setItem(
+        `${LOCAL_STORAGE_META_PREFIX}${LOJA_ID_ATUAL}`,
+        JSON.stringify({ version: KANBAN_SCHEMA_VERSION })
+      );
       return COLUNAS_FOCO_EM_MARCOS;
     }
   });
@@ -932,15 +1528,16 @@ function CRMAtendimentoContent() {
     const key = `${LOCAL_STORAGE_KEY_PREFIX}${LOJA_ID_ATUAL}`;
     localStorage.setItem(key, JSON.stringify(kanbanColumns));
   }, [kanbanColumns]);
-
-  // Dados
-  const { data: clients = [], isLoading, error } = useQuery({
+  const {
+    data: clients = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["clients"],
     queryFn: fetchClients,
     refetchInterval: 10000,
     initialData: [],
   });
-
   const updateStatus = useMutation({
     mutationFn: updateClientStatus,
     onSuccess: () => {
@@ -950,7 +1547,6 @@ function CRMAtendimentoContent() {
     onError: (e: any) =>
       toast({ title: "Falha ao mover", description: e?.message, variant: "destructive" }),
   });
-
   const updateDetails = useMutation({
     mutationFn: updateClientDetails,
     onSuccess: () => {
@@ -960,9 +1556,7 @@ function CRMAtendimentoContent() {
     onError: (e: any) =>
       toast({ title: "Erro ao salvar", description: e?.message, variant: "destructive" }),
   });
-
   const deleteMutation = useMutation({
-    // sua assinatura é deleteClient(chatId: string)
     mutationFn: (chatId: string) => deleteClient(chatId),
     onSuccess: () => {
       toast({ title: "Cliente excluído", variant: "success" });
@@ -972,8 +1566,6 @@ function CRMAtendimentoContent() {
       toast({ title: "Erro ao excluir", description: e?.message, variant: "destructive" });
     },
   });
-
-  // Filtro de busca (nome, veículo, vendedor)
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const arr = q
@@ -986,18 +1578,16 @@ function CRMAtendimentoContent() {
       : clients;
     return arr;
   }, [clients, search]);
-
-  // Distribui por coluna (com fallback seguro para "novo_lead")
   const buckets = useMemo(() => {
-    const map: Record<string, any[]> = Object.fromEntries(COLUNAS_FOCO_EM_MARCOS.map((c) => [c.id, []]));
+    const map: Record<string, any[]> = Object.fromEntries(
+      COLUNAS_FOCO_EM_MARCOS.map((c) => [c.id, []])
+    );
     filtered.forEach((c: any) => {
       const s = normalizaEstadoParaColuna(c.bot_data?.state || c.state);
       map[s] ? map[s].push(c) : map["novo_lead"].push(c);
     });
     return map;
   }, [filtered]);
-
-  // Drag
   function handleDragStart(event: any) {
     const c = filtered.find((x: any) => x.chat_id === event.active.id);
     setActive(c || null);
@@ -1006,39 +1596,31 @@ function CRMAtendimentoContent() {
     setActive(null);
     const { active, over } = event;
     if (!over) return;
-
     const id = active.id as string;
     const overId = String(over.id);
-
-    // Se soltou na coluna diretamente
     let dest = COLUNAS_FOCO_EM_MARCOS.some((c) => c.id === overId) ? overId : null;
-
-    // Senão, pega a coluna do card alvo
     if (!dest) {
       const overClient = clients.find((c: any) => c.chat_id === overId);
-      if (overClient) dest = normalizaEstadoParaColuna(overClient?.bot_data?.state || overClient?.state);
+      if (overClient)
+        dest = normalizaEstadoParaColuna(
+          overClient?.bot_data?.state || overClient?.state
+        );
     }
     if (!dest) return;
-
     updateStatus.mutate({ chatId: id, newState: dest });
   }
-
   const handleSave = async (chatId: string, updated: any) => {
     await updateDetails.mutateAsync({ chatId, updatedData: updated });
   };
   const handleMove = async (chatId: string, newState: string) => {
     await updateStatus.mutateAsync({ chatId, newState });
   };
-
-  // Delete
   const [toDelete, setToDelete] = useState<{ chatId: string; name?: string } | null>(null);
-
   return (
     <div className="space-y-6 p-4 md:p-6 h-screen overflow-y-hidden">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl md:text-3xl font-bold">CRM de Atendimento</h1>
       </div>
-
       <div className="flex items-center gap-2">
         <div className="relative max-w-md flex-grow">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -1050,7 +1632,6 @@ function CRMAtendimentoContent() {
           />
         </div>
       </div>
-
       {isLoading ? (
         <div className="p-6">
           <Loader2 className="h-6 w-6 animate-spin mr-2 inline-block" /> Carregando CRM...
@@ -1060,7 +1641,12 @@ function CRMAtendimentoContent() {
           <AlertTriangle className="h-5 w-5 mr-2 inline-block" /> Erro ao carregar dados.
         </div>
       ) : (
-        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          collisionDetection={closestCenter}
+        >
           <div className="w-full overflow-x-auto">
             <div className="flex flex-nowrap gap-4 md:gap-6 items-start">
               {COLUNAS_FOCO_EM_MARCOS.map((col) => (
@@ -1078,7 +1664,6 @@ function CRMAtendimentoContent() {
               ))}
             </div>
           </div>
-
           <DragOverlay>
             {active ? (
               <Card>
@@ -1093,7 +1678,6 @@ function CRMAtendimentoContent() {
           </DragOverlay>
         </DndContext>
       )}
-
       {/* Modal de atendimento */}
       {modal && (
         <AtendimentoDialog
@@ -1104,7 +1688,6 @@ function CRMAtendimentoContent() {
           onMove={handleMove}
         />
       )}
-
       {/* Delete */}
       <Dialog open={!!toDelete} onOpenChange={() => setToDelete(null)}>
         <DialogContent>
@@ -1112,14 +1695,21 @@ function CRMAtendimentoContent() {
             <DialogTitle>Confirmar exclusão</DialogTitle>
             <DialogDescription>
               {toDelete?.name ? (
-                <>Tem certeza que deseja excluir <b>{toDelete.name}</b>? Essa ação não pode ser desfeita.</>
+                <>
+                  Tem certeza que deseja excluir <b>{toDelete.name}</b>? Essa ação não pode ser
+                  desfeita.
+                </>
               ) : (
                 <>Essa ação não pode ser desfeita.</>
               )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setToDelete(null)} disabled={deleteMutation.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => setToDelete(null)}
+              disabled={deleteMutation.isPending}
+            >
               Cancelar
             </Button>
             <Button
@@ -1139,11 +1729,10 @@ function CRMAtendimentoContent() {
     </div>
   );
 }
-
-export default function CRMAtendimento() {
+export default function CRMKanban() {
   return (
     <ToastProvider>
-      <CRMAtendimentoContent />
+      <CRMKanbanContent />
     </ToastProvider>
   );
 }
