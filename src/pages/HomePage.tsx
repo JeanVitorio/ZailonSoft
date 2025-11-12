@@ -10,7 +10,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 // --- VÍDEOS (na mesma pasta) ---
 import formularioVideo from './Formulario.mp4';
-import relatorioVideo from './Relatorio.mp4';
 import crmVideo from './CRMKanban.mp4';
 import dashboardVideo from './dash.mp4';
 
@@ -404,7 +403,7 @@ const HomePage = () => {
                     </div>
                     <video
                       ref={registerVideo}
-                      src={crmVideo}
+                      src={dashboardVideo}
                       poster={posters.crm}
                       className="w-full aspect-video object-cover"
                       muted
@@ -464,7 +463,7 @@ const HomePage = () => {
                     icon: Feather.UserCheck,
                     title: 'Propostas prontas',
                     desc: 'PDF mastigado pro banco. Entre só para fechar.',
-                    video: relatorioVideo,
+                    video: crmVideo,
                     poster: posters.relatorio,
                   },
                 ].map((item, i) => (
