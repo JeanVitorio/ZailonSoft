@@ -1,15 +1,17 @@
+// App.tsx
+
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-// --- 1. Importações necessárias ---
+
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion'; // <-- IMPORTADO
+import { AnimatePresence } from 'framer-motion';
 
 import { AuthProvider } from './auth/AuthContext';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 
-// Importe todas as suas páginas
+// Páginas
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
 import { SubscribePage } from './pages/SubscribePage';
@@ -17,64 +19,69 @@ import HomePage from './pages/HomePage';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 
-// NOVAS ROTAS PÚBLICAS
-import PublicCarFormPage from './pages/PublicCarFormPage'; 
+// Rotas Públicas
+import PublicCarFormPage from './pages/PublicCarFormPage';
 import { PublicVehicleCatalogPage } from './pages/PublicVehicleCatalogPage';
 
-// --- [NOVA IMPORTAÇÃO AQUI] ---
-import ActivateAccountPage from './pages/ActivateAccountPage'; 
+// Nova rota — ativação de conta
+import ActivateAccountPage from './pages/ActivateAccountPage';
 
-// Criamos o queryClient aqui
+// React-Query
 const queryClient = new QueryClient();
 
-// --- 2. O componente App agora só gerencia os Providers ---
-//    Ele renderiza o <BrowserRouter> e DELEGA as rotas
-//    para o novo componente <AnimatedRoutes />
+// ============================
+// APP PRINCIPAL
+// ============================
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
+
       <BrowserRouter>
         <AuthProvider queryClient={queryClient}>
-          {/* O novo componente vai aqui */}
-          <AnimatedRoutes />
+          {/* 
+            Wrapper GLOBAL dark mode 
+            Garante que NADA fica branco no fundo 
+          */}
+          <div className="min-h-screen bg-slate-950 text-slate-50 overflow-x-hidden">
+            <AnimatedRoutes />
+          </div>
+
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
 
-// --- 3. Este é o NOVO componente que gerencia as animações de rota ---
+
+
+// ============================
+// ROTAS COM ANIMAÇÃO
+// ============================
 const AnimatedRoutes = () => {
-  // 4. Pegamos a localização atual (isso funciona
-  //    porque estamos DENTRO do <BrowserRouter> agora)
   const location = useLocation();
 
   return (
-    // 5. O AnimatePresence envolve as rotas
     <AnimatePresence mode="wait">
-      {/* 6. Passamos a 'location' e uma 'key' para o <Routes>
-             Isso "avisa" o AnimatePresence quando a página muda. */}
       <Routes location={location} key={location.pathname}>
-        
-        {/* --- Rotas Públicas --- */}
+
+        {/* ROTAS PÚBLICAS */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        
-        {/* Rota para Gerenciar Assinatura (falha na renovação) */}
+
+        {/* Página de erro de renovação */}
         <Route path="/assinar" element={<SubscribePage />} />
 
-        {/* --- [NOVA ROTA AQUI] --- */}
-        {/* Rota para Novo Pagamento (primeira vez) */}
+        {/* Nova página: ativação de conta */}
         <Route path="/ativar-conta" element={<ActivateAccountPage />} />
 
-        {/* NOVAS ROTAS PÚBLICAS SEM LOGIN NECESSÁRIO */}
-        <Route path="/form-proposta/:carId" element={<PublicCarFormPage />} /> 
+        {/* Páginas públicas sem login */}
+        <Route path="/form-proposta/:carId" element={<PublicCarFormPage />} />
         <Route path="/catalogo-loja/:lojaId" element={<PublicVehicleCatalogPage />} />
 
-        {/* --- Rota Protegida Principal --- */}
+        {/* ÁREA PROTEGIDA */}
         <Route
           path="/sistema/*"
           element={
@@ -84,8 +91,9 @@ const AnimatedRoutes = () => {
           }
         />
 
-        {/* --- Rota para Página Não Encontrada --- */}
+        {/* 404 */}
         <Route path="*" element={<NotFound />} />
+
       </Routes>
     </AnimatePresence>
   );

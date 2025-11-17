@@ -1,4 +1,4 @@
-// src/pages/HomePage.tsx — Layout claro, clean, com hero recriado e Premium destacado
+// src/pages/HomePage.tsx — Versão DARK, com "O Verdinho" (Emerald) e copy ajustada
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
@@ -72,9 +72,9 @@ const useAutoPlayVideo = () => {
 
 // ------------------------- Primitives -------------------------
 const Metric = ({ value, label }: { value: string; label: string }) => (
-  <div className="p-6 rounded-2xl bg-white border border-gray-200 shadow-sm">
-    <p className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">{value}</p>
-    <p className="text-gray-600 mt-1">{label}</p>
+  <div className="p-6 rounded-2xl bg-slate-900/70 border border-slate-800 shadow-[0_18px_40px_rgba(15,23,42,0.6)]">
+    <p className="text-3xl md:text-4xl font-black text-slate-50 tracking-tight">{value}</p>
+    <p className="text-slate-300 mt-1">{label}</p>
   </div>
 );
 
@@ -92,16 +92,23 @@ const FaqItem = ({
   const panelId = useMemo(() => `faq-${btoa(question).replace(/=/g, '')}`, [question]);
   const btnId = `${panelId}-btn`;
   return (
-    <motion.div layout className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+    <motion.div
+      layout
+      className="bg-slate-900/70 rounded-2xl shadow-[0_18px_40px_rgba(15,23,42,0.6)] border border-slate-800 p-6"
+    >
       <button
         id={btnId}
         aria-expanded={isOpen}
         aria-controls={panelId}
         onClick={onClick}
-        className="w-full text-left flex justify-between items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded-lg p-1 -m-1"
+        className="w-full text-left flex justify-between items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg p-1 -m-1"
       >
-        <span className="font-semibold text-gray-900 text-lg">{question}</span>
-        <motion.span animate={{ rotate: isOpen ? 45 : 0 }} transition={{ duration: 0.2 }} className="text-amber-500">
+        <span className="font-semibold text-slate-50 text-lg">{question}</span>
+        <motion.span
+          animate={{ rotate: isOpen ? 45 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="text-emerald-400"
+        >
           <Feather.Plus size={24} />
         </motion.span>
       </button>
@@ -115,7 +122,7 @@ const FaqItem = ({
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="mt-4 text-gray-600 leading-relaxed"
+            className="mt-4 text-slate-300 leading-relaxed"
           >
             {answer}
           </motion.div>
@@ -131,7 +138,13 @@ const MobileMenu = () => {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const handleLogout = async () => {
-    try { await logout(); setOpen(false); navigate('/login'); } catch (e) { console.error(e); }
+    try {
+      await logout();
+      setOpen(false);
+      navigate('/login');
+    } catch (e) {
+      console.error(e);
+    }
   };
   const menuItems = [
     { label: 'Benefícios', id: 'beneficios' },
@@ -143,26 +156,30 @@ const MobileMenu = () => {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
-        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-zinc-200 bg-white text-amber-600 hover:bg-zinc-100 transition shadow-sm"
+        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700 bg-slate-900 text-emerald-400 hover:bg-slate-800 transition shadow-sm"
         aria-label="Abrir menu"
       >
-        <div className="w-6 h-6 rounded-md overflow-hidden bg-white border border-amber-200 grid place-items-center">
+        <div className="w-6 h-6 rounded-md overflow-hidden bg-slate-900 border border-emerald-400/60 grid place-items-center">
           <img src="/favicon.ico" alt="Logo" className="w-full h-full object-contain" />
         </div>
         <Feather.Menu className="h-5 w-5" />
       </SheetTrigger>
-      <SheetContent side="left" className="w-4/5 max-w-[320px] h-full p-0 bg-white border-r border-zinc-200 flex flex-col z-50" overlayClassName="bg-black/40">
+      <SheetContent
+        side="left"
+        className="w-4/5 max-w-[320px] h-full p-0 bg-slate-950/95 backdrop-blur-xl border-r border-slate-800 flex flex-col z-50"
+        overlayClassName="bg-black/70"
+      >
         <SheetTitle className="sr-only">Menu Principal</SheetTitle>
         <SheetDescription className="sr-only">Navegue pelas seções do site.</SheetDescription>
-        <div className="flex items-center gap-3 p-6 border-b border-zinc-100 flex-shrink-0">
-          <div className="w-10 h-10 rounded-xl overflow-hidden bg-white shadow">
-            <img src="/favicon.ico" alt="ZailonSoft" className="w-full h-full object-contain" />
+        <div className="flex items-center gap-3 p-6 border-b border-slate-800 flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-900 shadow-sm border border-emerald-400/70 grid place-items-center">
+            <img src="/favicon.ico" alt="ZailonSoft" className="w-5 h-5 object-contain" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-zinc-900">
-              Zailon<span className="text-amber-500">Soft</span>
+            <h1 className="text-lg font-bold text-slate-50">
+              Zailon<span className="text-emerald-400">Soft</span>
             </h1>
-            <p className="text-xs text-zinc-500">CRM Automotivo</p>
+            <p className="text-xs text-slate-400">CRM Automotivo</p>
           </div>
         </div>
         <ScrollArea className="flex-1">
@@ -172,28 +189,28 @@ const MobileMenu = () => {
                 key={item.id}
                 href={`#${item.id}`}
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-left text-zinc-700 hover:bg-amber-50 transition border border-transparent"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-left text-slate-100 hover:bg-slate-800/80 transition border border-transparent"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Feather.ChevronRight className="w-5 h-5 text-amber-500" />
+                <Feather.ChevronRight className="w-5 h-5 text-emerald-400" />
                 <span className="font-medium">{item.label}</span>
               </motion.a>
             ))}
           </nav>
-          <div className="p-4 border-t border-zinc-100">
+          <div className="p-4 border-t border-slate-800">
             {loading ? (
-              <div className="flex items-center gap-2 text-sm text-zinc-500">
+              <div className="flex items-center gap-2 text-sm text-slate-400">
                 <Feather.Loader size={16} className="animate-spin" /> Carregando...
               </div>
             ) : user ? (
               <motion.button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-start gap-3 px-4 py-3 text-zinc-700 hover:bg-zinc-100 transition rounded-xl"
+                className="w-full flex items-center justify-start gap-3 px-4 py-3 text-slate-200 hover:bg-slate-800 transition rounded-xl"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Feather.LogOut className="w-5 h-5 text-zinc-500" />
+                <Feather.LogOut className="w-5 h-5 text-slate-400" />
                 <span className="font-medium">Sair</span>
               </motion.button>
             ) : (
@@ -201,14 +218,14 @@ const MobileMenu = () => {
                 <Link
                   to="/login"
                   onClick={() => setOpen(false)}
-                  className="block w-full text-center px-4 py-3 rounded-xl bg-amber-500 text-zinc-900 font-bold hover:bg-amber-600 transition mb-2"
+                  className="block w-full text-center px-4 py-3 rounded-xl bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition mb-2"
                 >
                   Login
                 </Link>
                 <Link
                   to="/signup"
                   onClick={() => setOpen(false)}
-                  className="block w-full text-center px-4 py-3 rounded-xl bg-zinc-900 text-white font-bold hover:bg-zinc-800 transition"
+                  className="block w-full text-center px-4 py-3 rounded-xl bg-slate-900 text-slate-50 font-bold hover:bg-slate-800 transition border border-slate-600"
                 >
                   Criar Conta
                 </Link>
@@ -231,7 +248,9 @@ const HomePage = () => {
 
   useEffect(() => {
     document.documentElement.style.scrollBehavior = 'smooth';
-    return () => { document.documentElement.style.scrollBehavior = ''; };
+    return () => {
+      document.documentElement.style.scrollBehavior = '';
+    };
   }, []);
 
   // Parallax hero (leve)
@@ -258,43 +277,134 @@ const HomePage = () => {
 
   return (
     <HelmetProvider>
-      <a href="#conteudo" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-amber-500 focus:text-zinc-900 focus:px-4 focus:py-2 focus:rounded-lg">
+      <a
+        href="#conteudo"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-emerald-500 focus:text-slate-950 focus:px-4 focus:py-2 focus:rounded-lg"
+      >
         Pular para conteúdo
       </a>
 
-      <div className="min-h-screen bg-[#f6f7f9] text-gray-900">
+      {/* Fundo de gradiente animado que pulsa */}
+      <div className="background-gradient-animation" />
+      <div className="relative min-h-screen bg-slate-950 text-slate-50 overflow-hidden">
         <Helmet>
           <html lang="pt-BR" />
-          <title>ZailonSoft — Leads prontos para fechar automaticamente</title>
-          <meta name="description" content="Transforme mensagens em propostas completas. Formulários inteligentes, CRM visual e dashboard em tempo real — ativo em 24h." />
+          <title>ZailonSoft — Pré-vendas automático para sua loja de veículos</title>
+          <meta
+            name="description"
+            content="ZailonSoft faz o primeiro atendimento dos leads, coleta dados, qualifica e só envia para o vendedor quem realmente tem intenção de comprar. Seu pré-vendas automático no WhatsApp."
+          />
           <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
           <link rel="icon" href="/favicon.ico" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+            rel="stylesheet"
+          />
           <style>{`
-            :root { color-scheme: light; }
-            .hero-soft {
+            :root { color-scheme: dark; }
+            .hero-gradient {
               background:
-                radial-gradient(800px 300px at 10% 0%, rgba(255, 214, 102, .18), transparent 60%),
-                radial-gradient(800px 300px at 90% 0%, rgba(16, 185, 129, .16), transparent 60%),
-                linear-gradient(#ffffff,#f9fafb);
+                radial-gradient(800px 300px at 10% 0%, rgba(16, 185, 129, .12), transparent 60%),
+                radial-gradient(800px 300px at 90% 0%, rgba(6, 182, 212, .15), transparent 60%);
             }
             .mockup-frame {
               box-shadow:
-                0 1px 2px rgba(0,0,0,.04),
-                0 12px 24px rgba(0,0,0,.08);
+                0 0 0 1px rgba(15,23,42,0.8),
+                0 24px 70px rgba(0,0,0,0.90);
+            }
+            /* Fundo de gradiente dinâmico (Vibe Dashboard) */
+            .background-gradient-animation {
+              --color-1: 16, 185, 129;  /* Emerald */
+              --color-2: 6, 182, 212;   /* Cyan */
+              --color-3: 15, 23, 42;    /* Slate */
+              --color-4: 14, 165, 233;  /* Sky */
+              --color-5: 34, 197, 94;   /* Green */
+            
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              overflow: hidden;
+              z-index: 0; 
+              opacity: 0.15; 
+              filter: blur(120px); 
+              transform: translate3d(0, 0, 0); 
+              pointer-events: none; 
+            }
+            
+            .background-gradient-animation::before {
+              content: "";
+              position: absolute;
+              width: 200vw;
+              height: 200vh;
+              top: -50vh;
+              left: -50vw;
+              background: radial-gradient(circle at var(--x1) var(--y1), rgba(var(--color-1), 0.7) 0%, transparent 50%),
+                          radial-gradient(circle at var(--x2) var(--y2), rgba(var(--color-2), 0.7) 0%, transparent 50%),
+                          radial-gradient(circle at var(--x3) var(--y3), rgba(var(--color-4), 0.7) 0%, transparent 50%),
+                          radial-gradient(circle at var(--x4) var(--y4), rgba(var(--color-5), 0.7) 0%, transparent 50%),
+                          radial-gradient(circle at var(--x5) var(--y5), rgba(var(--color-1), 0.7) 0%, transparent 50%);
+              background-blend-mode: screen;
+              animation: gradient-animation 25s ease infinite; 
+              will-change: transform;
+            }
+            
+            @keyframes gradient-animation {
+              0% { --x1: 20%; --y1: 20%; --x2: 70%; --y2: 80%; --x3: 40%; --y3: 10%; --x4: 80%; --y4: 30%; --x5: 10%; --y5: 90%; }
+              20% { --x1: 80%; --y1: 10%; --x2: 30%; --y2: 70%; --x3: 60%; --y3: 90%; --x4: 20%; --y4: 50%; --x5: 90%; --y5: 20%; }
+              40% { --x1: 10%; --y1: 70%; --x2: 90%; --y2: 20%; --x3: 5%; --y3: 80%; --x4: 70%; --y4: 10%; --x5: 30%; --y5: 60%; }
+              60% { --x1: 70%; --y1: 5%; --x2: 10%; --y2: 95%; --x3: 90%; --y3: 40%; --x4: 5%; --y4: 70%; --x5: 80%; --y5: 10%; }
+              80% { --x1: 30%; --y1: 80%; --x2: 60%; --y2: 10%; --x3: 10%; --y3: 50%; --x4: 95%; --y4: 80%; --x5: 40%; --y5: 5%; }
+              100% { --x1: 20%; --y1: 20%; --x2: 70%; --y2: 80%; --x3: 40%; --y3: 10%; --x4: 80%; --y4: 30%; --x5: 10%; --y5: 90%; }
+            }
+            /* Pulso Sutil para CTAs (Neurociência) */
+            @keyframes pulse-emerald {
+              0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+              }
+              70% {
+                transform: scale(1.02);
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+              }
+              100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+              }
+            }
+            .pulse-emerald {
+              animation: pulse-emerald 2.5s infinite;
+            }
+            
+            /* Gradiente animado da borda */
+            @keyframes animate-gradient-border {
+              0% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+              100% { background-position: 0% 50%; }
+            }
+            .animated-gradient-border {
+              background-size: 300% 300% !important;
+              animation: animate-gradient-border 4s ease infinite;
             }
           `}</style>
           <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
         </Helmet>
 
         {/* HEADER */}
-        <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl shadow-sm border-b border-gray-100' : 'bg-transparent'}`}>
+        <header
+          className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+            scrolled
+              ? 'bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80'
+              : 'bg-gradient-to-b from-slate-950/95 via-slate-950/70 to-transparent'
+          }`}
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
             <Link to="/" className="text-2xl font-black tracking-tight">
-              <span className={`${scrolled ? 'text-zinc-900' : 'text-zinc-900'}`}>Zailon</span>
-              <span className="text-amber-500">Soft</span>
+              <span className="text-slate-50">Zailon</span>
+              <span className="text-emerald-400">Soft</span>
             </Link>
 
             <nav className="hidden md:flex gap-8 items-center text-base font-medium">
@@ -308,13 +418,13 @@ const HomePage = () => {
                 <a
                   key={item.id}
                   href={`#${item.id}`}
-                  className={`transition ${scrolled ? 'text-gray-800 hover:text-amber-600' : 'text-gray-800 hover:text-amber-600'}`}
+                  className="text-slate-300 hover:text-emerald-400 transition"
                 >
                   {item.label}
                 </a>
               ))}
               {loading ? (
-                <span className="text-sm flex items-center gap-2 text-gray-500">
+                <span className="text-sm flex items-center gap-2 text-slate-400">
                   <Feather.Loader size={16} className="animate-spin" /> Carregando...
                 </span>
               ) : user ? (
@@ -322,16 +432,18 @@ const HomePage = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={logout}
-                  className="flex items-center gap-2 font-medium text-amber-600 hover:text-amber-700"
+                  className="flex items-center gap-2 font-medium text-emerald-400 hover:text-emerald-300"
                 >
                   <Feather.LogOut size={16} /> Sair
                 </motion.button>
               ) : (
                 <>
-                  <Link to="/login" className="font-medium text-amber-600 hover:text-amber-700">Login</Link>
+                  <Link to="/login" className="font-medium text-emerald-400 hover:text-emerald-300">
+                    Login
+                  </Link>
                   <Link
                     to="/signup"
-                    className="bg-amber-500 text-zinc-900 px-5 py-2.5 rounded-xl font-bold hover:bg-amber-400 transition shadow-sm"
+                    className="bg-emerald-500 text-slate-950 px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-400 transition shadow-sm"
                   >
                     Criar Conta
                   </Link>
@@ -346,31 +458,43 @@ const HomePage = () => {
         </header>
 
         {/* MAIN */}
-        <main id="conteudo">
-          {/* HERO — novo, clean */}
-          <section ref={heroRef as any} className="hero-soft pt-24 pb-8 md:pt-28 md:pb-16">
+        <main id="conteudo" className="relative z-10">
+          {/* HERO — foco em pré-vendas */}
+          <section ref={heroRef as any} className="hero-gradient pt-24 pb-8 md:pt-28 md:pb-16">
             <motion.div style={{ y: yHero }} className="relative">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-10 items-center">
                 {/* Texto */}
                 <motion.div variants={stagger} initial="hidden" animate="visible">
-                  <motion.h1 variants={fadeInUp} className="text-4xl md:text-6xl font-black text-gray-900 tracking-tight">
-                    Leads <span className="text-amber-500">prontos para fechar</span> automaticamente
+                  <motion.h1
+                    variants={fadeInUp}
+                    className="text-4xl md:text-6xl font-black text-slate-50 tracking-tight"
+                  >
+                    Seu pré-vendas automático
+                    <span className="text-emerald-300"> atende e filtra os leads</span>
                   </motion.h1>
-                  <motion.p variants={fadeInUp} className="mt-5 text-lg md:text-xl text-gray-600 max-w-2xl">
-                    O ZailonSoft capta, qualifica e organiza tudo no CRM. Você recebe propostas completas com negociação, fotos do carro de troca e intenção real.
+                  <motion.p variants={fadeInUp} className="mt-5 text-lg md:text-xl text-slate-300 max-w-2xl">
+                    O ZailonSoft faz o primeiro atendimento, coleta dados, qualifica e só entrega para o vendedor os leads
+                    que realmente têm intenção de comprar. Seu time de vendas foca em fechar, não em responder todo mundo
+                    no WhatsApp.
                   </motion.p>
 
                   <motion.div variants={fadeInUp} className="mt-8 flex flex-col sm:flex-row gap-3">
                     <Link
                       to={loading || !user ? '/signup' : '/sistema'}
-                      className="inline-flex items-center justify-center gap-3 bg-amber-500 text-zinc-900 px-6 py-3 rounded-xl font-bold text-lg hover:bg-amber-400 transition shadow-sm"
+                      className="inline-flex items-center justify-center gap-3 bg-emerald-500 text-slate-950 px-6 py-3 rounded-xl font-bold text-lg hover:bg-emerald-400 transition shadow-[0_18px_40px_rgba(16,185,129,0.55)] pulse-emerald"
                     >
                       {loading ? (
-                        <>Verificando <Feather.Loader className="animate-spin" size={20} /></>
+                        <>
+                          Verificando <Feather.Loader className="animate-spin" size={20} />
+                        </>
                       ) : user ? (
-                        <>Acessar Sistema <Feather.ArrowRight size={20} /></>
+                        <>
+                          Acessar Sistema <Feather.ArrowRight size={20} />
+                        </>
                       ) : (
-                        <>Comece Agora <Feather.ArrowRight size={20} /></>
+                        <>
+                          Comece Agora <Feather.ArrowRight size={20} />
+                        </>
                       )}
                     </Link>
 
@@ -379,27 +503,36 @@ const HomePage = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Falar no WhatsApp para marcar uma demonstração"
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 transition"
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 hover:bg-slate-800 transition"
                     >
                       <Feather.PlayCircle size={20} /> Ver demonstração
                     </a>
                   </motion.div>
 
                   <motion.ul variants={fadeInUp} className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                    <li className="flex items-center gap-2 text-gray-600"><Feather.CheckCircle className="text-emerald-600" size={18}/> +70% propostas completas</li>
-                    <li className="flex items-center gap-2 text-gray-600"><Feather.CheckCircle className="text-emerald-600" size={18}/> Zero planilha manual</li>
-                    <li className="flex items-center gap-2 text-gray-600"><Feather.CheckCircle className="text-emerald-600" size={18}/> Ativo em 24h</li>
+                    <li className="flex items-center gap-2 text-slate-300">
+                      <Feather.CheckCircle className="text-emerald-400" size={18} />
+                      Vendedores só com leads quentes
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-300">
+                      <Feather.CheckCircle className="text-emerald-400" size={18} />
+                      Atendimento 24/7 sem aumentar equipe
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-300">
+                      <Feather.CheckCircle className="text-emerald-400" size={18} />
+                      Sem responder um por um no WhatsApp
+                    </li>
                   </motion.ul>
                 </motion.div>
 
-                {/* Mockup clean */}
+                {/* Mockup dark */}
                 <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="relative">
-                  <div className="bg-white rounded-3xl border border-gray-200 mockup-frame overflow-hidden">
-                    <div className="h-10 border-b border-gray-200 flex items-center gap-2 px-4">
+                  <div className="bg-slate-900 rounded-3xl border border-slate-700 mockup-frame overflow-hidden">
+                    <div className="h-10 border-b border-slate-800 bg-slate-950/70 flex items-center gap-2 px-4">
                       <span className="w-3 h-3 rounded-full bg-red-400" />
                       <span className="w-3 h-3 rounded-full bg-yellow-400" />
                       <span className="w-3 h-3 rounded-full bg-emerald-400" />
-                      <span className="ml-2 text-xs text-gray-500">ZailonSoft — CRM</span>
+                      <span className="ml-2 text-xs text-slate-400">ZailonSoft — Pré-vendas & CRM</span>
                     </div>
                     <video
                       ref={registerVideo}
@@ -416,66 +549,94 @@ const HomePage = () => {
               </div>
             </motion.div>
           </section>
-          
+
+          {/* BENEFÍCIOS — focados em pré-vendas */}
           <section id="beneficios" className="py-20 px-4">
             <div className="max-w-7xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-black text-gray-900 text-center mb-12">Por que o ZailonSoft vende mais</h2>
+              <h2 className="text-3xl md:text-5xl font-black text-slate-50 text-center mb-12">
+                {/* ✅ Frase Ajustada */}
+                Por que o ZailonSoft <span className="text-emerald-300">potencializa</span> seu time de vendas
+              </h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                  { icon: Feather.UserCheck, title: 'Leads qualificados', copy: 'Captação 24/7 com negociação e troca (fotos).' },
-                  { icon: Feather.Edit, title: 'Menos atrito', copy: 'Cliente preenche direto no formulário sem perguntas repetidas.' },
-                  { icon: Feather.FolderPlus, title: 'CRM pronto', copy: 'Propostas viram cards editáveis com PDF pro banco.' },
-                  { icon: Feather.BarChart2, title: 'Visão total', copy: 'Dashboard em tempo real do funil e dos vendedores.' },
+                  {
+                    icon: Feather.MessageCircle,
+                    title: 'Primeiro atendimento automático',
+                    copy: 'O sistema responde, coleta dados e faz a triagem inicial dos leads, sem depender de um vendedor online.',
+                  },
+                  {
+                    icon: Feather.UserCheck,
+                    title: 'Vendedor só fala com quem importa',
+                    copy: 'Leads são qualificados antes. Só chegam para o vendedor quando têm intenção clara de compra.',
+                  },
+                  {
+                    icon: Feather.FolderPlus,
+                    title: 'Pré-vendas organizado',
+                    copy: 'Cada atendimento vira card no CRM com histórico, dados do cliente e informações da troca.',
+                  },
+                  {
+                    icon: Feather.BarChart2,
+                    title: 'Prioridade por qualidade',
+                    copy: 'Dashboard mostra onde o pré-vendas está travando e quais leads merecem o foco do time.',
+                  },
                 ].map((c, i) => (
-                  <div key={i} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-7">
-                    <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 grid place-items-center mb-4">
+                  <div
+                    key={i}
+                    className="bg-slate-900/70 rounded-2xl border border-slate-800 shadow-[0_18px_40px_rgba(15,23,42,0.6)] p-7"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-slate-800 text-emerald-300 grid place-items-center mb-4 border border-slate-700">
                       <c.icon size={24} />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{c.title}</h3>
-                    <p className="text-gray-600">{c.copy}</p>
+                    <h3 className="text-xl font-bold text-slate-50 mb-2">{c.title}</h3>
+                    <p className="text-slate-300">{c.copy}</p>
                   </div>
                 ))}
               </div>
             </div>
           </section>
 
-          {/* COMO FUNCIONA */}
-          <section id="solucao" className="py-20 px-4 bg-white">
+          {/* COMO FUNCIONA — fluxo de pré-vendas */}
+          <section id="solucao" className="py-20 px-4 bg-slate-950/80 backdrop-blur-sm">
             <div className="max-w-7xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-black text-center text-gray-900 mb-14">Como funciona</h2>
-            <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8">
+              <h2 className="text-3xl md:text-5xl font-black text-center text-slate-50 mb-14">
+                Como funciona o pré-vendas
+              </h2>
+              <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8">
                 {[
                   {
                     icon: Feather.FileText,
-                    title: 'Formulários que convertem',
-                    desc: 'Negociação + fotos da troca. Vai direto ao CRM.',
+                    title: 'O cliente se autoatende',
+                    desc: 'Formulários e fluxos captam interesse, condições de pagamento e fotos da troca — sem vendedor digitando.',
                     video: formularioVideo,
                     poster: posters.formulario,
                   },
                   {
-                    icon: Feather.BarChart2,
-                    title: 'Dashboard em tempo real',
-                    desc: 'Funil, valores e desempenho por vendedor.',
+                    icon: Feather.Filter,
+                    title: 'O sistema qualifica o lead',
+                    desc: 'Os dados entram no pré-vendas, você enxerga quem está só curioso e quem realmente está pronto para avançar.',
                     video: dashboardVideo,
                     poster: posters.dashboard,
                   },
                   {
                     icon: Feather.UserCheck,
-                    title: 'Propostas prontas',
-                    desc: 'PDF mastigado pro banco. Entre só para fechar.',
+                    title: 'Só então entra o vendedor',
+                    desc: 'Quando o lead atinge o nível certo, vira card no CRM, com tudo preenchido, para o vendedor só negociar e fechar.',
                     video: crmVideo,
                     poster: posters.relatorio,
                   },
                 ].map((item, i) => (
-                  <article key={i} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <article
+                    key={i}
+                    className="bg-slate-900/80 rounded-2xl border border-slate-800 shadow-[0_18px_40px_rgba(15,23,42,0.8)] overflow-hidden"
+                  >
                     <div className="p-7">
-                      <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 grid place-items-center mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-slate-800 text-emerald-300 grid place-items-center mb-4 border border-slate-700">
                         <item.icon size={24} />
                       </div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">{item.title}</h3>
-                      <p className="text-gray-600 mb-4">{item.desc}</p>
+                      <h3 className="text-xl font-bold text-slate-50 mb-2">{item.title}</h3>
+                      <p className="text-slate-300 mb-4">{item.desc}</p>
                     </div>
-                    <div className="relative bg-gray-100">
+                    <div className="relative bg-slate-900">
                       <video
                         ref={registerVideo}
                         src={item.video}
@@ -493,113 +654,118 @@ const HomePage = () => {
             </div>
           </section>
 
-          {/* RESULTADOS / PROVAS */}
+          {/* RESULTADOS / PROVAS — focados em tempo de vendedor */}
           <section id="resultados" className="py-20 px-4">
             <div className="max-w-7xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-black text-center text-gray-900 mb-12">Resultados reais</h2>
+              <h2 className="text-3xl md:text-5xl font-black text-center text-slate-50 mb-12">
+                Resultados no seu pré-vendas
+              </h2>
               <div className="grid sm:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                <Metric value="+70%" label="média de aumento em propostas completas" />
-                <Metric value="24h" label="tempo para começar a captar automaticamente" />
-                <Metric value="R$ 0" label="fidelidade ou taxa de cancelamento" />
+                <Metric value="-60%" label="tempo dos vendedores gasto respondendo WhatsApp" />
+                <Metric value="+3x" label="mais leads realmente prontos para falar com o vendedor" />
+                <Metric value="24h" label="para ter seu pré-vendas automático rodando" />
               </div>
-
-              {/* <div className="mt-12 grid md:grid-cols-3 gap-6">
-                {[
-                  { name: 'Léo, Gestor de Vendas', quote: 'Em 2 semanas dobramos propostas que fazem sentido. O time foca em fechar.', store: 'Concessionária Regional' },
-                  { name: 'Cíntia, Diretora', quote: 'Chega com entrada, fotos da troca e dados certos. O CRM já vem pronto.', store: 'Multimarcas Centro' },
-                  { name: 'Renan, Vendedor', quote: 'PDF mastigado pro banco e adeus pedir info básica.', store: 'Auto Car' },
-                ].map((t, i) => (
-                  <blockquote key={i} className="p-7 rounded-2xl bg-white border border-gray-200 shadow-sm">
-                    <p className="text-gray-700 leading-relaxed">“{t.quote}”</p>
-                    <footer className="mt-4 text-sm text-gray-600">
-                      <strong className="text-gray-900">{t.name}</strong> • {t.store}
-                    </footer>
-                  </blockquote>
-                ))}
-              </div> */}
             </div>
           </section>
 
           {/* PLANOS — Premium destacado */}
-          <section id="planos" className="py-20 px-4 bg-white">
+          <section id="planos" className="py-20 px-4 bg-slate-950/80 backdrop-blur-sm">
             <div className="max-w-7xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-black text-center text-gray-900 mb-4">
-                Escolha seu plano
-              </h2>
-              <p className="text-center text-gray-600 mb-12">
-                Com menos que <strong>1 venda/mês</strong> o ZailonSoft já se paga.
+              <h2 className="text-3xl md:text-5xl font-black text-center text-slate-50 mb-4">Escolha seu plano</h2>
+              <p className="text-center text-slate-300 mb-12">
+                Com menos que <strong>1 venda/mês</strong> o ZailonSoft já se paga — só em tempo de vendedor você já ganha.
               </p>
 
               <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
                 {/* PRO — propositalmente mais discreto */}
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-200 p-10">
-                  <h3 className="text-2xl font-black text-gray-900 mb-2">ZailonSoft Pro</h3>
-                  <p className="text-gray-600 mb-8 text-lg">Autonomia para crescer — capture leads 24h e feche mais.</p>
+                <div className="bg-slate-900/80 rounded-3xl shadow-[0_18px_40px_rgba(15,23,42,0.8)] border border-slate-800 p-10">
+                  <h3 className="text-2xl font-black text-slate-50 mb-2">ZailonSoft Pro</h3>
+                  <p className="text-slate-300 mb-8 text-lg">
+                    Para lojas que querem tirar o peso do WhatsApp dos vendedores e organizar o pré-vendas em um único
+                    lugar.
+                  </p>
                   <div className="mb-8">
-                    <span className="text-6xl font-black text-gray-900">R$ 299</span>
-                    <span className="text-xl text-gray-500 font-normal">/mês</span>
+                    <span className="text-6xl font-black text-slate-50">R$ 299</span>
+                    <span className="text-xl text-slate-400 font-normal">/mês</span>
                   </div>
-                  <ul className="space-y-3 mb-10 text-gray-700">
-                    <li className="flex items-center gap-3"><Feather.CheckCircle className="text-emerald-600" size={20}/> Formulários + CRM + Dashboard</li>
-                    <li className="flex items-center gap-3"><Feather.CheckCircle className="text-emerald-600" size={20}/> Suporte por e-mail</li>
-                    <li className="flex items-center gap-3"><Feather.CheckCircle className="text-emerald-600" size={20}/> Ativação em até 24h</li>
+                  <ul className="space-y-3 mb-10 text-slate-200">
+                    <li className="flex items-center gap-3">
+                      <Feather.CheckCircle className="text-emerald-300" size={20} /> Formulários + Pré-vendas + CRM +
+                      Dashboard
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <Feather.CheckCircle className="text-emerald-300" size={20} /> Suporte por e-mail
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <Feather.CheckCircle className="text-emerald-300" size={20} /> Ativação em até 24h
+                    </li>
                   </ul>
                   <Link
                     to="/signup"
-                    className="block text-center bg-white text-gray-900 border border-gray-300 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transition"
+                    className="block text-center bg-slate-50 text-slate-950 py-4 rounded-2xl font-bold text-lg hover:bg-white transition"
                   >
                     Assinar Pro
                   </Link>
-                  <p className="mt-4 text-sm text-gray-500">Sem fidelidade • Cancele quando quiser</p>
+                  <p className="mt-4 text-sm text-slate-400">Sem fidelidade • Cancele quando quiser</p>
                 </div>
 
                 {/* PREMIUM — SUPER DESTAQUE */}
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: 'spring', stiffness: 200, damping: 18 }}
-                  className="relative group rounded-3xl p-[2px] bg-gradient-to-br from-amber-300 via-amber-500 to-orange-600 shadow-[0_20px_60px_rgba(234,179,8,0.35)]"
+                  className="relative group rounded-3xl p-[2px] bg-gradient-to-br from-emerald-400 via-cyan-400 to-sky-500 shadow-[0_24px_70px_rgba(6,182,212,0.65)] animated-gradient-border"
                 >
                   {/* Glow suave ao redor */}
-                  <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-amber-200/0 via-amber-400/0 to-orange-500/0 blur-2xl group-hover:from-amber-200/30 group-hover:via-amber-400/20 group-hover:to-orange-500/20 transition"></div>
+                  <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-emerald-300/25 via-cyan-500/20 to-sky-400/25 blur-2xl group-hover:from-emerald-300/40 group-hover:via-cyan-500/30 group-hover:to-sky-400/30 transition"></div>
 
                   {/* Ribbon */}
                   <div className="absolute -top-3 right-5 z-10">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-amber-500 text-white text-xs font-bold px-3 py-1 shadow">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 text-emerald-200 text-xs font-bold px-3 py-1 shadow-lg shadow-black/70 border border-slate-700">
                       <Feather.Star size={14} /> MAIS VENDIDO
                     </span>
                   </div>
 
                   {/* Conteúdo */}
-                  <div className="relative rounded-[22px] bg-white p-10 h-full border border-amber-500/10">
+                  <div className="relative rounded-[22px] bg-slate-950 text-slate-50 p-10 h-full border border-emerald-400/60 overflow-hidden">
+                    <div
+                      className="absolute top-0 left-0 -translate-x-full w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12
+                                 group-hover:translate-x-full transition-transform duration-700 ease-in-out"
+                      aria-hidden="true"
+                    />
+
                     <div className="flex items-start justify-between gap-4">
-                      <h3 className="text-2xl md:text-3xl font-black text-gray-900">ZailonSoft Premium</h3>
-                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-100/80 rounded-full px-2.5 py-1">
+                      <h3 className="text-2xl md:text-3xl font-black text-slate-50">ZailonSoft Premium</h3>
+                      <span className="text-xs font-semibold text-emerald-200 bg-emerald-500/20 rounded-full px-2.5 py-1 border border-emerald-300/60">
                         ROI mais rápido
                       </span>
                     </div>
 
-                    <p className="text-gray-700 mt-3 mb-8 text-lg">
-                      Nós cuidamos do operacional — você foca no fechamento.
+                    <p className="text-slate-100/90 mt-3 mb-8 text-lg">
+                      Para quem quer um pré-vendas profissional sem esquentar a cabeça com cadastro e configuração. Nós
+                      estruturamos tudo, você só acompanha e fecha.
                     </p>
 
                     <div className="mb-8">
-                      <span className="text-6xl font-black text-gray-900">R$ 499</span>
-                      <span className="text-xl text-gray-500 font-normal">/mês</span>
-                      <p className="text-sm text-gray-500 mt-1">Menos que 1 venda/mês e já se paga</p>
+                      <span className="text-6xl font-black text-slate-50">R$ 499</span>
+                      <span className="text-xl text-slate-400 font-normal">/mês</span>
+                      <p className="text-sm text-slate-400 mt-1">Menos que 1 venda/mês e já se paga.</p>
                     </div>
 
-                    <ul className="space-y-3 mb-10 text-gray-800">
+                    <ul className="space-y-3 mb-10 text-slate-50/95">
                       <li className="flex items-center gap-3">
-                        <Feather.CheckCircle className="text-emerald-600" size={20} /> Tudo do Pro
+                        <Feather.CheckCircle className="text-emerald-300" size={20} /> Tudo do Pro
                       </li>
                       <li className="flex items-center gap-3">
-                        <Feather.CheckCircle className="text-emerald-600" size={20} /> <strong>Suporte via WhatsApp</strong>
+                        <Feather.CheckCircle className="text-emerald-300" size={20} />{' '}
+                        <strong>Suporte via WhatsApp</strong>
                       </li>
                       <li className="flex items-center gap-3">
-                        <Feather.CheckCircle className="text-emerald-600" size={20} /> <strong>Nós cadastramos seus veículos</strong>
+                        <Feather.CheckCircle className="text-emerald-300" size={20} />{' '}
+                        <strong>Nós cadastramos seus veículos</strong>
                       </li>
                       <li className="flex items-center gap-3">
-                        <Feather.CheckCircle className="text-emerald-600" size={20} /> <strong>Onboarding assistido</strong>
+                        <Feather.CheckCircle className="text-emerald-300" size={20} />{' '}
+                        <strong>Onboarding assistido do seu pré-vendas</strong>
                       </li>
                     </ul>
 
@@ -609,14 +775,14 @@ const HomePage = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block w-full text-center rounded-2xl font-bold text-lg py-4
-                                bg-gradient-to-r from-amber-300 via-amber-500 to-orange-600
-                                text-zinc-900 shadow-md hover:shadow-lg transition"
+                                  bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500
+                                  text-slate-950 shadow-md hover:shadow-lg transition"
                     >
                       Assinar Premium no WhatsApp
                     </a>
 
                     {/* Garantia / prova */}
-                    <p className="mt-4 text-sm text-gray-500 text-center">
+                    <p className="mt-4 text-sm text-slate-400 text-center">
                       Sem taxa de setup • Sem fidelidade • Ativação em até 24h
                     </p>
                   </div>
@@ -625,37 +791,77 @@ const HomePage = () => {
             </div>
           </section>
 
-          {/* FAQ */}
+          {/* FAQ — dúvidas sobre pré-vendas */}
           <section id="faq" className="py-20 px-4">
             <div className="max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-black text-center text-gray-900 mb-12">Perguntas Frequentes</h2>
+              <h2 className="text-3xl md:text-5xl font-black text-center text-slate-50 mb-12">
+                Perguntas Frequentes
+              </h2>
               <div className="space-y-6">
                 {[
-                  { q: 'Como o formulário sabe quais carros oferecer?', a: 'Integramos ao seu catálogo, links diretos pré-preenchem o carro.' },
-                  { q: 'Preciso de conhecimento técnico?', a: 'Não, foi desenvolvido exclusivamente para lojas de veículos, abrangendo tanto proprietários quanto vendedores.' },
-                  { q: 'O que acontece após o preenchimento?', a: 'A proposta vira card no CRM e o vendedor apenas entra para fechar negócio.' },
-                  { q: 'Tem fidelidade?', a: 'Não. Mensal e cancelável a qualquer momento.' },
+                  {
+                    q: 'Quem fala com o cliente primeiro?',
+                    a: 'O primeiro atendimento é feito pelo ZailonSoft, através de formulários e fluxos pensados para loja de veículos. Ele coleta as informações essenciais antes de envolver um vendedor.',
+                  },
+                  {
+                    q: 'Os vendedores param de responder WhatsApp?',
+                    a: 'Eles deixam de responder curiosos e quem ainda não sabe o que quer. Com o ZailonSoft, o vendedor entra na conversa quando o lead já está qualificado e com dados completos.',
+                  },
+                  {
+                    q: 'Preciso de conhecimento técnico?',
+                    a: 'Não. O sistema foi desenhado para o dia a dia de multimarcas e concessionárias. Nós ajudamos a configurar o fluxo de pré-vendas e você só acompanha.',
+                  },
+                  {
+                    q: 'Tem fidelidade?',
+                    a: 'Não. A assinatura é mensal e você pode cancelar a qualquer momento.',
+                  },
                 ].map((item, i) => (
-                  <FaqItem key={i} question={item.q} answer={item.a} isOpen={openFaq === i} onClick={() => setOpenFaq(openFaq === i ? null : i)} />
+                  <FaqItem
+                    key={i}
+                    question={item.q}
+                    answer={item.a}
+                    isOpen={openFaq === i}
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  />
                 ))}
               </div>
             </div>
           </section>
 
           {/* sticky CTA mobile */}
-          <div className="md:hidden fixed bottom-3 inset-x-3 z-50 grid grid-cols-2 gap-3">
-            <Link to={loading || !user ? '/signup' : '/sistema'} className="text-center px-4 py-3 rounded-xl font-bold bg-amber-500 text-zinc-900 shadow">Começar</Link>
-            <a href="https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20do%20ZailonSoft.%20Pode%20me%20chamar%20por%20aqui%3F" target="_blank" rel="noopener noreferrer" className="text-center px-4 py-3 rounded-xl font-bold bg-white border border-gray-300 text-gray-900 shadow">WhatsApp</a>
+          <div className="md:hidden sticky bottom-3 inset-x-3 z-50 grid grid-cols-2 gap-3">
+            <Link
+              to={loading || !user ? '/signup' : '/sistema'}
+              className="text-center px-4 py-3 rounded-xl font-bold bg-emerald-500 text-slate-950 shadow-lg"
+            >
+              Começar
+            </Link>
+            <a
+              href="https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20do%20ZailonSoft.%20Pode%20me%20chamar%20por%20aqui%3F"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-center px-4 py-3 rounded-xl font-bold bg-slate-900 border border-slate-700 text-slate-50 shadow"
+            >
+              WhatsApp
+            </a>
           </div>
         </main>
 
-        <footer className="bg-white border-t border-gray-200 py-12 px-4">
+        <footer className="relative z-10 bg-slate-950/90 backdrop-blur-sm border-t border-slate-900 py-12 px-4">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-            <p className="text-sm text-gray-500">© {new Date().getFullYear()} ZailonSoft. Todos os direitos reservados.</p>
-            <nav className="flex items-center gap-5 text-sm text-gray-500">
-              <a href="#planos" className="hover:text-amber-600">Planos</a>
-              <a href="#faq" className="hover:text-amber-600">Dúvidas</a>
-              <Link to="/login" className="hover:text-amber-600">Login</Link>
+            <p className="text-sm text-slate-500">
+              © {new Date().getFullYear()} ZailonSoft. Todos os direitos reservados.
+            </p>
+            <nav className="flex items-center gap-5 text-sm text-slate-500">
+              <a href="#planos" className="hover:text-emerald-300">
+                Planos
+              </a>
+              <a href="#faq" className="hover:text-emerald-300">
+                Dúvidas
+              </a>
+              <Link to="/login" className="hover:text-emerald-300">
+                Login
+              </Link>
             </nav>
           </div>
         </footer>

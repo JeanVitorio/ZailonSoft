@@ -1,5 +1,5 @@
 // src/pages/PublicVehicleCatalogPage.tsx
-// Versão aprimorada: UX/UX, performance, robustez
+// Versão aprimorada: UX/UX, performance, robustez (Tema Dark/Emerald)
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
@@ -19,7 +19,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 // -------------------- Helpers --------------------
 const PLACEHOLDER =
-  'https://placehold.co/800x450/e4e4e7/3f3f46?text=Sem+Imagem';
+  'https://placehold.co/800x450/1e293b/cbd5e1?text=Sem+Imagem'; // Cor Slate
 
 const parsePrice = (value: string | number): number => {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
@@ -61,10 +61,10 @@ function PublicCarDetailsView({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">{vehicle.nome}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-50">{vehicle.nome}</h1>
         <motion.button
           type="button"
-          className="px-4 py-2 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-zinc-100 transition-all inline-flex items-center"
+          className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 transition-all inline-flex items-center"
           onClick={onBack}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -74,11 +74,11 @@ function PublicCarDetailsView({
         </motion.button>
       </div>
 
-      <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm">
+      <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Galeria */}
           <div className="space-y-4">
-            <div className="relative aspect-video rounded-lg overflow-hidden border border-zinc-200 bg-zinc-100">
+            <div className="relative aspect-video rounded-lg overflow-hidden border border-slate-700 bg-slate-800">
               <img
                 src={hasImages ? images[idx] : PLACEHOLDER}
                 alt={`Imagem ${idx + 1} do veículo`}
@@ -93,7 +93,7 @@ function PublicCarDetailsView({
                   <button
                     type="button"
                     aria-label="Imagem anterior"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full border border-zinc-200 text-amber-600 hover:bg-white"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-slate-800/80 p-2 rounded-full border border-slate-700 text-emerald-400 hover:bg-slate-700"
                     onClick={() => go(-1)}
                   >
                     <Feather.ChevronLeft className="w-5 h-5" />
@@ -101,7 +101,7 @@ function PublicCarDetailsView({
                   <button
                     type="button"
                     aria-label="Próxima imagem"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full border border-zinc-200 text-amber-600 hover:bg-white"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-800/80 p-2 rounded-full border border-slate-700 text-emerald-400 hover:bg-slate-700"
                     onClick={() => go(1)}
                   >
                     <Feather.ChevronRight className="w-5 h-5" />
@@ -118,7 +118,7 @@ function PublicCarDetailsView({
                     type="button"
                     onClick={() => setIdx(i)}
                     className={`relative rounded-md overflow-hidden border-2 ${
-                      idx === i ? 'border-amber-500' : 'border-transparent'
+                      idx === i ? 'border-emerald-500' : 'border-transparent'
                     }`}
                     aria-label={`Miniatura ${i + 1}`}
                   >
@@ -140,20 +140,20 @@ function PublicCarDetailsView({
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <p className="text-zinc-800 font-medium">Preço</p>
-                <p className="text-2xl font-bold text-amber-600">
+                <p className="text-slate-200 font-medium">Preço</p>
+                <p className="text-2xl font-bold text-emerald-400">
                   {formatCurrency(vehicle.preco || 0)}
                 </p>
               </div>
               <div>
-                <p className="text-zinc-800 font-medium">Ano</p>
-                <p className="text-2xl font-semibold text-zinc-800">{vehicle.ano ?? '—'}</p>
+                <p className="text-slate-200 font-medium">Ano</p>
+                <p className="text-2xl font-semibold text-slate-100">{vehicle.ano ?? '—'}</p>
               </div>
             </div>
 
             <div>
-              <p className="text-zinc-800 font-medium">Descrição</p>
-              <p className="text-zinc-600 whitespace-pre-wrap">
+              <p className="text-slate-200 font-medium">Descrição</p>
+              <p className="text-slate-400 whitespace-pre-wrap">
                 {vehicle.descricao || 'Nenhuma descrição.'}
               </p>
             </div>
@@ -162,7 +162,7 @@ function PublicCarDetailsView({
               <Link to={`/form-proposta/${vehicle.id}`}>
                 <motion.button
                   type="button"
-                  className="w-full px-4 py-3 rounded-lg bg-amber-500 text-white font-semibold hover:bg-amber-600 transition-all inline-flex items-center justify-center"
+                  className="w-full px-4 py-3 rounded-lg bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400 transition-all inline-flex items-center justify-center shadow-[0_10px_30px_rgba(16,185,129,0.4)]"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -269,29 +269,29 @@ export function PublicVehicleCatalogPage() {
   // -------------------- Estados de carregamento/erro --------------------
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-zinc-50 p-4 md:p-8">
+      <div className="min-h-screen bg-slate-950 text-slate-50 p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-zinc-200 animate-pulse" />
+            <div className="w-20 h-20 rounded-full bg-slate-800 animate-pulse" />
             <div className="space-y-2">
-              <div className="h-7 w-64 bg-zinc-200 rounded animate-pulse" />
-              <div className="h-5 w-96 bg-zinc-200 rounded animate-pulse" />
+              <div className="h-7 w-64 bg-slate-800 rounded animate-pulse" />
+              <div className="h-5 w-96 bg-slate-800 rounded animate-pulse" />
             </div>
           </div>
 
           <div className="flex flex-col md:flex-row gap-3 md:items-center">
-            <div className="h-10 w-full md:w-96 bg-zinc-200 rounded animate-pulse" />
-            <div className="h-10 w-48 bg-zinc-200 rounded animate-pulse" />
+            <div className="h-10 w-full md:w-96 bg-slate-800 rounded animate-pulse" />
+            <div className="h-10 w-48 bg-slate-800 rounded animate-pulse" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="overflow-hidden bg-white rounded-lg shadow-sm border border-zinc-200">
-                <div className="aspect-video bg-zinc-200 animate-pulse" />
+              <div key={i} className="overflow-hidden bg-slate-900 rounded-lg shadow-sm border border-slate-800">
+                <div className="aspect-video bg-slate-800 animate-pulse" />
                 <div className="p-6 space-y-3">
-                  <div className="h-6 w-2/3 bg-zinc-200 rounded animate-pulse" />
-                  <div className="h-4 w-1/2 bg-zinc-200 rounded animate-pulse" />
-                  <div className="h-4 w-full bg-zinc-100 rounded animate-pulse" />
+                  <div className="h-6 w-2/3 bg-slate-800 rounded animate-pulse" />
+                  <div className="h-4 w-1/2 bg-slate-800 rounded animate-pulse" />
+                  <div className="h-4 w-full bg-slate-800 rounded animate-pulse" />
                 </div>
               </div>
             ))}
@@ -303,16 +303,16 @@ export function PublicVehicleCatalogPage() {
 
   if (errorVehicles || errorLoja) {
     return (
-      <div className="min-h-screen bg-zinc-50 p-4 md:p-8">
-        <div className="max-w-xl mx-auto bg-white border border-red-200 rounded-xl p-6 text-center shadow-sm">
-          <Feather.AlertTriangle className="mx-auto h-10 w-10 text-red-500" />
-          <h2 className="mt-3 text-lg font-semibold text-zinc-900">Falha ao carregar</h2>
-          <p className="text-zinc-600">
+      <div className="min-h-screen bg-slate-950 text-slate-50 p-4 md:p-8">
+        <div className="max-w-xl mx-auto bg-slate-900 border border-red-500/30 rounded-xl p-6 text-center shadow-lg">
+          <Feather.AlertTriangle className="mx-auto h-10 w-10 text-red-400" />
+          <h2 className="mt-3 text-lg font-semibold text-slate-50">Falha ao carregar</h2>
+          <p className="text-slate-400">
             Não foi possível carregar o catálogo ou os dados da loja. Tente novamente mais tarde.
           </p>
           <Link
             to="/"
-            className="inline-flex items-center gap-2 mt-4 text-amber-700 font-medium px-3 py-2 rounded-lg border border-amber-300 hover:bg-amber-50"
+            className="inline-flex items-center gap-2 mt-4 text-emerald-400 font-medium px-3 py-2 rounded-lg border border-emerald-500/30 hover:bg-emerald-500/10"
           >
             <Feather.Home className="w-4 h-4" />
             Voltar para a página inicial
@@ -324,11 +324,11 @@ export function PublicVehicleCatalogPage() {
 
   if (vehicles.length === 0) {
     return (
-      <div className="min-h-screen bg-zinc-50 p-4 md:p-8">
-        <div className="max-w-xl mx-auto bg-white border border-zinc-200 rounded-xl p-6 text-center shadow-sm">
-          <Feather.Box className="mx-auto h-10 w-10 text-zinc-500" />
-          <h2 className="mt-3 text-lg font-semibold text-zinc-900">Catálogo vazio</h2>
-          <p className="text-zinc-600">Esta loja ainda não possui veículos cadastrados.</p>
+      <div className="min-h-screen bg-slate-950 text-slate-50 p-4 md:p-8">
+        <div className="max-w-xl mx-auto bg-slate-900 border border-slate-800 rounded-xl p-6 text-center shadow-lg">
+          <Feather.Box className="mx-auto h-10 w-10 text-slate-500" />
+          <h2 className="mt-3 text-lg font-semibold text-slate-50">Catálogo vazio</h2>
+          <p className="text-slate-400">Esta loja ainda não possui veículos cadastrados.</p>
         </div>
       </div>
     );
@@ -336,7 +336,7 @@ export function PublicVehicleCatalogPage() {
 
   // -------------------- UI principal --------------------
   return (
-    <div className="min-h-screen bg-zinc-50 p-4 md:p-8 space-y-8">
+    <div className="min-h-screen bg-slate-950 text-slate-50 p-4 md:p-8 space-y-8">
       {/* Cabeçalho */}
       <motion.div
         initial="hidden"
@@ -348,21 +348,21 @@ export function PublicVehicleCatalogPage() {
           <img
             src={lojaData.logo_url}
             alt={`Logo ${lojaData.nome}`}
-            className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md"
+            className="w-20 h-20 rounded-full object-cover border-4 border-slate-900 shadow-md"
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).style.display = 'none';
             }}
           />
         ) : (
-          <div className="w-20 h-20 rounded-full bg-amber-500 text-white flex items-center justify-center text-2xl font-bold shadow-md">
+          <div className="w-20 h-20 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-2xl font-bold shadow-md">
             {lojaData?.nome?.[0]?.toUpperCase() || 'L'}
           </div>
         )}
         <div>
-          <h1 className="text-4xl font-extrabold text-amber-600 mb-1">
+          <h1 className="text-4xl font-extrabold text-emerald-400 mb-1">
             Catálogo {lojaData?.nome || '—'}
           </h1>
-          <p className="text-base md:text-lg text-zinc-700">
+          <p className="text-base md:text-lg text-slate-400">
             Explore os veículos disponíveis e envie sua proposta.
           </p>
         </div>
@@ -376,23 +376,23 @@ export function PublicVehicleCatalogPage() {
         variants={fadeInUp}
       >
         <div className="relative w-full md:w-96">
-          <Feather.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 w-4 h-4" />
+          <Feather.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
           <Input
             placeholder="Buscar por nome, ano ou valor..."
             value={rawSearch}
             onChange={(e) => setRawSearch(e.target.value)}
-            className="pl-10 border-zinc-200 focus:border-amber-500 focus:ring-amber-500/20"
+            className="pl-10 bg-slate-800 border-slate-700 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <label className="text-sm text-zinc-700">Ordenar por:</label>
+          <label className="text-sm text-slate-400">Ordenar por:</label>
           <select
             value={sortKey}
             onChange={(e) =>
               setSortKey(e.target.value as typeof sortKey)
             }
-            className="h-10 rounded-md border border-zinc-200 px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+            className="h-10 rounded-md border border-slate-700 px-3 text-sm bg-slate-800 text-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
           >
             <option value="recent">Mais recente</option>
             <option value="price_asc">Preço (menor → maior)</option>
@@ -414,9 +414,9 @@ export function PublicVehicleCatalogPage() {
           <motion.div
             key={vehicle.id}
             variants={fadeInUp}
-            className="overflow-hidden bg-white rounded-lg shadow-sm border border-zinc-200 hover:border-amber-400/50 transition-all group"
+            className="overflow-hidden bg-slate-900 rounded-lg shadow-lg border border-slate-800 hover:border-emerald-500/50 transition-all group"
           >
-            <div className="aspect-video overflow-hidden bg-zinc-100">
+            <div className="aspect-video overflow-hidden bg-slate-800">
               <img
                 src={vehicle.imagens?.[0] || PLACEHOLDER}
                 alt={vehicle.nome}
@@ -431,24 +431,24 @@ export function PublicVehicleCatalogPage() {
             <div className="p-6 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="text-lg md:text-xl font-bold text-zinc-900">{vehicle.nome}</h3>
-                  <p className="text-sm text-zinc-600 mt-1 flex items-center gap-1">
+                  <h3 className="text-lg md:text-xl font-bold text-slate-50">{vehicle.nome}</h3>
+                  <p className="text-sm text-slate-400 mt-1 flex items-center gap-1">
                     <Feather.Calendar className="w-4 h-4" /> {vehicle.ano}
                   </p>
                 </div>
-                <div className="text-xl md:text-2xl font-bold text-amber-600">
+                <div className="text-xl md:text-2xl font-bold text-emerald-400">
                   {formatCurrency(vehicle.preco)}
                 </div>
               </div>
 
               {vehicle.descricao && (
-                <p className="text-sm text-zinc-600 line-clamp-2">{vehicle.descricao}</p>
+                <p className="text-sm text-slate-400 line-clamp-2">{vehicle.descricao}</p>
               )}
 
               <div className="flex gap-2 pt-2">
                 <motion.button
                   type="button"
-                  className="flex-1 px-4 py-2 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-zinc-100 hover:border-amber-400/50 transition-all inline-flex items-center justify-center"
+                  className="flex-1 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 hover:text-slate-100 transition-all inline-flex items-center justify-center"
                   onClick={() => setSelectedCar(vehicle)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -460,7 +460,7 @@ export function PublicVehicleCatalogPage() {
                 <Link to={`/form-proposta/${vehicle.id}`} className="flex-1">
                   <motion.button
                     type="button"
-                    className="w-full px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all inline-flex items-center justify-center"
+                    className="w-full px-4 py-2 rounded-lg bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400 transition-all inline-flex items-center justify-center"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -482,13 +482,13 @@ export function PublicVehicleCatalogPage() {
           animate="visible"
           variants={fadeInUp}
         >
-          <div className="w-24 h-24 mx-auto bg-zinc-100 rounded-full flex items-center justify-center mb-4">
-            <Feather.Search className="w-12 h-12 text-zinc-600" />
+          <div className="w-24 h-24 mx-auto bg-slate-800 rounded-full flex items-center justify-center mb-4">
+            <Feather.Search className="w-12 h-12 text-slate-500" />
           </div>
-          <h3 className="text-lg font-medium text-zinc-900 mb-2">
+          <h3 className="text-lg font-medium text-slate-50 mb-2">
             Nenhum veículo encontrado
           </h3>
-          <p className="text-zinc-600">Tente ajustar sua busca ou a ordenação.</p>
+          <p className="text-slate-400">Tente ajustar sua busca ou a ordenação.</p>
         </motion.div>
       )}
 
@@ -499,7 +499,9 @@ export function PublicVehicleCatalogPage() {
           if (!isOpen) setSelectedCar(null);
         }}
       >
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-white border border-zinc-200 overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-slate-950 border-slate-800 overflow-y-auto">
+          {/* O `DialogContent` do Shadcn já inclui um 'X' para fechar, 
+              mas mantemos o `onBack` para o botão customizado */}
           {selectedCar && (
             <div className="p-6">
               <PublicCarDetailsView vehicle={selectedCar} onBack={() => setSelectedCar(null)} />

@@ -30,19 +30,30 @@ const parsePrice = (v: any) => {
   if (typeof v === 'number' && Number.isFinite(v)) return v;
   const s = String(v ?? '').trim();
   if (!s) return 0;
-  const brlLike = s.replace(/\s+/g, '').replace(/R\$\s?/gi, '').replace(/\./g, '').replace(/,/, '.');
+  const brlLike = s
+    .replace(/\s+/g, '')
+    .replace(/R\$\s?/gi, '')
+    .replace(/\./g, '')
+    .replace(/,/, '.');
   const n = Number(brlLike);
   if (Number.isFinite(n)) return n;
   const digits = s.replace(/\D+/g, '');
   return digits ? (digits.length >= 3 ? Number(digits) / 100 : Number(digits)) : 0;
 };
+
 const formatCurrency = (v: any) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(
-    parsePrice(v)
-  );
+  new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 0,
+  }).format(parsePrice(v));
+
 const sl = (s: any) => String(s ?? '').toLowerCase();
 
-const fade = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
+const fade = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+};
 
 /* ================= DETALHES ================= */
 function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => void }) {
@@ -59,7 +70,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
     description: getDesc(vehicle),
     ano: getYear(vehicle) as any,
     year: getYear(vehicle) as any,
-    preco: formatCurrency(getPriceRaw(vehicle)).replace('R$ ', ''), // Formatted without 'R$'
+    preco: formatCurrency(getPriceRaw(vehicle)).replace('R$ ', ''), // sem R$ no input
     price: formatCurrency(getPriceRaw(vehicle)).replace('R$ ', ''),
     imagens: getImages(vehicle) as any,
     images: getImages(vehicle) as any,
@@ -87,7 +98,12 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
 
   const priceInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     let v = e.target.value.replace(/\D/g, '');
-    const formatted = v ? (Number(v) / 100).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
+    const formatted = v
+      ? (Number(v) / 100)
+          .toFixed(2)
+          .replace('.', ',')
+          .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+      : '';
     setData((prev) => ({ ...prev, preco: formatted, price: formatted }));
   };
 
@@ -112,8 +128,6 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
     mutationFn: () =>
       updateVehicleInSupabase({
         carId: (vehicle as any).id,
-        // Apenas colunas PT reais da tabela 'cars' (evita erro de coluna inexistente)
-        // imagens é tratado separadamente via newImages (append)
         updatedData: {
           nome: getName(data),
           descricao: getDesc(data),
@@ -126,10 +140,10 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
       toast({ title: 'Salvo!' });
       qc.invalidateQueries({ queryKey: ['vehicles'] });
       setEdit(false);
-      setImgs([]); // Limpa novas imagens após sucesso
+      setImgs([]);
     },
     onError: (error: any) => {
-      console.error('Erro ao salvar edição:', error); // Debug no console
+      console.error('Erro ao salvar edição:', error);
       toast({
         title: 'Erro ao salvar',
         description: error?.message || 'Falha ao atualizar o veículo. Verifique os dados e tente novamente.',
@@ -141,18 +155,20 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
   const imgList = getImages(data) as string[];
 
   return (
-    <div className="bg-white">
+    <div className="bg-slate-950 text-slate-50">
       {/* Header do modal */}
-      <div className="p-6 md:p-8 border-b border-gray-100">
-        <div className="h-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full mb-4" />
+      <div className="p-6 md:p-8 border-b border-slate-800">
+        <div className="h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-300 rounded-full mb-4" />
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-50">
             {edit ? (
               <Input
                 autoFocus
                 value={getName(data)}
-                onChange={(e) => setData((p) => ({ ...p, nome: e.target.value, name: e.target.value }))}
-                className="text-2xl md:text-3xl font-bold"
+                onChange={(e) =>
+                  setData((p) => ({ ...p, nome: e.target.value, name: e.target.value }))
+                }
+                className="text-2xl md:text-3xl font-bold bg-slate-900 border-slate-700 text-slate-50"
               />
             ) : (
               getName(data) || 'Sem título'
@@ -161,7 +177,10 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
           <div className="flex gap-2">
             {edit ? (
               <>
-                <button onClick={() => setEdit(false)} className="px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-50">
+                <button
+                  onClick={() => setEdit(false)}
+                  className="px-4 py-2 text-slate-300 rounded-lg hover:bg-slate-900/70 border border-slate-700/60 text-sm"
+                >
                   Cancelar
                 </button>
                 <button
@@ -169,7 +188,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
                     if (validateData()) save.mutate();
                   }}
                   disabled={save.isPending}
-                  className="px-5 py-2 bg-amber-500 text-white rounded-xl shadow hover:bg-amber-600 transition disabled:opacity-50"
+                  className="px-5 py-2 bg-amber-500 text-slate-950 rounded-xl shadow hover:bg-amber-400 transition disabled:opacity-50 text-sm font-semibold"
                 >
                   {save.isPending ? 'Salvando...' : 'Salvar'}
                 </button>
@@ -178,13 +197,13 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
               <>
                 <button
                   onClick={onBack}
-                  className="px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                  className="px-4 py-2 text-slate-200 rounded-lg hover:bg-slate-900/70 border border-slate-800 flex items-center gap-2 text-sm"
                 >
-                  <Feather.ArrowLeft className="w-5 h-5" /> Voltar
+                  <Feather.ArrowLeft className="w-4 h-4" /> Voltar
                 </button>
                 <button
                   onClick={() => setEdit(true)}
-                  className="px-5 py-2 bg-amber-500 text-white rounded-xl shadow hover:bg-amber-600 transition flex items-center gap-2"
+                  className="px-5 py-2 bg-amber-500 text-slate-950 rounded-xl shadow hover:bg-amber-400 transition flex items-center gap-2 text-sm font-semibold"
                 >
                   <Feather.Edit className="w-4 h-4" /> Editar
                 </button>
@@ -198,25 +217,27 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
       <div className="p-6 md:p-8 grid lg:grid-cols-2 gap-10">
         {/* Galeria */}
         <div className="space-y-4">
-          <div className="relative aspect-video bg-gray-100 rounded-2xl overflow-hidden border border-gray-200">
+          <div className="relative aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-800">
             {imgList?.[idx] ? (
               <img src={imgList[idx]} className="w-full h-full object-cover" />
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-400">Sem foto</div>
+              <div className="flex items-center justify-center h-full text-slate-500">
+                Sem foto
+              </div>
             )}
             {imgList && imgList.length > 1 && (
               <>
                 <button
                   onClick={() => setIdx((i) => (i - 1 + imgList.length) % imgList.length)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur p-2 rounded-full shadow"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-slate-900/80 backdrop-blur p-2 rounded-full shadow border border-slate-700"
                 >
-                  <Feather.ChevronLeft />
+                  <Feather.ChevronLeft className="text-slate-100" />
                 </button>
                 <button
                   onClick={() => setIdx((i) => (i + 1) % imgList.length)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur p-2 rounded-full shadow"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-slate-900/80 backdrop-blur p-2 rounded-full shadow border border-slate-700"
                 >
-                  <Feather.ChevronRight />
+                  <Feather.ChevronRight className="text-slate-100" />
                 </button>
               </>
             )}
@@ -226,21 +247,23 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
               <button
                 key={i}
                 onClick={() => setIdx(i)}
-                className={`aspect-square rounded-xl border ${i === idx ? 'border-amber-500' : 'border-gray-200'} overflow-hidden`}
+                className={`aspect-square rounded-xl border overflow-hidden ${
+                  i === idx ? 'border-amber-400' : 'border-slate-800'
+                }`}
               >
                 <img src={img} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
           {edit && (
-            <div>
-              <Label>Nova(s) foto(s)</Label>
+            <div className="space-y-1">
+              <Label className="text-xs text-slate-300">Nova(s) foto(s)</Label>
               <Input
                 type="file"
                 multiple
                 accept="image/*"
                 onChange={(e) => setImgs(Array.from(e.target.files || []))}
-                className="mt-1"
+                className="mt-1 bg-slate-900 border-slate-700 text-slate-100"
               />
             </div>
           )}
@@ -250,44 +273,58 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <Label>Preço</Label>
+              <Label className="text-xs text-slate-300">Preço</Label>
               {edit ? (
                 <Input
                   value={String((data as any).preco ?? (data as any).price ?? '')}
                   onChange={priceInput}
                   placeholder="00,00"
-                  className="text-2xl font-bold mt-1"
+                  className="text-2xl font-bold mt-1 bg-slate-900 border-slate-700 text-slate-50"
                 />
               ) : (
-                <p className="text-3xl font-bold text-amber-600">{formatCurrency(getPriceRaw(vehicle))}</p>
+                <p className="text-3xl font-bold text-amber-400 mt-1">
+                  {formatCurrency(getPriceRaw(vehicle))}
+                </p>
               )}
             </div>
             <div>
-              <Label>Ano</Label>
+              <Label className="text-xs text-slate-300">Ano</Label>
               {edit ? (
                 <Input
                   type="number"
                   value={String(getYear(data) ?? '')}
-                  onChange={(e) => setData((p) => ({ ...p, ano: Number(e.target.value), year: Number(e.target.value) }))}
-                  className="text-2xl font-bold mt-1"
+                  onChange={(e) =>
+                    setData((p) => ({
+                      ...p,
+                      ano: Number(e.target.value),
+                      year: Number(e.target.value),
+                    }))
+                  }
+                  className="text-2xl font-bold mt-1 bg-slate-900 border-slate-700 text-slate-50"
                 />
               ) : (
-                <p className="text-3xl font-bold text-gray-900">{getYear(vehicle) || '—'}</p>
+                <p className="text-3xl font-bold text-slate-100 mt-1">
+                  {getYear(vehicle) || '—'}
+                </p>
               )}
             </div>
           </div>
 
           <div>
-            <Label>Descrição</Label>
+            <Label className="text-xs text-slate-300">Descrição</Label>
             {edit ? (
               <Textarea
                 value={getDesc(data)}
-                onChange={(e) => setData((p) => ({ ...p, descricao: e.target.value, description: e.target.value }))}
+                onChange={(e) =>
+                  setData((p) => ({ ...p, descricao: e.target.value, description: e.target.value }))
+                }
                 rows={6}
-                className="mt-2"
+                className="mt-2 bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
               />
             ) : (
-              <p className="text-gray-700 mt-2">{getDesc(vehicle) || 'Sem descrição.'}</p>
+              <p className="text-slate-300 mt-2 text-sm leading-relaxed">
+                {getDesc(vehicle) || 'Sem descrição.'}
+              </p>
             )}
           </div>
         </div>
@@ -342,7 +379,7 @@ export function VehicleCatalog() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-transparent text-slate-50">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-10">
         {/* HEADER */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -351,23 +388,28 @@ export function VehicleCatalog() {
               <img
                 src={storeDetails.logo_url}
                 alt="Logo da loja"
-                className="w-14 h-14 rounded-full object-contain bg-white shadow"
+                className="w-14 h-14 rounded-full object-contain bg-slate-900 border border-slate-700 shadow-lg"
               />
             ) : (
-              <div className="w-14 h-14 bg-amber-500 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow">
+              <div className="w-14 h-14 bg-slate-900 border border-slate-700 rounded-full flex items-center justify-center text-amber-400 font-bold text-2xl shadow-lg">
                 {storeDetails?.nome?.[0] || 'Z'}
               </div>
             )}
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Catálogo <span className="text-amber-600">{storeDetails?.nome || 'Zailon'}</span>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-50">
+                Catálogo{' '}
+                <span className="text-amber-400">
+                  {storeDetails?.nome || 'Zailon'}
+                </span>
               </h1>
-              <p className="text-sm text-gray-600">Gerencie seu estoque com eficiência</p>
+              <p className="text-sm text-slate-400">
+                Gerencie seu estoque com visual premium em tempo real
+              </p>
             </div>
           </div>
           <button
             onClick={copyCat}
-            className="px-5 py-3 bg-amber-500 text-white rounded-xl shadow hover:bg-amber-600 transition flex items-center gap-2 text-sm font-medium whitespace-nowrap"
+            className="px-5 py-3 bg-amber-500 text-slate-950 rounded-xl shadow-lg shadow-amber-500/30 hover:bg-amber-400 transition flex items-center gap-2 text-sm font-semibold whitespace-nowrap"
           >
             <Feather.Link className="w-5 h-5" />
             Copiar link do catálogo
@@ -377,12 +419,12 @@ export function VehicleCatalog() {
         {/* BUSCA */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           <div className="relative flex-1 max-w-xl">
-            <Feather.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Feather.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
             <Input
               placeholder="Buscar por nome, ano ou preço"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 border-gray-200 focus:border-amber-500"
+              className="pl-10 bg-slate-900/70 border border-slate-700 text-slate-100 placeholder:text-slate-500 focus:border-amber-400 focus:ring-0"
             />
           </div>
         </div>
@@ -390,8 +432,8 @@ export function VehicleCatalog() {
         {/* LOADING */}
         {(isLoading || authLoad) && (
           <div className="text-center py-20">
-            <Feather.Loader className="w-10 h-10 mx-auto animate-spin text-amber-500" />
-            <p className="text-gray-600 mt-4">Carregando...</p>
+            <Feather.Loader className="w-10 h-10 mx-auto animate-spin text-amber-400" />
+            <p className="text-slate-400 mt-4">Carregando veículos...</p>
           </div>
         )}
 
@@ -407,35 +449,41 @@ export function VehicleCatalog() {
             const year = getYear(c) || '—';
             const price = getPriceRaw(c);
             const desc = getDesc(c) || 'Sem descrição';
-            const img0 = (getImages(c) as string[])?.[0] || 'https://placehold.co/600x400/f3f4f6/9ca3af?text=Sem+Foto';
+            const img0 =
+              (getImages(c) as string[])?.[0] ||
+              'https://placehold.co/600x400/020617/64748b?text=Sem+Foto';
 
             return (
               <motion.div
                 key={(c as any).id}
-                className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow hover:shadow-xl hover:border-amber-200 transition-all"
+                className="bg-slate-950/80 rounded-2xl border border-slate-800/80 overflow-hidden shadow-[0_18px_45px_rgba(15,23,42,0.9)] hover:shadow-[0_22px_55px_rgba(15,23,42,1)] hover:border-amber-400/60 transition-all backdrop-blur"
                 whileHover={{ y: -6 }}
               >
-                <div className="h-1.5 bg-gradient-to-r from-amber-500 to-yellow-500" />
-                <div className="aspect-video bg-gray-100">
+                <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-cyan-400 to-amber-400" />
+                <div className="aspect-video bg-slate-900">
                   <img src={img0} alt={title} className="w-full h-full object-cover" />
                 </div>
                 <div className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="font-semibold text-gray-900 text-lg leading-tight">{title}</h3>
-                      <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                      <h3 className="font-semibold text-slate-50 text-lg leading-tight">
+                        {title}
+                      </h3>
+                      <p className="text-sm text-slate-400 flex items-center gap-1 mt-1">
                         <Feather.Calendar className="w-4 h-4" /> {year}
                       </p>
                     </div>
-                    <p className="text-xl font-bold text-amber-600 whitespace-nowrap">{formatCurrency(price)}</p>
+                    <p className="text-xl font-bold text-amber-400 whitespace-nowrap">
+                      {formatCurrency(price)}
+                    </p>
                   </div>
 
-                  <p className="text-sm text-gray-600 line-clamp-2">{desc}</p>
+                  <p className="text-sm text-slate-400 line-clamp-2">{desc}</p>
 
                   <div className="flex gap-2 pt-2">
                     <button
                       onClick={() => setCar(c)}
-                      className="flex-1 py-2 border border-amber-500 text-amber-700 rounded-lg hover:bg-amber-50 flex items-center justify-center gap-2 text-sm"
+                      className="flex-1 py-2 border border-amber-400 text-amber-300 rounded-lg hover:bg-amber-400/10 flex items-center justify-center gap-2 text-sm font-medium"
                     >
                       <Feather.Eye className="w-4 h-4" /> Ver
                     </button>
@@ -445,17 +493,17 @@ export function VehicleCatalog() {
                         navigator.clipboard.writeText(url);
                         toast({ title: 'Copiado!', description: 'Link do formulário' });
                       }}
-                      className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
+                      className="p-2 border border-slate-700 rounded-lg hover:bg-slate-900"
                       title="Copiar link do formulário"
                     >
-                      <Feather.Link className="w-4 h-4 text-gray-600" />
+                      <Feather.Link className="w-4 h-4 text-slate-300" />
                     </button>
                     <button
                       onClick={() => confirm('Excluir este veículo?') && del.mutate((c as any).id)}
-                      className="p-2 border border-gray-200 rounded-lg hover:bg-red-50"
+                      className="p-2 border border-slate-800 rounded-lg hover:bg-red-950/50"
                       title="Excluir"
                     >
-                      <Feather.Trash2 className="w-4 h-4 text-red-500" />
+                      <Feather.Trash2 className="w-4 h-4 text-red-400" />
                     </button>
                   </div>
                 </div>
@@ -467,15 +515,14 @@ export function VehicleCatalog() {
         {/* VAZIO */}
         {filtered.length === 0 && !isLoading && !authLoad && (
           <div className="text-center py-20">
-            <Feather.Truck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Nenhum veículo encontrado</p>
+            <Feather.Truck className="w-16 h-16 text-slate-700 mx-auto mb-4" />
+            <p className="text-slate-400 text-lg">Nenhum veículo encontrado</p>
           </div>
         )}
 
         {/* MODAL */}
         <Dialog open={!!car} onOpenChange={(o) => !o && setCar(null)}>
-          <DialogContent className="max-w-6xl p-0 overflow-hidden rounded-2xl">
-            {/* Adicionado DialogTitle oculto para acessibilidade (resolve warning Radix) */}
+          <DialogContent className="max-w-6xl p-0 overflow-hidden rounded-2xl bg-slate-950 border border-slate-800">
             <DialogTitle className="sr-only">Detalhes do Veículo</DialogTitle>
             {car && <CarDetailsView vehicle={car} onBack={() => setCar(null)} />}
           </DialogContent>

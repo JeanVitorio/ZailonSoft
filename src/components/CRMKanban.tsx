@@ -1,5 +1,5 @@
 // src/components/CRMKanban.tsx
-// Kanban + Modal Premium + PDF (página exclusiva para "Negociação")
+// Kanban + Modal Premium + PDF (design do Dashboard)
 // Requisitos: react, @tanstack/react-query, dnd-kit, shadcn/ui, lucide-react, html2canvas, jspdf
 // APIs esperadas: fetchClients, updateClientStatus, updateClientDetails, deleteClient
 // Opcional (caso use fallback de imagens de troca via BD/API): endpoint GET /api/trade-car-images?chatId=...
@@ -79,8 +79,10 @@ import {
   updateClientDetails,
   deleteClient,
 } from "@/services/api";
-// =========================== Toast simples ===========================
+
+// =========================== Toast (Estilo Dashboard) ===========================
 const ToastContext = React.createContext<any>(null);
+
 function toastReducer(state: any[], action: any) {
   switch (action.type) {
     case "ADD_TOAST":
@@ -91,19 +93,21 @@ function toastReducer(state: any[], action: any) {
       return state;
   }
 }
+
 const Toaster = ({ toasts, dispatch }: { toasts: any[]; dispatch: any }) => {
   const variantClasses: Record<string, string> = {
-    default: "bg-background text-foreground border",
-    destructive: "bg-destructive text-destructive-foreground border-destructive",
-    success:
-      "bg-emerald-600/10 text-emerald-900 border border-emerald-600/30 dark:text-emerald-100",
+    default: "bg-slate-800 text-slate-100 border border-slate-700",
+    destructive: "bg-red-500/15 text-red-300 border border-red-500/30",
+    success: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
   };
   return (
     <div className="fixed bottom-0 right-0 p-6 space-y-2 z-[100]">
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`p-4 rounded-md shadow-lg flex items-start gap-4 w-80 md:w-96 ${variantClasses[toast.variant || "default"]}`}
+          className={`p-4 rounded-md shadow-lg flex items-start gap-4 w-80 md:w-96 ${
+            variantClasses[toast.variant || "default"]
+          }`}
         >
           <div className="flex-grow">
             {toast.title && <h3 className="font-semibold">{toast.title}</h3>}
@@ -122,6 +126,7 @@ const Toaster = ({ toasts, dispatch }: { toasts: any[]; dispatch: any }) => {
     </div>
   );
 };
+
 const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(toastReducer, []);
   return (
@@ -131,6 +136,7 @@ const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     </ToastContext.Provider>
   );
 };
+
 const useToast = () => {
   const dispatch = useContext(ToastContext);
   if (!dispatch) throw new Error("useToast must be used within a ToastProvider");
@@ -152,6 +158,7 @@ const useToast = () => {
     },
   };
 };
+
 // =========================== Utils ===========================
 function parsePrice(value: any): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -167,10 +174,12 @@ function parsePrice(value: any): number {
   const digits = s.replace(/\D+/g, "");
   return digits ? (digits.length >= 3 ? Number(digits) / 100 : Number(digits)) : 0;
 }
+
 const toBRL = (value: any) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
     parsePrice(value)
   );
+
 function fmtDateTime(d?: string | Date | null) {
   const date = typeof d === "string" ? new Date(d) : d;
   if (!date) return "N/A";
@@ -183,12 +192,16 @@ function fmtDateTime(d?: string | Date | null) {
     return "N/A";
   }
 }
+
 function priorityBadge(p?: string | null) {
   const val = (p || "normal").toLowerCase();
-  if (val === "alta") return <Badge className="bg-red-600 text-white">Alta</Badge>;
-  if (val === "baixa") return <Badge variant="secondary">Baixa</Badge>;
+  if (val === "alta")
+    return <Badge className="bg-red-600 text-white">Alta</Badge>;
+  if (val === "baixa")
+    return <Badge className="bg-slate-700 text-slate-200">Baixa</Badge>;
   return <Badge className="bg-amber-500 text-white">Normal</Badge>;
 }
+
 function interestedVehicleFromBot(bot_data: any) {
   try {
     const vehicles =
@@ -202,6 +215,7 @@ function interestedVehicleFromBot(bot_data: any) {
   } catch {}
   return "—";
 }
+
 // =========================== Colunas & migração ===========================
 const KANBAN_SCHEMA_VERSION = 3;
 const COLUNAS_FOCO_EM_MARCOS = [
@@ -216,12 +230,14 @@ const COLUNAS_FOCO_EM_MARCOS = [
 const LOJA_ID_ATUAL = "loja_default";
 const LOCAL_STORAGE_KEY_PREFIX = "kanban_columns_";
 const LOCAL_STORAGE_META_PREFIX = "kanban_meta_";
+
 function normalizaEstadoParaColuna(value?: string | null): string {
   const s = String(value || "").trim().toLowerCase();
   if (!s || s === "inicial" || s === "leed_recebido") return "novo_lead";
   const valid = new Set(COLUNAS_FOCO_EM_MARCOS.map((c) => c.id));
   return valid.has(s) ? s : "novo_lead";
 }
+
 // =========================== Helpers de negócio ===========================
 function dealType(
   bot_data: any
@@ -250,13 +266,19 @@ function dealType(
   if (visit?.day || visit?.time) return "visita";
   return "—";
 }
+
 function tradeImagesFromBot(bot_data: any): string[] {
   const t = bot_data?.trade_in_car || {};
   const imgs: string[] = []
-    .concat(Array.isArray(t?.imagens) ? t.imagens : [], Array.isArray(t?.images) ? t.images : [], Array.isArray(t?.photos) ? t.photos : [])
+    .concat(
+      Array.isArray(t?.imagens) ? t.imagens : [],
+      Array.isArray(t?.images) ? t.images : [],
+      Array.isArray(t?.photos) ? t.photos : []
+    )
     .filter((u) => typeof u === "string" && /^https?:\/\//.test(u));
   return imgs;
 }
+
 // =========================== Hook: buscar imagens do veículo de troca ===========================
 // Tenta (1) bot_data.trade_in_car, (2) API fallback /api/trade-car-images?chatId=...
 function useTradeCarImages(client: any) {
@@ -269,12 +291,16 @@ function useTradeCarImages(client: any) {
     enabled,
     queryFn: async () => {
       try {
-        const res = await fetch(`/api/trade-car-images?chatId=${encodeURIComponent(chatId)}`);
+        const res = await fetch(
+          `/api/trade-car-images?chatId=${encodeURIComponent(chatId)}`
+        );
         if (!res.ok) throw new Error("Falha ao buscar imagens de troca");
         const json = await res.json();
         // Esperado: { images: string[] }
         const arr = Array.isArray(json?.images) ? json.images : [];
-        return arr.filter((u: any) => typeof u === "string" && /^https?:\/\//.test(u));
+        return arr.filter(
+          (u: any) => typeof u === "string" && /^https?:\/\//.test(u)
+        );
       } catch (err) {
         console.error("Error fetching trade images:", err);
         return [];
@@ -283,10 +309,11 @@ function useTradeCarImages(client: any) {
     staleTime: 5 * 60 * 1000,
   });
   if (error) console.warn("Trade images fetch error for chatId", chatId, error);
-  const merged = localImgs.length ? localImgs : (data || []);
+  const merged = localImgs.length ? localImgs : data || [];
   return { images: merged, isFetching };
 }
-// =========================== Card Arrastável ===========================
+
+// =========================== Card Arrastável (Estilo Dashboard) ===========================
 function SortableCard({
   client,
   onOpen,
@@ -311,30 +338,44 @@ function SortableCard({
   const vehicle = interestedVehicleFromBot(client.bot_data);
   const seller = client.owner || "—";
   const tipoBadge = (
-    <Badge variant={tipo === "—" ? "outline" : "secondary"}>
+    <Badge
+      variant="default"
+      className="bg-slate-800/90 text-slate-300 border-slate-700 text-[10px]"
+    >
       <MessageSquare className="h-3 w-3 mr-1" />
       {tipo.toUpperCase()}
     </Badge>
   );
   return (
-    <Card ref={setNodeRef} style={style} {...attributes} className="bg-background/80 border-border/60">
+    <Card
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      className="bg-slate-900/80 border border-slate-800 shadow-[0_10px_25px_rgba(0,0,0,0.4)]"
+    >
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className="font-semibold text-sm truncate">
+              <h4 className="font-semibold text-sm text-slate-50 truncate">
                 {client.name || "Sem nome"}
               </h4>
               {priorityBadge(client.priority)}
             </div>
-            <p className="text-xs text-muted-foreground truncate">{vehicle}</p>
+            <p className="text-xs text-slate-400 truncate">{vehicle}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">
+              <Badge
+                variant="default"
+                className="bg-slate-800/90 text-slate-300 border-slate-700 text-[10px]"
+              >
                 <User2 className="h-3 w-3 mr-1" /> {seller}
               </Badge>
               {tipoBadge}
               {client.channel ? (
-                <Badge variant="outline">
+                <Badge
+                  variant="default"
+                  className="bg-slate-800/90 text-slate-300 border-slate-700 text-[10px]"
+                >
                   <MessageSquare className="h-3 w-3 mr-1" /> {client.channel}
                 </Badge>
               ) : null}
@@ -342,7 +383,7 @@ function SortableCard({
             {tipo === "troca" && (
               <div className="mt-2 flex gap-1.5">
                 {isFetching ? (
-                  <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+                  <Loader2 className="h-10 w-10 animate-spin text-slate-500" />
                 ) : imgsTroca.length > 0 ? (
                   imgsTroca.slice(0, 4).map((src, i) => (
                     <a
@@ -351,7 +392,7 @@ function SortableCard({
                       target="_blank"
                       rel="noreferrer"
                       title="Imagem do veículo de troca"
-                      className="block w-10 h-10 rounded border overflow-hidden"
+                      className="block w-10 h-10 rounded border border-slate-700 overflow-hidden"
                     >
                       <img src={src} className="w-full h-full object-cover" />
                     </a>
@@ -361,17 +402,29 @@ function SortableCard({
             )}
           </div>
           <div className="flex flex-col items-end gap-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7" {...listeners} title="Arrastar">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+              {...listeners}
+              title="Arrastar"
+            >
               <MoveRight className="h-4 w-4" />
             </Button>
             <div className="flex items-center gap-1">
-              <Button variant="outline" size="icon" className="h-7 w-7" onClick={onOpen} title="Abrir">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 hover:text-slate-100"
+                onClick={onOpen}
+                title="Abrir"
+              >
                 <Edit className="h-3.5 w-3.5" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-destructive hover:text-destructive"
+                className="h-7 w-7 text-red-500/70 hover:bg-red-500/10 hover:text-red-500"
                 onClick={() => onDelete(client.chat_id)}
                 title="Excluir"
               >
@@ -384,7 +437,8 @@ function SortableCard({
     </Card>
   );
 }
-// =========================== Coluna (droppable) ===========================
+
+// =========================== Coluna (droppable) (Estilo Dashboard) ===========================
 function Column({
   columnId,
   name,
@@ -400,16 +454,23 @@ function Column({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: columnId });
   return (
-    <div className="w-[280px] sm:w-72 flex-shrink-0">
+    <div className="w-80 flex-shrink-0">
       <div
         ref={setNodeRef}
-        className={`rounded-lg p-4 h-[calc(100vh-14rem)] flex flex-col transition-colors ${
-          isOver ? "bg-amber-50 border border-amber-200" : "bg-muted/50"
+        className={`rounded-2xl p-4 h-[calc(100vh-16rem)] flex flex-col transition-colors ${
+          isOver
+            ? "bg-emerald-500/5 border border-emerald-500/30"
+            : "bg-slate-900/70 border border-slate-800/50"
         }`}
       >
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold">{name}</h3>
-          <Badge variant="secondary">{items.length}</Badge>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-lg text-slate-100">{name}</h3>
+          <Badge
+            variant="default"
+            className="bg-slate-800 text-slate-200"
+          >
+            {items.length}
+          </Badge>
         </div>
         <ScrollArea className="flex-1 pr-2">
           <SortableContext
@@ -419,10 +480,15 @@ function Column({
           >
             <div className="space-y-3">
               {items.map((c) => (
-                <SortableCard key={c.chat_id} client={c} onOpen={() => onOpen(c)} onDelete={onDelete} />
+                <SortableCard
+                  key={c.chat_id}
+                  client={c}
+                  onOpen={() => onOpen(c)}
+                  onDelete={onDelete}
+                />
               ))}
               {items.length === 0 && (
-                <div className="h-[100px] border-2 border-dashed rounded-md text-sm text-muted-foreground grid place-items-center">
+                <div className="h-[100px] border-2 border-dashed border-slate-700 rounded-lg text-sm text-slate-500 grid place-items-center">
                   Solte aqui
                 </div>
               )}
@@ -433,8 +499,9 @@ function Column({
     </div>
   );
 }
-// =========================== PDF Components ===========================
-// Normalização para uso nos 2 PDFs
+
+// =========================== PDF Components (Branding Dashboard) ===========================
+// *Nota: PDFs mantêm fundo branco para impressão, mas usam a paleta de acentos do dashboard (emerald/cyan)*
 function normalizeClientForPdf(client: any) {
   const c = { ...client };
   try {
@@ -459,6 +526,7 @@ function normalizeClientForPdf(client: any) {
   } catch {}
   return c;
 }
+
 function initialsFromName(name?: string) {
   return (
     (name || "")
@@ -469,6 +537,7 @@ function initialsFromName(name?: string) {
       .toUpperCase() || "CL"
   );
 }
+
 // ---------- Página 1: PDF Main (tudo MENOS Negociação) ----------
 function PdfMain({ client, externalTradeImages }: { client: any; externalTradeImages: string[] }) {
   const normalized = React.useMemo(() => normalizeClientForPdf(client), [client]);
@@ -485,6 +554,7 @@ function PdfMain({ client, externalTradeImages }: { client: any; externalTradeIm
   const chosenImg0 =
     (chosenImgs && chosenImgs[0]) ||
     "https://placehold.co/600x400/f3f4f6/9ca3af?text=Sem+Foto";
+  
   // Arquivos/Imagens (incluindo imagens do veículo de troca)
   const documents = Array.isArray(normalized?.documents) ? normalized?.documents : [];
   const tradeImages =
@@ -502,14 +572,17 @@ function PdfMain({ client, externalTradeImages }: { client: any; externalTradeIm
   (tradeImages || []).forEach((img: string, i: number) => {
     if (img) allImages.push({ src: img, label: `Imagem Troca ${i + 1}` });
   });
+
   const initials = initialsFromName(normalized?.name);
+
   return (
     <div
       id="pdf-main"
       className="w-[794px] bg-white text-gray-900 font-sans text-base leading-relaxed antialiased"
     >
-      {/* Topbar */}
-      <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500" />
+      {/* Topbar (Dashboard Style) */}
+      <div className="h-2 w-full bg-gradient-to-r from-emerald-500 via-cyan-500 to-emerald-400" />
+      
       {/* Header */}
       <div className="p-8 pb-4">
         <div className="flex items-center justify-between">
@@ -523,12 +596,13 @@ function PdfMain({ client, externalTradeImages }: { client: any; externalTradeIm
           </div>
         </div>
       </div>
+      
       {/* Body */}
       <div className="px-8 pb-8 space-y-8">
         {/* Dados do Cliente */}
         <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
           <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-2 rounded-t-lg">
-            <ClipboardList className="w-5 h-5 text-amber-600" />
+            <ClipboardList className="w-5 h-5 text-emerald-600" />
             <h3 className="font-semibold text-lg">Dados do Cliente</h3>
           </div>
           <div className="p-6 grid grid-cols-2 gap-6 text-sm">
@@ -560,10 +634,11 @@ function PdfMain({ client, externalTradeImages }: { client: any; externalTradeIm
             </div>
           </div>
         </div>
+        
         {/* Resumo do Interesse */}
         <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
           <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-2 rounded-t-lg">
-            <ClipboardList className="w-5 h-5 text-amber-600" />
+            <ClipboardList className="w-5 h-5 text-emerald-600" />
             <h3 className="font-semibold text-lg">Resumo do Interesse</h3>
           </div>
           <div className="p-6 grid grid-cols-2 gap-6 text-sm">
@@ -590,7 +665,7 @@ function PdfMain({ client, externalTradeImages }: { client: any; externalTradeIm
                       <CalendarDays className="w-5 h-5" /> {chosenYear ?? "—"}
                     </p>
                     {chosenPrice != null && (
-                      <p className="text-2xl font-bold text-amber-600">{toBRL(chosenPrice)}</p>
+                      <p className="text-2xl font-bold text-emerald-600">{toBRL(chosenPrice)}</p>
                     )}
                   </div>
                 </div>
@@ -598,11 +673,12 @@ function PdfMain({ client, externalTradeImages }: { client: any; externalTradeIm
             </div>
           )}
         </div>
+        
         {/* Observações */}
         {(normalized?.notes || normalized?.report) && (
           <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
             <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-2 rounded-t-lg">
-              <FileText className="w-5 h-5 text-amber-600" />
+              <FileText className="w-5 h-5 text-emerald-600" />
               <h3 className="font-semibold text-lg">Observações</h3>
             </div>
             <div className="p-6 text-sm space-y-6">
@@ -621,26 +697,8 @@ function PdfMain({ client, externalTradeImages }: { client: any; externalTradeIm
             </div>
           </div>
         )}
-        {/* Arquivos & Imagens */}
-        {/* {allImages.length > 0 && (
-          <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-2 rounded-t-lg">
-              <FolderOpenDot className="w-5 h-5 text-amber-600" />
-              <h3 className="font-semibold text-lg">Arquivos & Imagens</h3>
-            </div>
-            <div className="p-6 grid grid-cols-3 gap-6">
-              {allImages.map(({ src, label }, i) => (
-                <div key={i} className="text-center">
-                  <div className="w-full h-36 rounded-md overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
-                    <img src={src} alt={label} className="max-w-full max-h-full object-contain" loading="lazy" />
-                  </div>
-                  <p className="mt-2 text-sm text-gray-600">{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )} */}
       </div>
+      
       {/* Footer */}
       <div className="px-8 pb-8 pt-4 text-sm text-gray-500 border-t border-gray-200">
         Documento gerado automaticamente pelo CRM • {new Date().getFullYear()}
@@ -648,6 +706,7 @@ function PdfMain({ client, externalTradeImages }: { client: any; externalTradeIm
     </div>
   );
 }
+
 // ---------- Página 2: PDF Negotiation (apenas Negociação) ----------
 function PdfNegotiation({
   client,
@@ -665,6 +724,7 @@ function PdfNegotiation({
   const chosenTradeImages =
     (externalTradeImages && externalTradeImages.length ? externalTradeImages : []) ||
     (tradeInCar?.imagens || tradeInCar?.images || []);
+  
   const tradeModel = tradeInCar?.modelo ?? tradeInCar?.model ?? null;
   const tradeYear = tradeInCar?.ano ?? tradeInCar?.year ?? null;
   const tradePrice = tradeInCar?.valor ?? tradeInCar?.value ?? null;
@@ -673,13 +733,15 @@ function PdfNegotiation({
     "https://placehold.co/600x400/f3f4f6/9ca3af?text=Sem+Foto";
   const tradeTitle = tradeModel ? `${tradeModel} (${tradeYear ?? "—"})` : null;
   const initials = initialsFromName(normalized?.name);
+
   return (
     <div
       id="pdf-negociacao"
       className="w-[794px] bg-white text-gray-900 font-sans text-base leading-relaxed antialiased"
     >
-      {/* Topbar */}
-      <div className="h-2 w-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500" />
+      {/* Topbar (Dashboard Style) */}
+      <div className="h-2 w-full bg-gradient-to-r from-emerald-500 via-cyan-500 to-emerald-400" />
+      
       {/* Header */}
       <div className="p-8 pb-4">
         <div className="flex items-center justify-between">
@@ -693,11 +755,12 @@ function PdfNegotiation({
           </div>
         </div>
       </div>
+      
       {/* Body (apenas Negociação) */}
       <div className="px-8 pb-8 space-y-8">
         <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
           <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-2 rounded-t-lg">
-            <FileText className="w-5 h-5 text-amber-600" />
+            <FileText className="w-5 h-5 text-emerald-600" />
             <h3 className="font-semibold text-lg">Detalhes da Negociação</h3>
           </div>
           <div className="p-6 grid grid-cols-2 gap-6 text-sm">
@@ -746,6 +809,7 @@ function PdfNegotiation({
               </>
             )}
           </div>
+          
           {/* Vitrine do veículo de troca */}
           {tipo === "troca" && tradeTitle && (
             <div className="px-6 pb-6">
@@ -762,7 +826,7 @@ function PdfNegotiation({
                   <div className="p-6 space-y-3">
                     <h4 className="font-bold text-xl leading-tight text-gray-900">{tradeTitle}</h4>
                     {tradePrice != null && (
-                      <p className="text-2xl font-bold text-amber-600">{toBRL(tradePrice)}</p>
+                      <p className="text-2xl font-bold text-emerald-600">{toBRL(tradePrice)}</p>
                     )}
                   </div>
                 </div>
@@ -783,6 +847,7 @@ function PdfNegotiation({
           )}
         </div>
       </div>
+      
       {/* Footer */}
       <div className="px-8 pb-8 pt-4 text-sm text-gray-500 border-t border-gray-200">
         Documento gerado automaticamente pelo CRM • {new Date().getFullYear()}
@@ -790,24 +855,27 @@ function PdfNegotiation({
     </div>
   );
 }
-// =========================== Modal (Atendimento) — versão Premium ===========================
+
+// =========================== Modal (Atendimento) — (Estilo Dashboard) ===========================
 const InfoRow = ({ label, children }: { label: string; children: React.ReactNode }) => {
   if (!children || children === "N/A" || children === "" || (Array.isArray(children) && children.length === 0))
     return null;
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 items-start gap-3 py-2">
-      <Label className="text-left md:text-right text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
+      <Label className="text-left md:text-right text-slate-400 text-[11px] font-semibold tracking-wide uppercase">
         {label}
       </Label>
-      <div className="col-span-2 text-sm min-w-0">{children}</div>
+      <div className="col-span-2 text-sm min-w-0 text-slate-100">{children}</div>
     </div>
   );
 };
+
 const getNameCat = (c: any) => c?.nome ?? c?.name ?? "";
 const getYearCat = (c: any) => c?.ano ?? c?.year ?? "";
 const getPriceRawCat = (c: any) => c?.preco ?? c?.price ?? 0;
 const getImagesCat = (c: any) => c?.imagens ?? c?.images ?? [];
 const formatCurrencyCat = (v: any) => toBRL(v);
+
 function AtendimentoDialog({
   open,
   onOpenChange,
@@ -825,11 +893,14 @@ function AtendimentoDialog({
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [tab, setTab] = useState<"resumo" | "form" | "arquivos" | "troca">("resumo");
+  
   // --- PDF refs (duas páginas): Main e Negociação
   const pdfMainRef = useRef<HTMLDivElement>(null);
   const pdfNegRef = useRef<HTMLDivElement>(null);
+  
   // Hook de imagens de troca (busca BD/api caso não tenha no bot_data)
   const { images: tradeCarImages, isFetching: isFetchingTradeImages } = useTradeCarImages(client || {});
+
   const normalizeClient = (raw: any) => {
     const c = { ...raw };
     try {
@@ -851,6 +922,7 @@ function AtendimentoDialog({
     } catch {}
     return c;
   };
+
   useEffect(() => {
     if (open && client) {
       setData(
@@ -862,7 +934,9 @@ function AtendimentoDialog({
       setTab("resumo");
     }
   }, [open, client]);
+
   if (!client) return null;
+
   const set = (path: string, value: any) => {
     setData((prev: any) => {
       const clone = structuredClone(prev);
@@ -873,9 +947,11 @@ function AtendimentoDialog({
       return clone;
     });
   };
+
   const quickWhats = client?.phone
     ? `https://wa.me/55${String(client.phone).replace(/\D/g, "")}`
     : "";
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -897,6 +973,7 @@ function AtendimentoDialog({
       setSaving(false);
     }
   };
+
   // ===== Exportar PDF (duas páginas: MAIN e NEGOCIAÇÃO EM PÁGINA PRÓPRIA) =====
   const exportClientPDF = useCallback(async () => {
     if (!pdfMainRef.current || !pdfNegRef.current) return;
@@ -915,6 +992,7 @@ function AtendimentoDialog({
         el.style.padding = "0";
         el.style.opacity = "1";
         el.style.zIndex = "-1";
+        
         const canvas = await html2canvas(el, {
           scale: 2,
           useCORS: true,
@@ -927,12 +1005,15 @@ function AtendimentoDialog({
         el.style.cssText = originalStyle;
         return canvas;
       }
+      
       // Renderiza páginas
       const mainCanvas = await renderCanvas(pdfMainRef.current);
       const negCanvas = await renderCanvas(pdfNegRef.current);
+      
       const pdf = new jsPDF("p", "mm", "a4");
       const pageWidth = pdf.internal.pageSize.getWidth(); // ~210mm
       const pageHeight = pdf.internal.pageSize.getHeight(); // ~297mm
+      
       // --- Página 1 (MAIN) -> slice se precisar (várias páginas)
       {
         const imgWidthPx = mainCanvas.width;
@@ -944,6 +1025,7 @@ function AtendimentoDialog({
         const MAX_PAGES = 40;
         const pageCanvas = document.createElement("canvas");
         const ctx = pageCanvas.getContext("2d")!;
+        
         while (rendered < imgHeightPx && pageCount < MAX_PAGES) {
           const currentSlice = Math.min(sliceHeightPx, imgHeightPx - rendered);
           pageCanvas.width = imgWidthPx;
@@ -960,7 +1042,9 @@ function AtendimentoDialog({
             imgWidthPx,
             currentSlice
           );
+          
           const pdfImgHeight = currentSlice * ratio;
+          
           if (pageCount === 0) {
             pdf.addImage(pageCanvas.toDataURL("image/png"), "PNG", 0, 0, pageWidth, pdfImgHeight);
           } else {
@@ -971,6 +1055,7 @@ function AtendimentoDialog({
           pageCount++;
         }
       }
+      
       // --- Página 2 (NEGOCIAÇÃO) -> 1 página única
       {
         pdf.addPage();
@@ -984,6 +1069,7 @@ function AtendimentoDialog({
         const drawHeight = imgHeightPx * fitRatio;
         const offsetX = (pageWidth - drawWidth) / 2;
         const offsetY = (pageHeight - drawHeight) / 2;
+        
         pdf.addImage(
           negCanvas.toDataURL("image/png"),
           "PNG",
@@ -993,12 +1079,14 @@ function AtendimentoDialog({
           drawHeight
         );
       }
+
       const nameSafe = (client?.name || "Cliente").replace(/[^\p{L}\p{N}\s_-]+/gu, "");
       pdf.save(`Atendimento_${nameSafe}_${new Date().toLocaleDateString("pt-BR")}.pdf`);
     } finally {
       setExporting(false);
     }
   }, [client?.name]);
+
   const bot = data?.bot_data || {};
   const interestedVehicles: any[] = Array.isArray(bot?.interested_vehicles)
     ? bot.interested_vehicles
@@ -1008,6 +1096,7 @@ function AtendimentoDialog({
   const visitDetails = bot?.visit_details || {};
   const documents = Array.isArray(data?.documents) ? data.documents : [];
   const tipo = dealType(bot);
+
   // Imagens agregadas (docs + troca)
   const allImages: { src: string; label: string }[] = [];
   if (data?.rg_photo) allImages.push({ src: data.rg_photo, label: "Foto RG" });
@@ -1018,11 +1107,14 @@ function AtendimentoDialog({
   (tradeCarImages || []).forEach((img: string, i: number) => {
     if (img) allImages.push({ src: img, label: `Imagem Troca ${i + 1}` });
   });
+
   const initials = initialsFromName(data?.name);
+  
   // Vitrine para troca no dialog
   const tradeTitle = tradeInCar?.modelo ? `${tradeInCar.modelo} (${tradeInCar?.ano ?? "—"})` : null;
   const tradePrice = tradeInCar?.valor ?? tradeInCar?.value ?? null;
   const tradeImg0 = tradeCarImages[0] || "https://placehold.co/600x400/f3f4f6/9ca3af?text=Sem+Foto";
+
   // Dynamic tabs
   const tabsList = [
     { id: "resumo" as const, label: "Resumo", icon: <ClipboardList className="w-3.5 h-3.5 mr-1" /> },
@@ -1030,20 +1122,21 @@ function AtendimentoDialog({
     ...(tipo === "troca" ? [{ id: "troca" as const, label: "Troca", icon: <RefreshCw className="w-3.5 h-3.5 mr-1" /> }] : []),
     { id: "arquivos" as const, label: "Arquivos", icon: <Images className="w-3.5 h-3.5 mr-1" /> },
   ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-screen-lg md:max-w-5xl p-0 overflow-hidden">
-        {/* Header gourmetizado */}
+      <DialogContent className="w-full max-w-screen-lg md:max-w-5xl p-0 overflow-hidden bg-slate-900 border border-slate-800 text-slate-100">
+        {/* Header (Dashboard Style) */}
         <div className="relative">
-          <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500" />
+          <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-cyan-500 to-emerald-400" />
           <div className="px-5 pt-4 pb-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div>
-                <DialogTitle className="text-lg md:text-xl leading-tight">
+                <DialogTitle className="text-lg md:text-xl leading-tight text-slate-50">
                   {data?.name || "Atendimento"}
                 </DialogTitle>
                 <DialogDescription className="text-xs md:text-sm">
-                  <span className="inline-flex items-center gap-1 text-muted-foreground">
+                  <span className="inline-flex items-center gap-1 text-slate-400">
                     <Phone className="h-3.5 w-3.5" />
                     {data?.phone || "—"}
                     {data?.phone && (
@@ -1051,7 +1144,7 @@ function AtendimentoDialog({
                         target="_blank"
                         rel="noreferrer"
                         href={quickWhats}
-                        className="inline-flex items-center gap-1 ml-2 text-emerald-700 hover:underline"
+                        className="inline-flex items-center gap-1 ml-2 text-emerald-400 hover:underline"
                       >
                         <Link2 className="h-3.5 w-3.5" /> WhatsApp
                       </a>
@@ -1062,19 +1155,29 @@ function AtendimentoDialog({
             </div>
             <div className="flex items-center gap-2">
               {priorityBadge(data?.priority)}
-              {data?.channel ? <Badge variant="outline">{data.channel}</Badge> : null}
+              {data?.channel ? (
+                <Badge
+                  variant="default"
+                  className="bg-slate-800/90 text-slate-300 border-slate-700 text-[10px]"
+                >
+                  {data.channel}
+                </Badge>
+              ) : null}
             </div>
           </div>
         </div>
-        {/* Tabs */}
+        
+        {/* Tabs (Dashboard Style) */}
         <div className="px-5 pt-2">
-          <div className="inline-flex rounded-lg border bg-muted/50 p-1 text-sm">
+          <div className="inline-flex rounded-xl border border-slate-700/70 bg-slate-900/70 p-1 text-sm">
             {tabsList.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`px-3 py-1.5 rounded-md inline-flex items-center transition ${
-                  tab === t.id ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+                className={`px-3 py-1.5 rounded-lg inline-flex items-center transition ${
+                  tab === t.id
+                    ? "bg-emerald-500 text-slate-950 shadow-lg"
+                    : "text-slate-300 hover:bg-slate-800"
                 }`}
               >
                 {t.icon}
@@ -1083,41 +1186,45 @@ function AtendimentoDialog({
             ))}
           </div>
         </div>
-        <ScrollArea className="max-h-[70vh]">
+        
+        <ScrollArea className="max-h-[65vh] bg-slate-950">
           <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Resumo */}
             {tab === "resumo" && (
               <>
                 {/* Roteiro */}
-                <Card className="border-border/60">
-                  <CardHeader className="py-3">
-                    <CardTitle className="text-sm">Roteiro</CardTitle>
+                <Card className="bg-slate-800/60 border-slate-700/80 text-slate-100">
+                  <CardHeader className="py-3 border-b border-slate-700/80">
+                    <CardTitle className="text-sm font-semibold text-slate-100">Roteiro</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-3 pt-4">
                     <div className="grid grid-cols-3 items-center gap-2">
-                      <Label className="text-xs text-muted-foreground">Vendedor</Label>
+                      <Label className="text-xs text-slate-400">Vendedor</Label>
                       <Input
-                        className="col-span-2 h-9"
+                        className="col-span-2 h-9 bg-slate-900 border-slate-700 text-slate-100 focus:ring-emerald-500"
                         placeholder="Nome do vendedor"
                         value={data.owner || ""}
                         onChange={(e) => set("owner", e.target.value)}
                       />
                     </div>
                     <div className="grid grid-cols-3 items-center gap-2">
-                      <Label className="text-xs text-muted-foreground">Prioridade</Label>
+                      <Label className="text-xs text-slate-400">Prioridade</Label>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="outline" className="col-span-2 justify-start">
+                          <Button
+                            variant="outline"
+                            className="col-span-2 justify-start bg-slate-900 border-slate-700 hover:bg-slate-800"
+                          >
                             <Flag className="h-3.5 w-3.5 mr-2" />
                             {(data.priority || "normal").toUpperCase()}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="p-2 w-44">
+                        <PopoverContent className="p-2 w-44 bg-slate-900 border-slate-800 text-slate-100">
                           {["alta", "normal", "baixa"].map((p) => (
                             <Button
                               key={p}
                               variant="ghost"
-                              className="w-full justify-start"
+                              className="w-full justify-start hover:bg-slate-800"
                               onClick={() => set("priority", p)}
                             >
                               {p.toUpperCase()}
@@ -1127,57 +1234,59 @@ function AtendimentoDialog({
                       </Popover>
                     </div>
                     <div className="grid grid-cols-3 items-center gap-2">
-                      <Label className="text-xs text-muted-foreground">Canal</Label>
+                      <Label className="text-xs text-slate-400">Canal</Label>
                       <Input
-                        className="col-span-2 h-9"
+                        className="col-span-2 h-9 bg-slate-900 border-slate-700 text-slate-100 focus:ring-emerald-500"
                         placeholder="WhatsApp / Ligação / Instagram / Site..."
                         value={data.channel || ""}
                         onChange={(e) => set("channel", e.target.value)}
                       />
                     </div>
                     <div className="grid grid-cols-3 items-center gap-2">
-                      <Label className="text-xs text-muted-foreground">Próx. ação</Label>
+                      <Label className="text-xs text-slate-400">Próx. ação</Label>
                       <Input
                         type="datetime-local"
-                        className="col-span-2 h-9"
+                        className="col-span-2 h-9 bg-slate-900 border-slate-700 text-slate-100 focus:ring-emerald-500"
                         value={data.next_action_at?.slice(0, 16) || ""}
                         onChange={(e) => set("next_action_at", e.target.value)}
                       />
                     </div>
                     <div className="grid grid-cols-3 items-center gap-2">
-                      <Label className="text-xs text-muted-foreground">Visita</Label>
+                      <Label className="text-xs text-slate-400">Visita</Label>
                       <Input
                         type="datetime-local"
-                        className="col-span-2 h-9"
+                        className="col-span-2 h-9 bg-slate-900 border-slate-700 text-slate-100 focus:ring-emerald-500"
                         value={data.appointment_at?.slice(0, 16) || ""}
                         onChange={(e) => set("appointment_at", e.target.value)}
                       />
                     </div>
                     <div className="grid grid-cols-3 items-center gap-2">
-                      <Label className="text-xs text-muted-foreground">Reserva até</Label>
+                      <Label className="text-xs text-slate-400">Reserva até</Label>
                       <Input
                         type="datetime-local"
-                        className="col-span-2 h-9"
+                        className="col-span-2 h-9 bg-slate-900 border-slate-700 text-slate-100 focus:ring-emerald-500"
                         value={data.reservation_expires_at?.slice(0, 16) || ""}
                         onChange={(e) => set("reservation_expires_at", e.target.value)}
                       />
                     </div>
                   </CardContent>
                 </Card>
+                
                 {/* Notas */}
-                <Card className="border-border/60">
-                  <CardHeader className="py-3">
-                    <CardTitle className="text-sm">Notas (interno)</CardTitle>
+                <Card className="bg-slate-800/60 border-slate-700/80 text-slate-100">
+                  <CardHeader className="py-3 border-b border-slate-700/80">
+                    <CardTitle className="text-sm font-semibold text-slate-100">Notas (interno)</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="pt-4">
                     <Textarea
                       placeholder="Observações, próximos passos, objeções, etc."
                       value={data.notes || ""}
                       onChange={(e) => set("notes", e.target.value)}
-                      className="min-h-[180px]"
+                      className="min-h-[180px] bg-slate-900 border-slate-700 text-slate-100 focus:ring-emerald-500"
                     />
                   </CardContent>
                 </Card>
+                
                 {/* Vitrine (interesse) */}
                 {(() => {
                   const chosen =
@@ -1194,23 +1303,23 @@ function AtendimentoDialog({
                     "https://placehold.co/600x400/f3f4f6/9ca3af?text=Sem+Foto";
                   return (
                     <div className="lg:col-span-2">
-                      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-                        <div className="h-1.5 bg-gradient-to-r from-amber-500 to-yellow-500" />
+                      <div className="bg-slate-900 rounded-2xl border border-slate-700 overflow-hidden shadow-lg">
+                        <div className="h-1.5 bg-gradient-to-r from-emerald-500 to-cyan-500" />
                         <div className="grid md:grid-cols-2 gap-0">
-                          <div className="h-48 bg-gray-100">
+                          <div className="h-48 bg-slate-800">
                             <img src={img0} alt={title} className="w-full h-full object-contain" />
                           </div>
                           <div className="p-5 space-y-3">
                             <div className="flex items-start justify-between gap-3">
                               <div>
-                                <h3 className="font-semibold text-gray-900 text-lg leading-tight">
+                                <h3 className="font-semibold text-slate-50 text-lg leading-tight">
                                   {title}
                                 </h3>
-                                <p className="text-sm text-gray-500 flex items-center gap-2 mt-1">
+                                <p className="text-sm text-slate-400 flex items-center gap-2 mt-1">
                                   <CalendarDays className="w-4 h-4" /> {year}
                                 </p>
                               </div>
-                              <p className="text-xl font-bold text-amber-600 whitespace-nowrap">
+                              <p className="text-xl font-bold text-emerald-400 whitespace-nowrap">
                                 {formatCurrencyCat(price)}
                               </p>
                             </div>
@@ -1220,27 +1329,31 @@ function AtendimentoDialog({
                     </div>
                   );
                 })()}
+                
                 {/* Desfecho */}
-                <Card className="lg:col-span-2 border-border/60">
-                  <CardHeader className="py-3">
-                    <CardTitle className="text-sm">Desfecho</CardTitle>
+                <Card className="lg:col-span-2 bg-slate-800/60 border-slate-700/80 text-slate-100">
+                  <CardHeader className="py-3 border-b border-slate-700/80">
+                    <CardTitle className="text-sm font-semibold text-slate-100">Desfecho</CardTitle>
                   </CardHeader>
-                  <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4">
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Resultado</Label>
+                      <Label className="text-xs text-slate-400">Resultado</Label>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-start">
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start bg-slate-900 border-slate-700 hover:bg-slate-800"
+                          >
                             <ChevronRight className="h-3.5 w-3.5 mr-2" />
                             {(data.outcome || "—").toUpperCase()}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="p-2">
+                        <PopoverContent className="p-2 bg-slate-900 border-slate-800 text-slate-100">
                           {["", "vendido", "perdido"].map((v) => (
                             <Button
                               key={v || "vazio"}
                               variant="ghost"
-                              className="w-full justify-start"
+                              className="w-full justify-start hover:bg-slate-800"
                               onClick={() => set("outcome", v || null)}
                             >
                               {(v || "—").toUpperCase()}
@@ -1250,37 +1363,40 @@ function AtendimentoDialog({
                       </Popover>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Motivo (vendido)</Label>
+                      <Label className="text-xs text-slate-400">Motivo (vendido)</Label>
                       <Input
                         placeholder="Ex.: melhor avaliação na troca"
                         value={data.won_reason || ""}
                         onChange={(e) => set("won_reason", e.target.value)}
+                        className="bg-slate-900 border-slate-700 text-slate-100 focus:ring-emerald-500"
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Label className="text-xs text-slate-400 flex items-center gap-1">
                         <ThumbsDown className="h-3.5 w-3.5" /> Motivo (perdido)
                       </Label>
                       <Input
                         placeholder="Ex.: preço/financiamento/tempo"
                         value={data.lost_reason || ""}
                         onChange={(e) => set("lost_reason", e.target.value)}
+                        className="bg-slate-900 border-slate-700 text-slate-100 focus:ring-emerald-500"
                       />
                     </div>
                   </CardContent>
                 </Card>
               </>
             )}
+            
             {/* Formulário (Somente leitura) */}
             {tab === "form" && (
-              <Card className="lg:col-span-2 border-border/60">
-                <CardHeader className="py-3">
-                  <CardTitle className="text-sm">Dados do Formulário (somente leitura)</CardTitle>
+              <Card className="lg:col-span-2 bg-slate-800/60 border-slate-700/80 text-slate-100">
+                <CardHeader className="py-3 border-b border-slate-700/80">
+                  <CardTitle className="text-sm font-semibold text-slate-100">Dados do Formulário (somente leitura)</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="rounded-lg border p-4">
-                    <h4 className="font-semibold mb-2">Perfil</h4>
-                    <div className="divide-y">
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                  <div className="rounded-lg border border-slate-700 bg-slate-800/60 p-4">
+                    <h4 className="font-semibold mb-2 text-slate-100">Perfil</h4>
+                    <div className="divide-y divide-slate-700">
                       <InfoRow label="Nome">{data?.name}</InfoRow>
                       <InfoRow label="Telefone">{data?.phone}</InfoRow>
                       <InfoRow label="CPF">{data?.cpf}</InfoRow>
@@ -1292,32 +1408,35 @@ function AtendimentoDialog({
                       <InfoRow label="Relatório">{data?.report}</InfoRow>
                     </div>
                   </div>
+                  
                   {dealType(bot) === "visita" && (
-                    <div className="rounded-lg border p-4">
-                      <h4 className="font-semibold mb-2">Visita</h4>
-                      <div className="divide-y">
+                    <div className="rounded-lg border border-slate-700 bg-slate-800/60 p-4">
+                      <h4 className="font-semibold mb-2 text-slate-100">Visita</h4>
+                      <div className="divide-y divide-slate-700">
                         <InfoRow label="Data">{visitDetails?.day}</InfoRow>
                         <InfoRow label="Hora">{visitDetails?.time}</InfoRow>
                       </div>
                     </div>
                   )}
+                  
                   {dealType(bot) === "troca" && (
-                    <div className="rounded-lg border p-4">
-                      <h4 className="font-semibold mb-2">Troca</h4>
-                      <div className="divide-y">
+                    <div className="rounded-lg border border-slate-700 bg-slate-800/60 p-4">
+                      <h4 className="font-semibold mb-2 text-slate-100">Troca</h4>
+                      <div className="divide-y divide-slate-700">
                         <InfoRow label="Modelo">{tradeInCar?.modelo || tradeInCar?.model}</InfoRow>
                         <InfoRow label="Ano">{tradeInCar?.ano || tradeInCar?.year}</InfoRow>
                         <InfoRow label="Valor Desejado">{toBRL(tradeInCar?.valor || tradeInCar?.value)}</InfoRow>
                         <InfoRow label="Descrição">{tradeInCar?.descricao || tradeInCar?.description}</InfoRow>
                       </div>
+                      
                       {/* Vitrine do veículo de troca no dialog */}
                       {tradeTitle && (
                         <div className="mt-4">
-                          <div className="rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm">
+                          <div className="rounded-lg border border-slate-700 overflow-hidden bg-slate-900 shadow-sm">
                             <div className="grid md:grid-cols-2">
-                              <div className="h-48 bg-gray-50 flex items-center justify-center">
+                              <div className="h-48 bg-slate-800 flex items-center justify-center">
                                 {isFetchingTradeImages ? (
-                                  <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+                                  <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
                                 ) : (
                                   <img
                                     src={tradeImg0}
@@ -1328,18 +1447,18 @@ function AtendimentoDialog({
                                 )}
                               </div>
                               <div className="p-6 space-y-3">
-                                <h4 className="font-bold text-xl leading-tight text-gray-900">{tradeTitle}</h4>
+                                <h4 className="font-bold text-xl leading-tight text-slate-50">{tradeTitle}</h4>
                                 {tradePrice != null && (
-                                  <p className="text-2xl font-bold text-amber-600">{toBRL(tradePrice)}</p>
+                                  <p className="text-2xl font-bold text-emerald-400">{toBRL(tradePrice)}</p>
                                 )}
                               </div>
                             </div>
                             {tradeCarImages.length > 1 && (
-                              <div className="p-6 border-t border-gray-200">
-                                <h5 className="font-semibold text-base mb-4">Outras Imagens do Veículo de Troca</h5>
+                              <div className="p-6 border-t border-slate-700">
+                                <h5 className="font-semibold text-base mb-4 text-slate-100">Outras Imagens do Veículo de Troca</h5>
                                 <div className="grid grid-cols-4 gap-4">
                                   {tradeCarImages.slice(1, 5).map((src, i) => (
-                                    <div key={i} className="rounded-md border overflow-hidden bg-gray-50">
+                                    <div key={i} className="rounded-md border border-slate-700 overflow-hidden bg-slate-800">
                                       <img src={src} className="w-full h-24 object-contain" loading="lazy" />
                                     </div>
                                   ))}
@@ -1351,10 +1470,11 @@ function AtendimentoDialog({
                       )}
                     </div>
                   )}
+                  
                   {dealType(bot) === "financiamento" && (
-                    <div className="rounded-lg border p-4">
-                      <h4 className="font-semibold mb-2">Financiamento</h4>
-                      <div className="divide-y">
+                    <div className="rounded-lg border border-slate-700 bg-slate-800/60 p-4">
+                      <h4 className="font-semibold mb-2 text-slate-100">Financiamento</h4>
+                      <div className="divide-y divide-slate-700">
                         <InfoRow label="Entrada">{toBRL(financingDetails.entry)}</InfoRow>
                         <InfoRow label="Parcelas">{financingDetails.parcels}</InfoRow>
                       </div>
@@ -1363,28 +1483,29 @@ function AtendimentoDialog({
                 </CardContent>
               </Card>
             )}
+            
             {/* Troca tab */}
             {tab === "troca" && (
-              <Card className="lg:col-span-2 border-border/60">
-                <CardHeader className="py-3">
-                  <CardTitle className="text-sm">Detalhes da Troca</CardTitle>
+              <Card className="lg:col-span-2 bg-slate-800/60 border-slate-700/80 text-slate-100">
+                <CardHeader className="py-3 border-b border-slate-700/80">
+                  <CardTitle className="text-sm font-semibold text-slate-100">Detalhes da Troca</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="rounded-lg border p-4">
-                    <h4 className="font-semibold mb-2">Veículo de Troca</h4>
-                    <div className="divide-y text-sm">
+                <CardContent className="space-y-6 pt-4">
+                  <div className="rounded-lg border border-slate-700 bg-slate-800/60 p-4">
+                    <h4 className="font-semibold mb-2 text-slate-100">Veículo de Troca</h4>
+                    <div className="divide-y divide-slate-700 text-sm">
                       <InfoRow label="Modelo">{tradeInCar?.modelo || tradeInCar?.model || "—"}</InfoRow>
                       <InfoRow label="Ano">{tradeInCar?.ano || tradeInCar?.year || "—"}</InfoRow>
                       <InfoRow label="Valor Desejado">{toBRL(tradeInCar?.valor || tradeInCar?.value) || "—"}</InfoRow>
                       <InfoRow label="Descrição">{tradeInCar?.descricao || tradeInCar?.description || "—"}</InfoRow>
                     </div>
                   </div>
-                  <div className="rounded-lg border p-4">
-                    <h4 className="font-semibold mb-2">Imagens do Veículo de Troca</h4>
+                  <div className="rounded-lg border border-slate-700 bg-slate-800/60 p-4">
+                    <h4 className="font-semibold mb-2 text-slate-100">Imagens do Veículo de Troca</h4>
                     {isFetchingTradeImages ? (
-                      <Loader2 className="h-8 w-8 animate-spin text-amber-600 mx-auto" />
+                      <Loader2 className="h-8 w-8 animate-spin text-emerald-500 mx-auto" />
                     ) : tradeCarImages.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center">Nenhuma imagem disponível.</p>
+                      <p className="text-sm text-slate-400 text-center">Nenhuma imagem disponível.</p>
                     ) : (
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {tradeCarImages.map((src, i) => (
@@ -1393,11 +1514,11 @@ function AtendimentoDialog({
                               href={src}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="block rounded-lg border overflow-hidden shadow-sm hover:shadow-md transition"
+                              className="block rounded-lg border border-slate-700 overflow-hidden shadow-sm hover:shadow-md transition"
                             >
-                              <img src={src} alt={`Imagem Troca ${i + 1}`} className="w-full h-32 object-contain" />
+                              <img src={src} alt={`Imagem Troca ${i + 1}`} className="w-full h-32 object-cover bg-slate-800" />
                             </a>
-                            <p className="text-xs mt-1">Imagem {i + 1}</p>
+                            <p className="text-xs mt-1 text-slate-300">Imagem {i + 1}</p>
                           </div>
                         ))}
                       </div>
@@ -1406,15 +1527,16 @@ function AtendimentoDialog({
                 </CardContent>
               </Card>
             )}
+            
             {/* Arquivos (somente visual) */}
             {tab === "arquivos" && (
-              <Card className="lg:col-span-2 border-border/60">
-                <CardHeader className="py-3">
-                  <CardTitle className="text-sm">Arquivos enviados</CardTitle>
+              <Card className="lg:col-span-2 bg-slate-800/60 border-slate-700/80 text-slate-100">
+                <CardHeader className="py-3 border-b border-slate-700/80">
+                  <CardTitle className="text-sm font-semibold text-slate-100">Arquivos enviados</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-4">
                   {allImages.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">Nenhum arquivo enviado.</div>
+                    <div className="text-sm text-slate-400">Nenhum arquivo enviado.</div>
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {allImages.map(({ src, label }, i) => (
@@ -1423,11 +1545,11 @@ function AtendimentoDialog({
                             href={src}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block rounded-lg border overflow-hidden shadow-sm hover:shadow-md transition"
+                            className="block rounded-lg border border-slate-700 overflow-hidden shadow-sm hover:shadow-md transition"
                           >
-                            <img src={src} alt={label} className="w-full h-32 object-contain" />
+                            <img src={src} alt={label} className="w-full h-32 object-cover bg-slate-800" />
                           </a>
-                          <p className="text-xs mt-1">{label}</p>
+                          <p className="text-xs mt-1 text-slate-300">{label}</p>
                         </div>
                       ))}
                     </div>
@@ -1437,21 +1559,43 @@ function AtendimentoDialog({
             )}
           </div>
         </ScrollArea>
-        {/* Rodapé com ações */}
-        <DialogFooter className="px-5 py-4 border-t bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        
+        {/* Rodapé com ações (Dashboard Style) */}
+        <DialogFooter className="px-5 py-4 border-t border-slate-800 bg-slate-900/80 backdrop-blur-sm">
           <div className="mr-auto flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => onMove(client.chat_id, "reservado")} title="Mover para Reservado">
+            <Button
+              variant="outline"
+              className="bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 hover:text-slate-100"
+              onClick={() => onMove(client.chat_id, "reservado")}
+              title="Mover para Reservado"
+            >
               <CalendarDays className="h-4 w-4 mr-2" /> Reservar
             </Button>
-            <Button variant="outline" onClick={() => onMove(client.chat_id, "vendido")} title="Marcar como Vendido">
+            <Button
+              variant="outline"
+              className="bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 hover:text-slate-100"
+              onClick={() => onMove(client.chat_id, "vendido")}
+              title="Marcar como Vendido"
+            >
               <CheckCircle2 className="h-4 w-4 mr-2" /> Vendido
             </Button>
-            <Button variant="outline" onClick={() => onMove(client.chat_id, "perdido")} title="Marcar como Perdido">
+            <Button
+              variant="outline"
+              className="bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 hover:text-slate-100"
+              onClick={() => onMove(client.chat_id, "perdido")}
+              title="Marcar como Perdido"
+            >
               <ThumbsDown className="h-4 w-4 mr-2" /> Perdido
             </Button>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={exportClientPDF} disabled={exporting} title="Exportar PDF do atendimento">
+            <Button
+              variant="outline"
+              className="bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 hover:text-slate-100"
+              onClick={exportClientPDF}
+              disabled={exporting}
+              title="Exportar PDF do atendimento"
+            >
               {exporting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando PDF...
@@ -1462,7 +1606,11 @@ function AtendimentoDialog({
                 </>
               )}
             </Button>
-            <Button onClick={handleSave} disabled={saving} className="bg-amber-500 hover:bg-amber-600 text-white">
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold shadow-[0_10px_30px_rgba(16,185,129,0.4)]"
+            >
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Salvando...
@@ -1473,6 +1621,7 @@ function AtendimentoDialog({
             </Button>
           </div>
         </DialogFooter>
+        
         {/* ====== Área oculta para renderizar o PDF (DUAS PÁGINAS) ====== */}
         <div className="sr-only absolute -left-[99999px] top-0" aria-hidden>
           <div ref={pdfMainRef}>
@@ -1486,17 +1635,26 @@ function AtendimentoDialog({
     </Dialog>
   );
 }
-// =========================== Página (Kanban) ===========================
+
+// =========================== Página (Kanban) (Estilo Dashboard) ===========================
 function CRMKanbanContent() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [active, setActive] = useState<any>(null);
   const [modal, setModal] = useState<any>(null);
+  
+  // Simula o storeDetailsData do dashboard para o header
+  const storeDetailsData = {
+    nome: "Minha Loja", // Substitua pelo seu
+    logo_url: "", // Substitua pelo seu
+  };
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 5 } })
   );
+
   const [kanbanColumns, setKanbanColumns] = useState(() => {
     const key = `${LOCAL_STORAGE_KEY_PREFIX}${LOJA_ID_ATUAL}`;
     const metaKey = `${LOCAL_STORAGE_META_PREFIX}${LOJA_ID_ATUAL}`;
@@ -1518,10 +1676,12 @@ function CRMKanbanContent() {
       return COLUNAS_FOCO_EM_MARCOS;
     }
   });
+
   useEffect(() => {
     const key = `${LOCAL_STORAGE_KEY_PREFIX}${LOJA_ID_ATUAL}`;
     localStorage.setItem(key, JSON.stringify(kanbanColumns));
   }, [kanbanColumns]);
+
   const {
     data: clients = [],
     isLoading,
@@ -1532,6 +1692,7 @@ function CRMKanbanContent() {
     refetchInterval: 10000,
     initialData: [],
   });
+
   const updateStatus = useMutation({
     mutationFn: updateClientStatus,
     onSuccess: () => {
@@ -1541,6 +1702,7 @@ function CRMKanbanContent() {
     onError: (e: any) =>
       toast({ title: "Falha ao mover", description: e?.message, variant: "destructive" }),
   });
+
   const updateDetails = useMutation({
     mutationFn: updateClientDetails,
     onSuccess: () => {
@@ -1550,6 +1712,7 @@ function CRMKanbanContent() {
     onError: (e: any) =>
       toast({ title: "Erro ao salvar", description: e?.message, variant: "destructive" }),
   });
+
   const deleteMutation = useMutation({
     mutationFn: (chatId: string) => deleteClient(chatId),
     onSuccess: () => {
@@ -1560,6 +1723,7 @@ function CRMKanbanContent() {
       toast({ title: "Erro ao excluir", description: e?.message, variant: "destructive" });
     },
   });
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const arr = q
@@ -1572,6 +1736,7 @@ function CRMKanbanContent() {
       : clients;
     return arr;
   }, [clients, search]);
+
   const buckets = useMemo(() => {
     const map: Record<string, any[]> = Object.fromEntries(
       COLUNAS_FOCO_EM_MARCOS.map((c) => [c.id, []])
@@ -1582,10 +1747,12 @@ function CRMKanbanContent() {
     });
     return map;
   }, [filtered]);
+
   function handleDragStart(event: any) {
     const c = filtered.find((x: any) => x.chat_id === event.active.id);
     setActive(c || null);
   }
+
   function handleDragEnd(event: any) {
     setActive(null);
     const { active, over } = event;
@@ -1603,35 +1770,67 @@ function CRMKanbanContent() {
     if (!dest) return;
     updateStatus.mutate({ chatId: id, newState: dest });
   }
+
   const handleSave = async (chatId: string, updated: any) => {
     await updateDetails.mutateAsync({ chatId, updatedData: updated });
   };
+
   const handleMove = async (chatId: string, newState: string) => {
     await updateStatus.mutateAsync({ chatId, newState });
   };
+
   const [toDelete, setToDelete] = useState<{ chatId: string; name?: string } | null>(null);
+
   return (
-    <div className="space-y-6 p-4 md:p-6 h-screen overflow-y-hidden">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl md:text-3xl font-bold">CRM de Atendimento</h1>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="relative max-w-md flex-grow">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+    <div className="bg-slate-950 text-slate-50 min-h-screen p-4 md:p-6">
+      {/* HEADER (Estilo Dashboard) */}
+      <div className="mb-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="flex items-start gap-4">
+          {storeDetailsData?.logo_url ? (
+            <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-700/70 flex items-center justify-center overflow-hidden shadow-lg">
+              <img
+                src={storeDetailsData.logo_url}
+                alt="Logo"
+                className="w-10 h-10 object-contain"
+              />
+            </div>
+          ) : (
+            <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-700/70 flex items-center justify-center shadow-lg text-lg font-bold">
+              {storeDetailsData?.nome?.[0] || 'Z'}
+            </div>
+          )}
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black tracking-tight">
+              CRM de Atendimento
+            </h1>
+            <p className="text-xs md:text-sm text-slate-400 mt-1">
+              {new Date().toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+              })}
+            </p>
+          </div>
+        </div>
+        
+        {/* Search */}
+        <div className="relative max-w-md w-full lg:w-auto">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
           <Input
             placeholder="Buscar por cliente, veículo ou vendedor..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 w-full bg-slate-800 border-slate-700 text-slate-100 focus:ring-emerald-500"
           />
         </div>
       </div>
+      
       {isLoading ? (
-        <div className="p-6">
-          <Loader2 className="h-6 w-6 animate-spin mr-2 inline-block" /> Carregando CRM...
+        <div className="p-6 text-slate-300">
+          <Loader2 className="h-6 w-6 animate-spin mr-2 inline-block text-emerald-500" /> Carregando CRM...
         </div>
       ) : error ? (
-        <div className="p-6 text-destructive">
+        <div className="p-6 text-red-400">
           <AlertTriangle className="h-5 w-5 mr-2 inline-block" /> Erro ao carregar dados.
         </div>
       ) : (
@@ -1641,7 +1840,7 @@ function CRMKanbanContent() {
           onDragEnd={handleDragEnd}
           collisionDetection={closestCenter}
         >
-          <div className="w-full overflow-x-auto">
+          <div className="w-full overflow-x-auto pb-8">
             <div className="flex flex-nowrap gap-4 md:gap-6 items-start">
               {COLUNAS_FOCO_EM_MARCOS.map((col) => (
                 <Column
@@ -1660,10 +1859,10 @@ function CRMKanbanContent() {
           </div>
           <DragOverlay>
             {active ? (
-              <Card>
+              <Card className="bg-slate-800 border border-slate-700 shadow-2xl">
                 <CardContent className="p-3">
-                  <div className="font-semibold text-sm">{active.name || "Cliente"}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="font-semibold text-sm text-slate-50">{active.name || "Cliente"}</div>
+                  <div className="text-xs text-slate-400">
                     {interestedVehicleFromBot(active.bot_data)}
                   </div>
                 </CardContent>
@@ -1672,6 +1871,7 @@ function CRMKanbanContent() {
           </DragOverlay>
         </DndContext>
       )}
+      
       {/* Modal de atendimento */}
       {modal && (
         <AtendimentoDialog
@@ -1682,12 +1882,13 @@ function CRMKanbanContent() {
           onMove={handleMove}
         />
       )}
-      {/* Delete */}
+      
+      {/* Delete Dialog (Estilo Dashboard) */}
       <Dialog open={!!toDelete} onOpenChange={() => setToDelete(null)}>
-        <DialogContent>
+        <DialogContent className="bg-slate-900 border-slate-800 text-slate-100">
           <DialogHeader>
-            <DialogTitle>Confirmar exclusão</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-slate-50">Confirmar exclusão</DialogTitle>
+            <DialogDescription className="text-slate-400">
               {toDelete?.name ? (
                 <>
                   Tem certeza que deseja excluir <b>{toDelete.name}</b>? Essa ação não pode ser
@@ -1701,6 +1902,7 @@ function CRMKanbanContent() {
           <DialogFooter>
             <Button
               variant="outline"
+              className="bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 hover:text-slate-100"
               onClick={() => setToDelete(null)}
               disabled={deleteMutation.isPending}
             >
@@ -1708,6 +1910,7 @@ function CRMKanbanContent() {
             </Button>
             <Button
               variant="destructive"
+              className="bg-red-600 text-red-50 hover:bg-red-700"
               onClick={async () => {
                 if (!toDelete?.chatId) return;
                 await deleteMutation.mutateAsync(toDelete.chatId);
@@ -1723,6 +1926,7 @@ function CRMKanbanContent() {
     </div>
   );
 }
+
 export default function CRMKanban() {
   return (
     <ToastProvider>

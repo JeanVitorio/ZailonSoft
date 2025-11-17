@@ -1,10 +1,16 @@
 // src/pages/PublicCarFormPage.tsx
-import React, { useState, useMemo, useEffect } from 'react';
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useReducer,
+  useContext,
+} from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import * as Feather from 'react-feather';
-import { useToast } from '../components/ui/use-toast';
+// import { useToast } from '../components/ui/use-toast'; // Substituído pelo provider local
 import { Progress } from '@/components/ui/progress';
 import imageCompression from 'browser-image-compression';
 
@@ -29,6 +35,84 @@ const supabase: SupabaseClient =
   createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 window.__supabase__ = supabase;
 
+// =========================== Toast (Estilo Dashboard) ===========================
+const ToastContext = React.createContext<any>(null);
+
+function toastReducer(state: any[], action: any) {
+  switch (action.type) {
+    case "ADD_TOAST":
+      return [...state, action.payload];
+    case "REMOVE_TOAST":
+      return state.filter((t) => t.id !== action.id);
+    default:
+      return state;
+  }
+}
+
+const Toaster = ({ toasts, dispatch }: { toasts: any[]; dispatch: any }) => {
+  const variantClasses: Record<string, string> = {
+    default: "bg-slate-800 text-slate-100 border border-slate-700",
+    destructive: "bg-red-500/15 text-red-300 border border-red-500/30",
+    success: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
+  };
+  return (
+    <div className="fixed bottom-0 right-0 p-6 space-y-2 z-[100]">
+      {toasts.map((toast) => (
+        <div
+          key={toast.id}
+          className={`p-4 rounded-md shadow-lg flex items-start gap-4 w-80 md:w-96 ${
+            variantClasses[toast.variant || "default"]
+          }`}
+        >
+          <div className="flex-grow">
+            {toast.title && <h3 className="font-semibold">{toast.title}</h3>}
+            {toast.description && (
+              <p className="text-sm opacity-90">{toast.description}</p>
+            )}
+          </div>
+          <button
+            onClick={() => dispatch({ type: "REMOVE_TOAST", id: toast.id })}
+            className="p-1 rounded-full hover:bg-white/10"
+          >
+            <Feather.X className="h-4 w-4" />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const ToastProvider = ({ children }: { children: React.ReactNode }) => {
+  const [state, dispatch] = useReducer(toastReducer, []);
+  return (
+    <ToastContext.Provider value={dispatch}>
+      {children}
+      <Toaster toasts={state} dispatch={dispatch} />
+    </ToastContext.Provider>
+  );
+};
+
+const useToast = () => {
+  const dispatch = useContext(ToastContext);
+  if (!dispatch) throw new Error("useToast must be used within a ToastProvider");
+  return {
+    toast: ({
+      title,
+      description,
+      variant = "default",
+      duration = 5000,
+    }: {
+      title?: string;
+      description?: string;
+      variant?: "default" | "destructive" | "success";
+      duration?: number;
+    }) => {
+      const id = Date.now();
+      dispatch({ type: "ADD_TOAST", payload: { id, title, description, variant } });
+      setTimeout(() => dispatch({ type: "REMOVE_TOAST", id }), duration);
+    },
+  };
+};
 // -------------------------------------------------------------------------------------
 
 const fadeInUp = {
@@ -50,7 +134,7 @@ const formatCurrency = (value: string | number): string => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
 };
 
-// Card de detalhes do veículo
+// Card de detalhes do veículo (Estilo Dashboard)
 function CarDetailsDisplay({ vehicle }: { vehicle: Car }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -65,11 +149,11 @@ function CarDetailsDisplay({ vehicle }: { vehicle: Car }) {
   const currentImages = vehicle.imagens || [];
 
   return (
-    <div className="bg-white/70 p-6 rounded-lg border border-zinc-200 shadow-sm">
+    <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-[0_18px_40px_rgba(15,23,42,0.9)]">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Galeria */}
         <div className="space-y-4">
-          <div className="relative aspect-video rounded-lg overflow-hidden border border-zinc-200">
+          <div className="relative aspect-video rounded-lg overflow-hidden border border-slate-700">
             {currentImages.length > 0 ? (
               <img
                 src={currentImages[currentImageIndex]}
@@ -77,14 +161,14 @@ function CarDetailsDisplay({ vehicle }: { vehicle: Car }) {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full bg-zinc-100 flex items-center justify-center text-zinc-600">
+              <div className="w-full h-full bg-slate-800 flex items-center justify-center text-slate-400">
                 Sem imagem
               </div>
             )}
             {currentImages.length > 1 && (
               <>
                 <motion.button
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full border border-zinc-200 text-amber-500 hover:bg-zinc-100"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-slate-800/70 p-2 rounded-full border border-slate-700 text-emerald-400 hover:bg-slate-700"
                   onClick={() => navigateGallery(-1)}
                   aria-label="Imagem anterior"
                   whileHover={{ scale: 1.1 }}
@@ -93,7 +177,7 @@ function CarDetailsDisplay({ vehicle }: { vehicle: Car }) {
                   <Feather.ChevronLeft className="w-5 h-5" />
                 </motion.button>
                 <motion.button
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full border border-zinc-200 text-amber-500 hover:bg-zinc-100"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-800/70 p-2 rounded-full border border-slate-700 text-emerald-400 hover:bg-slate-700"
                   onClick={() => navigateGallery(1)}
                   aria-label="Próxima imagem"
                   whileHover={{ scale: 1.1 }}
@@ -110,7 +194,7 @@ function CarDetailsDisplay({ vehicle }: { vehicle: Car }) {
                 key={index}
                 type="button"
                 onClick={() => setCurrentImageIndex(index)}
-                className={`w-full aspect-square overflow-hidden rounded-md border-2 ${currentImageIndex === index ? 'border-amber-500' : 'border-transparent'}`}
+                className={`w-full aspect-square overflow-hidden rounded-md border-2 ${currentImageIndex === index ? 'border-emerald-500' : 'border-transparent'}`}
                 aria-label={`Selecionar imagem ${index + 1}`}
               >
                 <img src={img} alt={`Thumb ${index + 1}`} className="w-full h-full object-cover" />
@@ -123,23 +207,23 @@ function CarDetailsDisplay({ vehicle }: { vehicle: Car }) {
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <p className="text-zinc-800 font-medium">Preço</p>
-              <p className="text-2xl font-bold text-amber-500">{formatCurrency(vehicle.preco || 0)}</p>
+              <p className="text-slate-200 font-medium">Preço</p>
+              <p className="text-2xl font-bold text-emerald-400">{formatCurrency(vehicle.preco || 0)}</p>
             </div>
             <div>
-              <p className="text-zinc-800 font-medium">Ano</p>
-              <p className="font-semibold text-zinc-800 text-2xl">{vehicle.ano}</p>
+              <p className="text-slate-200 font-medium">Ano</p>
+              <p className="font-semibold text-slate-100 text-2xl">{vehicle.ano}</p>
             </div>
           </div>
           <div>
-            <p className="text-zinc-800 font-medium">Descrição</p>
-            <p className={`text-zinc-600 whitespace-pre-wrap transition-all duration-300 ${!isDescriptionExpanded ? 'line-clamp-4' : ''}`}>
+            <p className="text-slate-200 font-medium">Descrição</p>
+            <p className={`text-slate-400 whitespace-pre-wrap transition-all duration-300 ${!isDescriptionExpanded ? 'line-clamp-4' : ''}`}>
               {vehicle.descricao || 'Nenhuma descrição disponível.'}
             </p>
             {vehicle.descricao && vehicle.descricao.length > 200 && (
               <button
                 onClick={toggleDescription}
-                className="text-amber-600 font-semibold text-sm mt-2 hover:underline"
+                className="text-emerald-400 font-semibold text-sm mt-2 hover:underline"
                 type="button"
               >
                 {isDescriptionExpanded ? 'Ver menos' : 'Ver mais'}
@@ -152,7 +236,7 @@ function CarDetailsDisplay({ vehicle }: { vehicle: Car }) {
   );
 }
 
-// Passo local: tipo de negócio
+// Passo local: tipo de negócio (Estilo Dashboard)
 const StepDealType = ({
   setDealType,
   nextStep
@@ -162,41 +246,41 @@ const StepDealType = ({
 }) => {
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-zinc-900">Selecione o Tipo de Negócio</h2>
+      <h2 className="text-xl font-semibold text-slate-50">Selecione o Tipo de Negócio</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <motion.button
-          className="p-4 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-amber-100 hover:border-amber-500 transition-all"
+          className="p-4 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 hover:bg-slate-800 hover:border-emerald-500/50 transition-all"
           onClick={() => { setDealType('comum'); nextStep(); }}
           type="button"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Feather.ShoppingCart className="w-6 h-6 mx-auto mb-2" /> Compra
+          <Feather.ShoppingCart className="w-6 h-6 mx-auto mb-2 text-emerald-400" /> Compra
         </motion.button>
         <motion.button
-          className="p-4 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-amber-100 hover:border-amber-500 transition-all"
+          className="p-4 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 hover:bg-slate-800 hover:border-emerald-500/50 transition-all"
           onClick={() => { setDealType('troca'); nextStep(); }}
           type="button"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Feather.RefreshCw className="w-6 h-6 mx-auto mb-2" /> Troca
+          <Feather.RefreshCw className="w-6 h-6 mx-auto mb-2 text-emerald-400" /> Troca
         </motion.button>
         <motion.button
-          className="p-4 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-amber-100 hover:border-amber-500 transition-all"
+          className="p-4 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 hover:bg-slate-800 hover:border-emerald-500/50 transition-all"
           onClick={() => { setDealType('visita'); nextStep(); }}
           type="button"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Feather.Calendar className="w-6 h-6 mx-auto mb-2" /> Agendar Visita
+          <Feather.Calendar className="w-6 h-6 mx-auto mb-2 text-emerald-400" /> Agendar Visita
         </motion.button>
       </div>
     </div>
   );
 };
 
-// Summary
+// Summary (Estilo Dashboard)
 function StepSummary({
   formData, files, dealType, paymentType
 }: { formData: FormData; files: Files; dealType: string; paymentType: string; }) {
@@ -204,82 +288,82 @@ function StepSummary({
 
   const renderFinancingDetails = () => (
     <>
-      <h4 className="font-semibold text-zinc-800 mt-2">Detalhes do Financiamento:</h4>
-      <p className="text-zinc-600">Entrada: <span className="font-medium">{formData.financing_details.entry ? formatCurrency(formData.financing_details.entry) : 'Não informado'}</span></p>
-      <p className="text-zinc-600">Parcelas: <span className="font-medium">{formData.financing_details.parcels}x</span></p>
+      <h4 className="font-semibold text-slate-100 mt-2">Detalhes do Financiamento:</h4>
+      <p className="text-slate-400">Entrada: <span className="font-medium text-slate-100">{formData.financing_details.entry ? formatCurrency(formData.financing_details.entry) : 'Não informado'}</span></p>
+      <p className="text-slate-400">Parcelas: <span className="font-medium text-slate-100">{formData.financing_details.parcels}x</span></p>
     </>
   );
 
   const renderTradeInDetails = () => (
     <>
-      <h4 className="font-semibold text-zinc-800 mt-2">Veículo da Troca:</h4>
-      <p className="text-zinc-600">Modelo: <span className="font-medium">{formData.trade_in_car.model}</span></p>
-      <p className="text-zinc-600">Ano: <span className="font-medium">{formData.trade_in_car.year}</span></p>
-      <p className="text-zinc-600">Valor Desejado: <span className="font-medium">{formatCurrency(formData.trade_in_car.value)}</span></p>
+      <h4 className="font-semibold text-slate-100 mt-2">Veículo da Troca:</h4>
+      <p className="text-slate-400">Modelo: <span className="font-medium text-slate-100">{formData.trade_in_car.model}</span></p>
+      <p className="text-slate-400">Ano: <span className="font-medium text-slate-100">{formData.trade_in_car.year}</span></p>
+      <p className="text-slate-400">Valor Desejado: <span className="font-medium text-slate-100">{formatCurrency(formData.trade_in_car.value)}</span></p>
     </>
   );
 
   const renderVisitDetails = () => (
     <>
-      <h4 className="font-semibold text-zinc-800 mt-2">Agendamento:</h4>
-      <p className="text-zinc-600">Data: <span className="font-medium">{formData.visit_details.day}</span></p>
-      <p className="text-zinc-600">Horário: <span className="font-medium">{formData.visit_details.time}</span></p>
+      <h4 className="font-semibold text-slate-100 mt-2">Agendamento:</h4>
+      <p className="text-slate-400">Data: <span className="font-medium text-slate-100">{formData.visit_details.day}</span></p>
+      <p className="text-slate-400">Horário: <span className="font-medium text-slate-100">{formData.visit_details.time}</span></p>
     </>
   );
 
   return (
-    <div className="space-y-6 bg-white border border-zinc-200 p-6 rounded-lg">
-      <h2 className="text-xl font-semibold text-zinc-900">Revise sua Proposta</h2>
+    <div className="space-y-6 bg-slate-900 border border-slate-800 p-6 rounded-lg">
+      <h2 className="text-xl font-semibold text-slate-50">Revise sua Proposta</h2>
 
-      <div className="border-b pb-4">
-        <h3 className="text-lg font-semibold text-amber-600">Seus Dados</h3>
-        <p className="text-zinc-600">Nome: <span className="font-medium">{formData.name}</span></p>
-        <p className="text-zinc-600">Telefone: <span className="font-medium">{formData.phone}</span></p>
-        <p className="text-zinc-600">CPF: <span className="font-medium">{formData.cpf}</span></p>
-        <p className="text-zinc-600">Profissão: <span className="font-medium">{formData.job}</span></p>
+      <div className="border-b border-slate-700 pb-4">
+        <h3 className="text-lg font-semibold text-emerald-400">Seus Dados</h3>
+        <p className="text-slate-400">Nome: <span className="font-medium text-slate-100">{formData.name}</span></p>
+        <p className="text-slate-400">Telefone: <span className="font-medium text-slate-100">{formData.phone}</span></p>
+        <p className="text-slate-400">CPF: <span className="font-medium text-slate-100">{formData.cpf}</span></p>
+        <p className="text-slate-400">Profissão: <span className="font-medium text-slate-100">{formData.job}</span></p>
       </div>
 
       {interestedCar && (
-        <div className="border-b pb-4">
-          <h3 className="text-lg font-semibold text-amber-600">Veículo de Interesse</h3>
-          <p className="text-zinc-600">Modelo: <span className="font-medium">{interestedCar.nome} ({interestedCar.ano})</span></p>
-          <p className="text-zinc-600">Preço: <span className="font-medium">{formatCurrency(interestedCar.preco)}</span></p>
+        <div className="border-b border-slate-700 pb-4">
+          <h3 className="text-lg font-semibold text-emerald-400">Veículo de Interesse</h3>
+          <p className="text-slate-400">Modelo: <span className="font-medium text-slate-100">{interestedCar.nome} ({interestedCar.ano})</span></p>
+          <p className="text-slate-400">Preço: <span className="font-medium text-slate-100">{formatCurrency(interestedCar.preco)}</span></p>
         </div>
       )}
 
-      <div className="border-b pb-4">
-        <h3 className="text-lg font-semibold text-amber-600">Detalhes da Negociação</h3>
+      <div className="border-b border-slate-700 pb-4">
+        <h3 className="text-lg font-semibold text-emerald-400">Detalhes da Negociação</h3>
 
         {dealType === 'visita' && (
           <>
-            <p className="text-zinc-600">Tipo: <span className="font-medium">Agendamento de Visita</span></p>
+            <p className="text-slate-400">Tipo: <span className="font-medium text-slate-100">Agendamento de Visita</span></p>
             {renderVisitDetails()}
           </>
         )}
 
         {dealType === 'comum' && (
           <>
-            <p className="text-zinc-600">Tipo: <span className="font-medium">Proposta de Compra</span></p>
-            <p className="text-zinc-600">Pagamento: <span className="font-medium">{paymentType === 'a_vista' ? 'À Vista' : 'Financiamento'}</span></p>
+            <p className="text-slate-400">Tipo: <span className="font-medium text-slate-100">Proposta de Compra</span></p>
+            <p className="text-slate-400">Pagamento: <span className="font-medium text-slate-100">{paymentType === 'a_vista' ? 'À Vista' : 'Financiamento'}</span></p>
             {paymentType === 'financiamento' && renderFinancingDetails()}
           </>
         )}
 
         {dealType === 'troca' && (
           <>
-            <p className="text-zinc-600">Tipo: <span className="font-medium">Proposta de Troca</span></p>
+            <p className="text-slate-400">Tipo: <span className="font-medium text-slate-100">Proposta de Troca</span></p>
             {renderTradeInDetails()}
-            <h4 className="font-semibold text-zinc-800 mt-2">Pagamento da Diferença:</h4>
-            <p className="text-zinc-600">Método: <span className="font-medium">{paymentType === 'a_vista' ? 'À Vista' : 'Financiamento'}</span></p>
+            <h4 className="font-semibold text-slate-100 mt-2">Pagamento da Diferença:</h4>
+            <p className="text-slate-400">Método: <span className="font-medium text-slate-100">{paymentType === 'a_vista' ? 'À Vista' : 'Financiamento'}</span></p>
             {paymentType === 'financiamento' && renderFinancingDetails()}
           </>
         )}
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-amber-600">Arquivos Enviados (Opcional)</h3>
-        <p className="text-zinc-600">Documentos: <span className="font-medium">{files.documents.length > 0 ? `${files.documents.length} arquivo(s)` : 'Nenhum'}</span></p>
-        <p className="text-zinc-600">Fotos da Troca: <span className="font-medium">{files.trade_in_photos.length > 0 ? `${files.trade_in_photos.length} arquivo(s)` : 'Nenhum'}</span></p>
+        <h3 className="text-lg font-semibold text-emerald-400">Arquivos Enviados (Opcional)</h3>
+        <p className="text-slate-400">Documentos: <span className="font-medium text-slate-100">{files.documents.length > 0 ? `${files.documents.length} arquivo(s)` : 'Nenhum'}</span></p>
+        <p className="text-slate-400">Fotos da Troca: <span className="font-medium text-slate-100">{files.trade_in_photos.length > 0 ? `${files.trade_in_photos.length} arquivo(s)` : 'Nenhum'}</span></p>
       </div>
     </div>
   );
@@ -299,7 +383,7 @@ const initialFiles: Files = { documents: [], trade_in_photos: [] };
 export function PublicCarFormPage() {
   const { carId } = useParams<{ carId: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast } = useToast(); // Usa o hook local
   const queryClient = useQueryClient();
 
   const [step, setStep] = useState(0);
@@ -330,8 +414,8 @@ export function PublicCarFormPage() {
     }: { clientPayload: ClientPayload; lojaId: string }) => {
       // Monta o objeto exatamente como o schema espera
       const rowToInsert = {
-        id: clientPayload.id,                         // 👈 OBRIGATÓRIO (não há DEFAULT no BD)
-        chat_id: clientPayload.chat_id,               // NOT NULL UNIQUE
+        id: clientPayload.id,                           // 👈 OBRIGATÓRIO (não há DEFAULT no BD)
+        chat_id: clientPayload.chat_id,                 // NOT NULL UNIQUE
         name: clientPayload.name ?? null,
         phone: clientPayload.phone ?? null,
         cpf: clientPayload.cpf ?? null,
@@ -346,7 +430,7 @@ export function PublicCarFormPage() {
         deal_type: clientPayload.deal_type ?? null,
         financing_details: clientPayload.financing_details ?? '',   // text NOT NULL DEFAULT ''
         interested_vehicles: clientPayload.interested_vehicles ?? '', // text NOT NULL DEFAULT ''
-        trade_in_car: clientPayload.trade_in_car ?? '',             // text NOT NULL DEFAULT ''
+        trade_in_car: clientPayload.trade_in_car ?? '',           // text NOT NULL DEFAULT ''
         loja_id: lojaId ?? null
       };
 
@@ -358,7 +442,7 @@ export function PublicCarFormPage() {
       return true;
     },
     onSuccess: () => {
-      toast({ title: 'Sucesso!', description: 'Proposta enviada com sucesso.' });
+      toast({ title: 'Sucesso!', description: 'Proposta enviada com sucesso.', variant: 'success' });
       queryClient.invalidateQueries({ queryKey: ['carDetails', carId] });
       if (interestedCar && interestedCar.loja_id) {
         navigate(`/catalogo-loja/${interestedCar.loja_id}`);
@@ -414,14 +498,15 @@ export function PublicCarFormPage() {
     toast({
       title: 'Preparando arquivos...',
       description: `Comprimindo ${filesToCompress.length} ${fileTypeDescription}...`,
-      duration: filesToCompress.length * 1500
+      duration: filesToCompress.length * 1500,
+      variant: 'default',
     });
 
     try {
       const compressedImagesPromises = filesToCompress.map((file) => compressImage(file));
       const compressedImages = await Promise.all(compressedImagesPromises);
       setFiles((prev) => ({ ...prev, [type]: compressedImages }));
-      toast({ title: 'Arquivos prontos!', description: 'Arquivos otimizados e adicionados.', duration: 3000 });
+      toast({ title: 'Arquivos prontos!', description: 'Arquivos otimizados e adicionados.', duration: 3000, variant: 'success' });
     } catch {
       toast({ title: 'Erro ao processar arquivos', description: 'Alguns arquivos podem não ter sido processados.', variant: 'destructive' });
     } finally {
@@ -515,8 +600,8 @@ export function PublicCarFormPage() {
     const finalDealType = dealType === 'comum' ? paymentType : dealType;
 
     const payload: ClientPayload = {
-      id: crypto.randomUUID(),                 // ✅ necessário porque sua tabela não tem DEFAULT para id
-      chat_id: formData.phone,                 // NOT NULL UNIQUE (você já usa o telefone)
+      id: crypto.randomUUID(),               // ✅ necessário porque sua tabela não tem DEFAULT para id
+      chat_id: formData.phone,               // NOT NULL UNIQUE (você já usa o telefone)
       name: formData.name,
       phone: formData.phone,
       cpf: formData.cpf,
@@ -545,8 +630,8 @@ export function PublicCarFormPage() {
     mutation.mutate({ clientPayload: payload, lojaId: interestedCar.loja_id });
   };
 
-  if (isLoadingCar) return <div className="text-center py-20 text-zinc-600">Carregando detalhes do veículo...</div>;
-  if (errorCar || !interestedCar) return <div className="text-center py-20 text-red-500">Veículo não encontrado ou link inválido.</div>;
+  if (isLoadingCar) return <div className="text-center py-20 text-slate-400 bg-slate-950 min-h-screen">Carregando detalhes do veículo...</div>;
+  if (errorCar || !interestedCar) return <div className="text-center py-20 text-red-400 bg-slate-950 min-h-screen">Veículo não encontrado ou link inválido.</div>;
 
   const renderCurrentStep = () => {
     if (step === 0) return <StepDealType setDealType={(type) => { setDealType(type); setStep(1); }} nextStep={() => { }} />;
@@ -582,26 +667,26 @@ export function PublicCarFormPage() {
 
   return (
     <motion.div
-      className="max-w-4xl mx-auto p-4 md:p-8 space-y-6 font-poppins bg-white/70 min-h-screen"
+      className="max-w-4xl mx-auto p-4 md:p-8 space-y-6 font-poppins bg-slate-950 text-slate-50 min-h-screen"
       initial="hidden"
       animate="visible"
       variants={fadeInUp}
     >
       {/* Header */}
-      <div className="flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-b border-zinc-200">
+      <div className="flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-b border-slate-800">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-zinc-900">Proposta de Interesse</h1>
-          <h2 className="text-xl font-semibold text-zinc-800">
-            Veículo: <span className="text-amber-600">{interestedCar.nome} ({interestedCar.ano})</span>
+          <h1 className="text-3xl font-bold text-slate-50">Proposta de Interesse</h1>
+          <h2 className="text-xl font-semibold text-slate-100">
+            Veículo: <span className="text-emerald-400">{interestedCar.nome} ({interestedCar.ano})</span>
           </h2>
         </div>
 
         <Link
           to={`/catalogo-loja/${interestedCar.loja_id}`}
-          className="flex-shrink-0 flex items-center px-3 py-2 rounded-lg text-sm font-medium text-amber-600 border border-amber-600/30 hover:bg-amber-50 transition-all group"
+          className="flex-shrink-0 flex items-center px-3 py-2 rounded-lg text-sm font-medium text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/10 transition-all group"
         >
-          <Feather.BookOpen className="w-4 h-4 mr-2 group-hover:text-amber-700 transition-colors" />
-          <span className="group-hover:text-amber-700 transition-colors">Ver Catálogo da Loja</span>
+          <Feather.BookOpen className="w-4 h-4 mr-2 group-hover:text-emerald-300 transition-colors" />
+          <span className="group-hover:text-emerald-300 transition-colors">Ver Catálogo da Loja</span>
         </Link>
       </div>
 
@@ -613,8 +698,8 @@ export function PublicCarFormPage() {
       {/* Barra de progresso */}
       {progressValue > 0 && (
         <div className="px-4">
-          <Progress value={progressValue} className="w-full h-2 bg-zinc-200 [&>div]:bg-amber-500" />
-          <p className="text-zinc-600 text-sm mt-1">
+          <Progress value={progressValue} className="w-full h-2 bg-slate-800 [&>div]:bg-emerald-500" />
+          <p className="text-slate-400 text-sm mt-1">
             {step > 0 && flowSteps[step - 1] ? `Passo ${step} de ${flowSteps.length}: ${flowSteps[step - 1].title}` : 'Selecione o tipo de negócio'}
           </p>
         </div>
@@ -623,7 +708,7 @@ export function PublicCarFormPage() {
       {/* Erros de validação */}
       {validationError && (
         <motion.p
-          className="text-sm font-medium text-red-500 bg-red-500/10 p-3 rounded-md mx-4"
+          className="text-sm font-medium text-red-400 bg-red-500/15 border border-red-500/30 p-3 rounded-md mx-4"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -638,7 +723,7 @@ export function PublicCarFormPage() {
       <motion.div className="flex justify-between mt-6 px-4" variants={fadeInUp}>
         {step > 1 ? (
           <motion.button
-            className="px-4 py-2 rounded-lg border border-zinc-200 text-zinc-800 hover:bg-zinc-100 hover:border-amber-400/50 transition-all flex items-center disabled:opacity-60"
+            className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 hover:text-slate-100 transition-all flex items-center disabled:opacity-60"
             onClick={prevStep}
             type="button"
             disabled={mutation.isPending}
@@ -651,7 +736,7 @@ export function PublicCarFormPage() {
 
         {step > 0 && step < flowSteps.length && (
           <motion.button
-            className="px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all flex items-center disabled:bg-amber-300 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-lg bg-emerald-500 text-slate-950 font-semibold hover:bg-emerald-400 transition-all flex items-center disabled:bg-emerald-700 disabled:text-slate-400 disabled:cursor-not-allowed shadow-[0_10px_30px_rgba(16,185,129,0.4)]"
             onClick={nextStep}
             type="button"
             disabled={isCompressing || mutation.isPending}
@@ -673,7 +758,7 @@ export function PublicCarFormPage() {
 
         {step > 0 && step === flowSteps.length && (
           <motion.button
-            className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-all disabled:bg-green-300 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-500 transition-all disabled:bg-green-800 disabled:cursor-not-allowed shadow-[0_10px_30px_rgba(22,163,74,0.4)]"
             onClick={handleSubmit}
             type="button"
             disabled={mutation.isPending}
@@ -688,4 +773,11 @@ export function PublicCarFormPage() {
   );
 }
 
-export default PublicCarFormPage;
+// Wrapper com o Provedor de Toast
+export default function PublicCarFormPageWithToast() {
+  return (
+    <ToastProvider>
+      <PublicCarFormPage />
+    </ToastProvider>
+  );
+}

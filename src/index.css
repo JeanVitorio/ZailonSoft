@@ -148,6 +148,6 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-slate-950 text-slate-50;
   }
 }

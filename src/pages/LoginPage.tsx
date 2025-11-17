@@ -4,56 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Feather from 'react-feather';
 
-// --- Componentes de Background ---
-const LightDotsBackground = () => {
-  const [dots, setDots] = useState<any[]>([]);
-  React.useEffect(() => {
-    const generateDots = () => {
-      const newDots = Array.from({ length: 70 }).map(() => ({
-        id: Math.random(),
-        top: `${Math.random() * 100}%`,
-        left: `${Math.random() * 100}%`,
-        animationDuration: `${Math.random() * 8 + 8}s`,
-        animationDelay: `${Math.random() * 8}s`,
-        size: `${Math.random() * 2 + 1}px`,
-        opacity: `${Math.random() * 0.4 + 0.3}`,
-      }));
-      setDots(newDots);
-    };
-    generateDots();
-  }, []);
-  return (
-    <>
-      <style>{`@keyframes move-dots { from { transform: translateY(0px); } to { transform: translateY(-1500px); } } .light-dot { animation: move-dots linear infinite; position: absolute; background-color: #a1a1aa; border-radius: 50%; z-index: -20; }`}</style>
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        {dots.map(dot => (
-          <div
-            key={dot.id}
-            className="light-dot"
-            style={{
-              top: dot.top,
-              left: dot.left,
-              animationDuration: dot.animationDuration,
-              animationDelay: dot.animationDelay,
-              width: dot.size,
-              height: dot.size,
-              opacity: dot.opacity,
-            }}
-          />
-        ))}
-      </div>
-    </>
-  );
-};
-
-const AnimatedBackground = () => (
-  <div className="absolute inset-0 -z-10 h-full w-full pointer-events-none">
-    <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] bg-[size:14px_24px]"></div>
-    <div className="absolute left-0 right-0 top-[-10%] h-[1000px] w-[1000px] rounded-full bg-[radial-gradient(circle_400px_at_50%_300px,#fef3c740,transparent)]"></div>
-  </div>
-);
-
-// --- Componente Principal ---
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -91,135 +41,170 @@ export function LoginPage() {
 
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeInOut' } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' }
+    },
   };
 
   return (
-    <div className="min-h-screen bg-white text-zinc-800 font-poppins relative overflow-x-hidden">
-      <LightDotsBackground />
-      <AnimatedBackground />
-      <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
+    <div className="min-h-screen bg-slate-950 text-slate-50 font-poppins relative overflow-hidden">
+
+      {/* --- Fundo Dark Premium com gradientes --- */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(251,191,36,0.15),transparent_55%),radial-gradient(circle_at_100%_0%,rgba(56,189,248,0.18),transparent_55%)]" />
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage:
+              'linear-gradient(to right, rgba(148,163,184,0.12) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.12) 1px, transparent 1px)',
+            backgroundSize: '40px 40px',
+            maskImage: 'radial-gradient(circle at top, black 40%, transparent 70%)',
+          }}
+        />
+      </div>
+
+      {/* GRID Responsiva */}
+      <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2 relative z-10">
+
+        {/* COLUNA DO FORM */}
         <motion.div
-          className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative z-10"
+          className="flex items-center justify-center py-16 px-6 sm:px-8 lg:px-10"
           initial="hidden"
           animate="visible"
           variants={fadeInUp}
         >
-          <div className="mx-auto grid w-[350px] gap-6 bg-white/70 p-6 rounded-lg border border-zinc-200 shadow-sm backdrop-blur-sm">
-            <div className="grid gap-2 text-center">
-              <div className="flex justify-center items-center gap-3 mb-4">
+          <div className="bg-slate-950/80 border border-slate-800 shadow-[0_24px_70px_rgba(0,0,0,0.85)] backdrop-blur-xl rounded-3xl p-8 w-full max-w-md">
+
+            {/* LOGO */}
+            <div className="flex justify-center items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-amber-400/60 overflow-hidden shadow-inner grid place-items-center">
                 <img
                   src="/favicon.ico"
                   alt="Logo ZailonSoft"
-                  className="w-12 h-12 rounded-lg"
+                  className="w-6 h-6 object-contain opacity-90"
                 />
-                <div>
-                  <h1 className="text-3xl font-bold text-zinc-900">
-                    Zailon<span className="text-amber-500">Soft</span>
-                  </h1>
-                  <p className="text-zinc-600">CRM Automotivo</p>
-                </div>
               </div>
-              <p className="text-zinc-600">
-                Insira as suas credenciais para acessar o seu painel.
-              </p>
+              <div>
+                <h1 className="text-3xl font-black text-slate-50 tracking-tight">
+                  Zailon<span className="text-amber-400">Soft</span>
+                </h1>
+                <p className="text-slate-400 text-sm">Pré-vendas & CRM Automotivo</p>
+              </div>
             </div>
-            <form onSubmit={handleLogin} className="grid gap-4">
+
+            <p className="text-slate-300 text-sm text-center mb-6">
+              Insira suas credenciais para acessar seu painel.
+            </p>
+
+            {/* FORM */}
+            <form className="space-y-4" onSubmit={handleLogin}>
+              
+              {/* EMAIL */}
               <div className="grid gap-2">
-                <label htmlFor="email" className="text-zinc-800 font-medium">E-mail</label>
+                <label htmlFor="email" className="text-slate-200 font-medium text-sm">
+                  E-mail
+                </label>
                 <input
                   id="email"
                   type="email"
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-200 px-4 py-2 text-zinc-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-slate-200 placeholder-slate-500
+                             focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 transition"
                   required
                 />
               </div>
+
+              {/* SENHA */}
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-zinc-800 font-medium">Senha</label>
-                  <Link
-                    to="https://wa.me/554691163405?text=Esqueci%20a%20senha%20de%20usuário%20do%20sistema%20ZailonSoft"
-                    className="text-sm text-amber-500 hover:text-amber-600 transition-colors"
+                  <label htmlFor="password" className="text-slate-200 font-medium text-sm">
+                    Senha
+                  </label>
+                  <a
+                    href="https://wa.me/554691163405?text=Esqueci%20a%20senha%20do%20sistema%20ZailonSoft"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-amber-400 hover:text-amber-300 transition"
                   >
-                    Esqueceu a sua senha?
-                  </Link>
+                    Esqueceu a senha?
+                  </a>
                 </div>
+
                 <input
                   id="password"
                   type="password"
+                  placeholder="•••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-200 px-4 py-2 text-zinc-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+                  className="w-full rounded-xl bg-slate-900 border border-slate-700 px-4 py-3 text-slate-200 placeholder-slate-500
+                             focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 transition"
                   required
                 />
               </div>
+
+              {/* ERRO */}
               <AnimatePresence>
                 {error && (
                   <motion.p
+                    className="text-sm text-red-400 bg-red-500/10 border border-red-400/30 rounded-xl p-3"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="text-sm font-medium text-red-600"
                   >
                     {error}
                   </motion.p>
                 )}
               </AnimatePresence>
 
-              {/* --- [INÍCIO DA CORREÇÃO] --- */}
+              {/* BOTÃO */}
               <motion.button
                 type="submit"
-                className="w-full bg-amber-500 text-white px-8 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all duration-300 shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_35px_rgba(251,191,36,0.5)] h-[44px]" // Altura fixa para não "pular"
                 disabled={loading}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="w-full bg-gradient-to-r from-amber-300 via-amber-500 to-orange-500 text-slate-950 font-semibold py-3.5 rounded-xl
+                           shadow-[0_18px_40px_rgba(245,158,11,0.55)] hover:shadow-[0_24px_55px_rgba(245,158,11,0.75)]
+                           transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <AnimatePresence mode="wait" initial={false}>
-                  {loading ? (
-                    <motion.span
-                      key="loading"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex items-center justify-center"
-                    >
-                      Verificando...
-                    </motion.span>
-                  ) : (
-                    <motion.span
-                      key="default"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex items-center justify-center gap-2"
-                    >
-                      <Feather.LogIn size={18} /> Entrar no Painel
-                    </motion.span>
-                  )}
-                </AnimatePresence>
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Feather.Loader className="animate-spin" size={18} />
+                    Verificando...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <Feather.LogIn size={18} />
+                    Entrar no painel
+                  </span>
+                )}
               </motion.button>
-              {/* --- [FIM DA CORREÇÃO] --- */}
 
             </form>
-            <div className="mt-4 text-center text-sm text-zinc-600">
+
+            {/* RODAPÉ */}
+            <p className="mt-5 text-center text-sm text-slate-400">
               Não tem uma conta?{' '}
               <Link
                 to="/signup"
-                className="text-amber-500 font-semibold hover:text-amber-600 transition-colors"
+                className="text-amber-400 font-semibold hover:text-amber-300 transition"
               >
-                Crie uma agora
+                Criar agora
               </Link>
-            </div>
+            </p>
+
           </div>
         </motion.div>
-        <div className="hidden bg-zinc-100 lg:block">
+
+        {/* COLUNA DA IMAGEM */}
+        <div className="hidden lg:block">
           <img
             src="/CamaroBranco.png"
-            alt="Imagem de um carro desportivo"
-            className="h-full w-full object-cover"
+            alt="Carro esportivo"
+            className="h-full w-full object-cover opacity-80"
           />
         </div>
       </div>
