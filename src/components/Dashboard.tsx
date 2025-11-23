@@ -263,6 +263,55 @@ const pickVehiclePrice = (client: ClientType): number => {
   return parsed.length ? Math.max(...parsed) : 0;
 };
 
+/** Identificador único provável do veículo, para evitar contagem duplicada */
+const getVehicleKey = (client: ClientType): string | null => {
+  const b: any = client?.bot_data ?? {};
+
+  const fromObj = (v: any): string | null => {
+    if (!v) return null;
+
+    const idCandidate =
+      v.id ||
+      v.uuid ||
+      v.slug ||
+      v.codigo ||
+      v.code ||
+      v.stock_id ||
+      v.estoque_id ||
+      v.chassi ||
+      v.placa;
+
+    if (idCandidate) return String(idCandidate);
+
+    const name = v.nome || v.name || v.titulo || v.title || '';
+    const year = v.ano || v.year || '';
+    const precoLike = v.preco || v.valor || v.price || '';
+    const priceNum = parseCurrency(precoLike);
+
+    if (name || year || priceNum) {
+      return `${name}::${year}::${priceNum}`;
+    }
+    return null;
+  };
+
+  if (Array.isArray(b?.interested_vehicles) && b.interested_vehicles.length) {
+    const k = fromObj(b.interested_vehicles[0]);
+    if (k) return k;
+  }
+
+  if (b?.interested_vehicle) {
+    const k = fromObj(b.interested_vehicle);
+    if (k) return k;
+  }
+
+  if (b?.vehicle) {
+    const k = fromObj(b.vehicle);
+    if (k) return k;
+  }
+
+  return null;
+};
+
 /** Data da visita (robusto) */
 const getVisitAtRobusto = (client: any): Date | null => {
   const rootVD = client?.visit_details ?? {};
@@ -618,11 +667,28 @@ export function Dashboard() {
       { ...tipoCountBase }
     );
 
-    const valorNegociacaoNum = metricClients
-      .filter(
-        (c) => normalizaEstadoParaFunil(stateOf(c)) !== 'vendido'
-      )
-      .reduce((acc, c) => acc + pickVehiclePrice(c), 0);
+    // ---- NOVA LÓGICA: valor em negociação por VEÍCULO ÚNICO ----
+    const openClients = metricClients.filter((c) => {
+      const stNorm = normalizaEstadoParaFunil(stateOf(c));
+      // Considera apenas leads que ainda estão em aberto/negociação
+      return stNorm !== 'vendido' && stNorm !== 'perdido';
+    });
+
+    const seenVehicles = new Set<string>();
+    let valorNegociacaoNum = 0;
+
+    for (const c of openClients) {
+      const key = getVehicleKey(c);
+      if (!key) continue;
+      if (seenVehicles.has(key)) continue; // já contamos esse veículo
+      seenVehicles.add(key);
+
+      const price = pickVehiclePrice(c);
+      if (price > 0) {
+        valorNegociacaoNum += price;
+      }
+    }
+    // ---- FIM NOVA LÓGICA ----
 
     const vendas = funilCounts['vendido'] || 0;
 
@@ -647,7 +713,7 @@ export function Dashboard() {
         {
           title: 'Valor em Negociação',
           value: formatToBRL(valorNegociacaoNum),
-        },
+        }
       ],
       funnelCounts: funilCounts,
       dealTypeCounts: tipoCount,
@@ -990,8 +1056,7 @@ export function Dashboard() {
                   Valor Total em Negociação
                 </h2>
                 <p className="text-xs sm:text-sm text-emerald-50/80 mt-2 max-w-xl">
-                  Soma aproximada dos veículos em negociação (excluindo já
-                  vendidos) no período filtrado.
+                  O sistema mostra o potencial, mas a sua estratégia realiza a venda. Estamos aqui para garantir que você visualize o sucesso!
                 </p>
               </div>
               <div className="text-right">
