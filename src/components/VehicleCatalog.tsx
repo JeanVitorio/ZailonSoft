@@ -11,6 +11,7 @@ import {
   fetchAvailableCars,
   updateVehicle as updateVehicleInSupabase,
   deleteVehicle as deleteVehicleInSupabase,
+  deleteVehicleImage as deleteVehicleImageInSupabase,
   fetchStoreDetails,
   Car as SupabaseCar,
 } from '@/services/api';
@@ -118,10 +119,51 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
       return false;
     }
     if (parsePrice(getPriceRaw(data)) <= 0) {
-      toast({ title: 'Erro', description: 'Preço deve ser maior que zero.', variant: 'destructive' });
+      toast({
+        title: 'Erro',
+        description: 'Preço deve ser maior que zero.',
+        variant: 'destructive',
+      });
       return false;
     }
     return true;
+  };
+
+  // Remoção de imagem usando deleteVehicleImage do API (tira do bucket + banco)
+  const deleteImageMutation = useMutation({
+    mutationFn: (imageUrl: string) =>
+      deleteVehicleImageInSupabase({
+        carId: (vehicle as any).id,
+        imageUrl,
+      }),
+    onSuccess: (updatedImages: string[]) => {
+      setData((prev) => ({
+        ...prev,
+        imagens: updatedImages as any,
+        images: updatedImages as any,
+      }));
+      setIdx((prevIdx) => {
+        if (updatedImages.length === 0) return 0;
+        return Math.min(prevIdx, updatedImages.length - 1);
+      });
+      qc.invalidateQueries({ queryKey: ['vehicles'] });
+      toast({ title: 'Foto removida com sucesso.' });
+    },
+    onError: (error: any) => {
+      console.error('Erro ao remover imagem:', error);
+      toast({
+        title: 'Erro ao remover foto',
+        description: error?.message || 'Não foi possível remover esta imagem.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleRemoveImage = (index: number) => {
+    const imgList = getImages(data) as string[];
+    const imageUrl = imgList[index];
+    if (!imageUrl) return;
+    deleteImageMutation.mutate(imageUrl);
   };
 
   const save = useMutation({
@@ -133,6 +175,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
           descricao: getDesc(data),
           ano: Number(getYear(data)),
           preco: (data as any).preco,
+          // imagens são tratadas no backend como merge + novas imagens
         },
         newImages: imgs,
       }),
@@ -146,7 +189,8 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
       console.error('Erro ao salvar edição:', error);
       toast({
         title: 'Erro ao salvar',
-        description: error?.message || 'Falha ao atualizar o veículo. Verifique os dados e tente novamente.',
+        description:
+          error?.message || 'Falha ao atualizar o veículo. Verifique os dados e tente novamente.',
         variant: 'destructive',
       });
     },
@@ -155,7 +199,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
   const imgList = getImages(data) as string[];
 
   return (
-    <div className="bg-slate-950 text-slate-50">
+    <div className="bg-slate-950 text-slate-50 pb-24 sm:pb-8">
       {/* Header do modal */}
       <div className="p-6 md:p-8 border-b border-slate-800">
         <div className="h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-300 rounded-full mb-4" />
@@ -219,7 +263,19 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
         <div className="space-y-4">
           <div className="relative aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-800">
             {imgList?.[idx] ? (
-              <img src={imgList[idx]} className="w-full h-full object-cover" />
+              <>
+                <img src={imgList[idx]} className="w-full h-full object-cover" />
+                {edit && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(idx)}
+                    className="absolute top-3 right-3 bg-black/70 hover:bg-black/90 rounded-full p-2 border border-slate-700"
+                    title="Remover esta foto"
+                  >
+                    <Feather.X className="w-4 h-4 text-slate-50" />
+                  </button>
+                )}
+              </>
             ) : (
               <div className="flex items-center justify-center h-full text-slate-500">
                 Sem foto
@@ -244,15 +300,28 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
           </div>
           <div className="grid grid-cols-6 gap-2">
             {imgList?.map((img, i) => (
-              <button
+              <div
                 key={i}
                 onClick={() => setIdx(i)}
-                className={`aspect-square rounded-xl border overflow-hidden ${
+                className={`relative aspect-square rounded-xl border overflow-hidden cursor-pointer ${
                   i === idx ? 'border-amber-400' : 'border-slate-800'
                 }`}
+                role="button"
               >
                 <img src={img} className="w-full h-full object-cover" />
-              </button>
+                {edit && (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveImage(i);
+                    }}
+                    className="absolute top-1 right-1 bg-black/70 hover:bg-black/90 rounded-full p-1 border border-slate-700 cursor-pointer"
+                    title="Remover esta foto"
+                  >
+                    <Feather.X className="w-3 h-3 text-slate-50" />
+                  </span>
+                )}
+              </div>
             ))}
           </div>
           {edit && (
@@ -265,6 +334,9 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
                 onChange={(e) => setImgs(Array.from(e.target.files || []))}
                 className="mt-1 bg-slate-900 border-slate-700 text-slate-100"
               />
+              <p className="text-[11px] text-slate-500">
+                As fotos removidas acima são apagadas do catálogo imediatamente ao clicar no X.
+              </p>
             </div>
           )}
         </div>
@@ -316,7 +388,11 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
               <Textarea
                 value={getDesc(data)}
                 onChange={(e) =>
-                  setData((p) => ({ ...p, descricao: e.target.value, description: e.target.value }))
+                  setData((p) => ({
+                    ...p,
+                    descricao: e.target.value,
+                    description: e.target.value,
+                  }))
                 }
                 rows={6}
                 className="mt-2 bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500"
@@ -499,7 +575,9 @@ export function VehicleCatalog() {
                       <Feather.Link className="w-4 h-4 text-slate-300" />
                     </button>
                     <button
-                      onClick={() => confirm('Excluir este veículo?') && del.mutate((c as any).id)}
+                      onClick={() =>
+                        confirm('Excluir este veículo?') && del.mutate((c as any).id)
+                      }
                       className="p-2 border border-slate-800 rounded-lg hover:bg-red-950/50"
                       title="Excluir"
                     >
@@ -522,7 +600,17 @@ export function VehicleCatalog() {
 
         {/* MODAL */}
         <Dialog open={!!car} onOpenChange={(o) => !o && setCar(null)}>
-          <DialogContent className="max-w-6xl p-0 overflow-hidden rounded-2xl bg-slate-950 border border-slate-800">
+          <DialogContent
+            aria-describedby={undefined}
+            className="
+              max-w-6xl w-full
+              sm:max-h-[90vh] sm:h-auto
+              max-h-[100dvh] h-[100dvh]
+              p-0 overflow-y-auto
+              bg-slate-950 border border-slate-800
+              rounded-none sm:rounded-2xl
+            "
+          >
             <DialogTitle className="sr-only">Detalhes do Veículo</DialogTitle>
             {car && <CarDetailsView vehicle={car} onBack={() => setCar(null)} />}
           </DialogContent>

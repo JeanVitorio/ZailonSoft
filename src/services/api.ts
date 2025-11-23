@@ -132,10 +132,30 @@ export const addVehicle = async (
     const imageUrls: string[] = [];
 
     for (const file of images) {
-      const filePath = `${lojaId}/${carId}/${uuidv4()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage.from('car-images').upload(filePath, file);
-      if (uploadError) throw new Error(`Falha no upload da imagem: ${uploadError.message}`);
-      const { data: publicURLData } = supabase.storage.from('car-images').getPublicUrl(filePath);
+      const originalName = file.name || 'image.jpg';
+      const ext = originalName.includes('.')
+        ? originalName.split('.').pop()
+        : 'jpg';
+
+      // nome de arquivo seguro, sem emojis/acentos/espaços
+      const safeFileName = `${uuidv4()}.${ext}`;
+      const filePath = `${lojaId}/${carId}/${safeFileName}`;
+
+      const { error: uploadError } = await supabase
+        .storage
+        .from('car-images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Falha no upload da imagem:', uploadError);
+        throw new Error(`Falha no upload da imagem: ${uploadError.message}`);
+      }
+
+      const { data: publicURLData } = supabase
+        .storage
+        .from('car-images')
+        .getPublicUrl(filePath);
+
       imageUrls.push(publicURLData.publicUrl);
     }
 
@@ -176,23 +196,49 @@ export const updateVehicle = async ({
   try {
     const imageUrls: string[] = [];
 
+    // Upload de novas imagens com nomes seguros
     if (newImages && newImages.length > 0) {
       for (const file of newImages) {
-        const filePath = `${carId}/${uuidv4()}-${file.name}`;
-        const { error: uploadError } = await supabase.storage.from('car-images').upload(filePath, file);
-        if (uploadError) throw new Error('Falha ao fazer upload da nova imagem.');
-        const { data: publicURLData } = supabase.storage.from('car-images').getPublicUrl(filePath);
+        const originalName = file.name || 'image.jpg';
+        const ext = originalName.includes('.')
+          ? originalName.split('.').pop()
+          : 'jpg';
+
+        const safeFileName = `${uuidv4()}.${ext}`;
+        const filePath = `${carId}/${safeFileName}`;
+
+        const { error: uploadError } = await supabase
+          .storage
+          .from('car-images')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          console.error('Erro de upload no Supabase Storage:', uploadError);
+          throw new Error('Falha ao fazer upload da nova imagem.');
+        }
+
+        const { data: publicURLData } = supabase
+          .storage
+          .from('car-images')
+          .getPublicUrl(filePath);
+
         imageUrls.push(publicURLData.publicUrl);
       }
     }
 
+    // Busca imagens atuais
     const { data: currentCar, error: fetchError } = await supabase
       .from('cars')
       .select('imagens')
       .eq('id', carId)
       .single();
-    if (fetchError) throw new Error('Falha ao buscar imagens atuais.');
 
+    if (fetchError) {
+      console.error('Erro ao buscar imagens atuais do carro:', fetchError);
+      throw new Error('Falha ao buscar imagens atuais.');
+    }
+
+    // Merge de antigas + novas
     const finalImages = [...(currentCar?.imagens || []), ...imageUrls];
 
     const dataToUpdate = { ...updatedData, imagens: finalImages };
@@ -204,7 +250,11 @@ export const updateVehicle = async ({
       .select()
       .single();
 
-    if (dbError) throw new Error(`Falha ao atualizar o veículo: ${dbError.message}`);
+    if (dbError) {
+      console.error('Erro ao atualizar carro no banco:', dbError);
+      throw new Error(`Falha ao atualizar o veículo: ${dbError.message}`);
+    }
+
     return data;
   } catch (e: any) {
     console.error('Erro no fluxo de atualização do veículo:', e);
@@ -222,7 +272,10 @@ export const deleteVehicle = async (vehicleId: string): Promise<string> => {
       .single();
     if (fetchError) console.warn('Veículo não encontrado para listar imagens (continua exclusão).');
 
-    const filePaths = (vehicle?.imagens || []).map((url) => url.split('/car-images/')[1]).filter(Boolean);
+    const filePaths = (vehicle?.imagens || [])
+      .map((url) => url.split('/car-images/')[1])
+      .filter(Boolean);
+
     if (filePaths.length > 0) {
       await supabase.storage.from('car-images').remove(filePaths);
     }
@@ -251,7 +304,11 @@ export const deleteVehicleImage = async ({ carId, imageUrl }: { carId: string; i
     if (fetchError) throw new Error('Falha ao buscar imagens atuais.');
 
     const updatedImages = (currentCar?.imagens || []).filter((u: string) => u !== imageUrl);
-    const { error: dbError } = await supabase.from('cars').update({ imagens: updatedImages }).eq('id', carId);
+    const { error: dbError } = await supabase
+      .from('cars')
+      .update({ imagens: updatedImages })
+      .eq('id', carId);
+
     if (dbError) throw new Error('Falha ao atualizar imagens no banco.');
 
     return updatedImages;
@@ -286,9 +343,17 @@ export const createClient = async ({
     if (files.documents?.length) {
       for (const file of files.documents) {
         const filePath = `${lojaId}/${chat_id}/documents/${uuidv4()}-${file.name}`;
-        const { error: uploadError } = await supabase.storage.from('client-documents').upload(filePath, file);
-        if (uploadError) throw new Error(`Falha no upload de documento: ${uploadError.message}`);
-        const { data: publicURLData } = supabase.storage.from('client-documents').getPublicUrl(filePath);
+        const { error: uploadError } = await supabase
+          .storage
+          .from('client-documents')
+          .upload(filePath, file);
+        if (uploadError) {
+          throw new Error(`Falha no upload de documento: ${uploadError.message}`);
+        }
+        const { data: publicURLData } = supabase
+          .storage
+          .from('client-documents')
+          .getPublicUrl(filePath);
         documentUrls.push(publicURLData.publicUrl);
       }
     }
@@ -296,14 +361,24 @@ export const createClient = async ({
     if (files.trade_in_photos?.length) {
       for (const file of files.trade_in_photos) {
         const filePath = `${lojaId}/${chat_id}/trade-in/${uuidv4()}-${file.name}`;
-        const { error: uploadError } = await supabase.storage.from('trade-in-cars').upload(filePath, file);
-        if (uploadError) throw new Error(`Falha no upload da foto da troca: ${uploadError.message}`);
-        const { data: publicURLData } = supabase.storage.from('trade-in-cars').getPublicUrl(filePath);
+        const { error: uploadError } = await supabase
+          .storage
+          .from('trade-in-cars')
+          .upload(filePath, file);
+        if (uploadError) {
+          throw new Error(`Falha no upload da foto da troca: ${uploadError.message}`);
+        }
+        const { data: publicURLData } = supabase
+          .storage
+          .from('trade-in-cars')
+          .getPublicUrl(filePath);
         tradeInUrls.push(publicURLData.publicUrl);
       }
     }
 
-    const interestedVehiclesStrings = clientPayload.interested_vehicles.map((v) => JSON.stringify(v));
+    const interestedVehiclesStrings = clientPayload.interested_vehicles.map((v) =>
+      JSON.stringify(v)
+    );
 
     const finalClientPayload = {
       ...clientPayload,
@@ -317,7 +392,12 @@ export const createClient = async ({
       },
     };
 
-    const { data, error: dbError } = await supabase.from('clients').insert(finalClientPayload).select().single();
+    const { data, error: dbError } = await supabase
+      .from('clients')
+      .insert(finalClientPayload)
+      .select()
+      .single();
+
     if (dbError) throw new Error(`Falha ao cadastrar cliente: ${dbError.message}`);
     return data;
   } catch (e: any) {
@@ -326,13 +406,30 @@ export const createClient = async ({
   }
 };
 
-export const updateClientDetails = async ({ chatId, updatedData }: { chatId: string; updatedData: any }) => {
-  const { data, error } = await supabase.from('clients').update(updatedData).eq('chat_id', chatId).select().single();
+export const updateClientDetails = async ({
+  chatId,
+  updatedData,
+}: {
+  chatId: string;
+  updatedData: any;
+}) => {
+  const { data, error } = await supabase
+    .from('clients')
+    .update(updatedData)
+    .eq('chat_id', chatId)
+    .select()
+    .single();
   if (error) throw new Error('Falha ao atualizar detalhes do cliente.');
   return data;
 };
 
-export const updateClientStatus = async ({ chatId, newState }: { chatId: string; newState: string }) => {
+export const updateClientStatus = async ({
+  chatId,
+  newState,
+}: {
+  chatId: string;
+  newState: string;
+}) => {
   const { data: clientData, error: fetchError } = await supabase
     .from('clients')
     .select('bot_data')
@@ -344,7 +441,10 @@ export const updateClientStatus = async ({ chatId, newState }: { chatId: string;
   newBotData.state = newState;
   newBotData.history = [
     ...(newBotData.history || []),
-    { timestamp: new Date().toLocaleString('pt-BR'), updated_data: { state: `Movido para ${newState} via CRM` } },
+    {
+      timestamp: new Date().toLocaleString('pt-BR'),
+      updated_data: { state: `Movido para ${newState} via CRM` },
+    },
   ];
 
   const { data, error } = await supabase
@@ -359,7 +459,10 @@ export const updateClientStatus = async ({ chatId, newState }: { chatId: string;
 };
 
 export const deleteClient = async (chatId: string) => {
-  const { error: dbError } = await supabase.from('clients').delete().eq('chat_id', chatId);
+  const { error: dbError } = await supabase
+    .from('clients')
+    .delete()
+    .eq('chat_id', chatId);
   if (dbError) throw new Error('Falha ao deletar cliente do banco.');
   return chatId;
 };
@@ -376,16 +479,31 @@ export const uploadClientFile = async ({
   filePathPrefix: string;
 }) => {
   const filePath = `${chatId}/${filePathPrefix}/${uuidv4()}-${file.name}`;
-  const { error: uploadError } = await supabase.storage.from(bucketName).upload(filePath, file);
+  const { error: uploadError } = await supabase
+    .storage
+    .from(bucketName)
+    .upload(filePath, file);
   if (uploadError) throw new Error(`Falha ao fazer upload para ${bucketName}.`);
-  const { data: publicURLData } = supabase.storage.from(bucketName).getPublicUrl(filePath);
+  const { data: publicURLData } = supabase
+    .storage
+    .from(bucketName)
+    .getPublicUrl(filePath);
   return publicURLData.publicUrl;
 };
 
-export const deleteClientFile = async ({ fileUrl, bucketName }: { fileUrl: string; bucketName: string }) => {
+export const deleteClientFile = async ({
+  fileUrl,
+  bucketName,
+}: {
+  fileUrl: string;
+  bucketName: string;
+}) => {
   const filePath = fileUrl.split(`/${bucketName}/`)[1];
   if (!filePath) throw new Error('URL de arquivo inválida.');
-  const { error: storageError } = await supabase.storage.from(bucketName).remove([filePath]);
+  const { error: storageError } = await supabase
+    .storage
+    .from(bucketName)
+    .remove([filePath]);
   if (storageError) throw new Error('Falha ao remover arquivo do Storage.');
   return fileUrl;
 };
@@ -428,27 +546,49 @@ export const updateStoreDetails = async ({
       .select('logo_url')
       .eq('id', lojaId)
       .single();
-    if (fetchError) throw new Error('Não foi possível encontrar a loja para atualizar a logo.');
+    if (fetchError) {
+      throw new Error('Não foi possível encontrar a loja para atualizar a logo.');
+    }
 
     if (currentLoja?.logo_url) {
       const oldFilePath = currentLoja.logo_url.split('/logo-loja/')[1];
       if (oldFilePath) {
-        const { error: removeError } = await supabase.storage.from('logo-loja').remove([oldFilePath]);
-        if (removeError) console.warn('Falha ao remover logo antiga (prossegue).', removeError);
+        const { error: removeError } = await supabase
+          .storage
+          .from('logo-loja')
+          .remove([oldFilePath]);
+        if (removeError) {
+          console.warn('Falha ao remover logo antiga (prossegue).', removeError);
+        }
       }
     }
 
     const fileExt = newLogoFile.name.split('.').pop();
     const filePath = `${lojaId}/${uuidv4()}.${fileExt}`;
-    const { error: uploadError } = await supabase.storage.from('logo-loja').upload(filePath, newLogoFile);
-    if (uploadError) throw new Error(`Falha ao fazer upload da nova logo: ${uploadError.message}`);
+    const { error: uploadError } = await supabase
+      .storage
+      .from('logo-loja')
+      .upload(filePath, newLogoFile);
+    if (uploadError) {
+      throw new Error(`Falha ao fazer upload da nova logo: ${uploadError.message}`);
+    }
 
-    const { data: publicURLData } = supabase.storage.from('logo-loja').getPublicUrl(filePath);
+    const { data: publicURLData } = supabase
+      .storage
+      .from('logo-loja')
+      .getPublicUrl(filePath);
     finalUpdates.logo_url = publicURLData.publicUrl;
   }
 
-  const { data, error } = await supabase.from('lojas').update(finalUpdates).eq('id', lojaId).select().single();
-  if (error) throw new Error(`Falha ao atualizar os dados da loja: ${error.message}`);
+  const { data, error } = await supabase
+    .from('lojas')
+    .update(finalUpdates)
+    .eq('id', lojaId)
+    .select()
+    .single();
+  if (error) {
+    throw new Error(`Falha ao atualizar os dados da loja: ${error.message}`);
+  }
   return data;
 };
 
@@ -456,7 +596,10 @@ export const updateStoreDetails = async ({
 
 export const fetchVendedores = async (lojaId: string) => {
   if (!lojaId) return [];
-  const { data, error } = await supabase.from('vendedores').select('*').eq('loja_id', lojaId);
+  const { data, error } = await supabase
+    .from('vendedores')
+    .select('*')
+    .eq('loja_id', lojaId);
   if (error) {
     console.error('Erro ao buscar vendedores:', error);
     throw new Error('Falha ao buscar vendedores.');
@@ -465,13 +608,20 @@ export const fetchVendedores = async (lojaId: string) => {
 };
 
 export const createVendedor = async (vendedorData: any) => {
-  const { data, error } = await supabase.from('vendedores').insert(vendedorData).select().single();
+  const { data, error } = await supabase
+    .from('vendedores')
+    .insert(vendedorData)
+    .select()
+    .single();
   if (error) throw new Error(`Falha ao adicionar vendedor: ${error.message}`);
   return data;
 };
 
 export const deleteVendedor = async (vendedorId: string) => {
-  const { error } = await supabase.from('vendedores').delete().eq('id', vendedorId);
+  const { error } = await supabase
+    .from('vendedores')
+    .delete()
+    .eq('id', vendedorId);
   if (error) throw new Error('Falha ao deletar vendedor.');
   return vendedorId;
 };
