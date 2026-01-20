@@ -270,8 +270,7 @@ const HomePage = () => {
     name: 'ZailonSoft',
     applicationCategory: 'BusinessApplication',
     offers: [
-      { '@type': 'Offer', price: '299', priceCurrency: 'BRL', name: 'ZailonSoft Pro' },
-      { '@type': 'Offer', price: '499', priceCurrency: 'BRL', name: 'ZailonSoft Premium' },
+      { '@type': 'Offer', price: '99', priceCurrency: 'BRL', name: 'ZailonSoft' },
     ],
   };
 
@@ -668,123 +667,71 @@ const HomePage = () => {
             </div>
           </section>
 
-          {/* PLANOS — Premium destacado */}
+          {/* PLANO ÚNICO */}
           <section id="planos" className="py-20 px-4 bg-slate-950/80 backdrop-blur-sm">
-            <div className="max-w-7xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-black text-center text-slate-50 mb-4">Escolha seu plano</h2>
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-3xl md:text-5xl font-black text-center text-slate-50 mb-4">
+                Assine o ZailonSoft
+              </h2>
               <p className="text-center text-slate-300 mb-12">
-                Com menos que <strong>1 venda/mês</strong> o ZailonSoft já se paga — só em tempo de vendedor você já ganha.
+                Por apenas <strong>R$ 99/mês</strong> você tem acesso completo ao sistema de pré-vendas e CRM automotivo.
+                <br />
+                Com menos que <strong>1 venda/mês</strong> o ZailonSoft já se paga.
               </p>
 
-              <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                {/* PRO — propositalmente mais discreto */}
-                <div className="bg-slate-900/80 rounded-3xl shadow-[0_18px_40px_rgba(15,23,42,0.8)] border border-slate-800 p-10">
-                  <h3 className="text-2xl font-black text-slate-50 mb-2">ZailonSoft Pro</h3>
-                  <p className="text-slate-300 mb-8 text-lg">
-                    Para lojas que querem tirar o peso do WhatsApp dos vendedores e organizar o pré-vendas em um único
-                    lugar.
-                  </p>
-                  <div className="mb-8">
-                    <span className="text-6xl font-black text-slate-50">R$ 299</span>
-                    <span className="text-xl text-slate-400 font-normal">/mês</span>
-                  </div>
-                  <ul className="space-y-3 mb-10 text-slate-200">
-                    <li className="flex items-center gap-3">
-                      <Feather.CheckCircle className="text-emerald-300" size={20} /> Formulários + Pré-vendas + CRM +
-                      Dashboard
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Feather.CheckCircle className="text-emerald-300" size={20} /> Suporte por e-mail
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Feather.CheckCircle className="text-emerald-300" size={20} /> Ativação em até 24h
-                    </li>
-                  </ul>
-                  <Link
-                    to="/signup"
-                    className="block text-center bg-slate-50 text-slate-950 py-4 rounded-2xl font-bold text-lg hover:bg-white transition"
-                  >
-                    Assinar Pro
-                  </Link>
-                  <p className="mt-4 text-sm text-slate-400">Sem fidelidade • Cancele quando quiser</p>
-                </div>
-
-                {/* PREMIUM — SUPER DESTAQUE */}
+              <div className="max-w-2xl mx-auto">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: 'spring', stiffness: 200, damping: 18 }}
-                  className="relative group rounded-3xl p-[2px] bg-gradient-to-br from-emerald-400 via-cyan-400 to-sky-500 shadow-[0_24px_70px_rgba(6,182,212,0.65)] animated-gradient-border"
+                  className="relative group rounded-3xl p-[2px] bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 shadow-[0_24px_70px_rgba(245,158,11,0.65)] animated-gradient-border"
                 >
-                  {/* Glow suave ao redor */}
-                  <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-emerald-300/25 via-cyan-500/20 to-sky-400/25 blur-2xl group-hover:from-emerald-300/40 group-hover:via-cyan-500/30 group-hover:to-sky-400/30 transition"></div>
+                  <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-br from-amber-300/25 via-amber-500/20 to-orange-400/25 blur-2xl group-hover:from-amber-300/40 group-hover:via-amber-500/30 group-hover:to-orange-400/30 transition"></div>
 
-                  {/* Ribbon */}
-                  <div className="absolute -top-3 right-5 z-10">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 text-emerald-200 text-xs font-bold px-3 py-1 shadow-lg shadow-black/70 border border-slate-700">
-                      <Feather.Star size={14} /> MAIS VENDIDO
-                    </span>
-                  </div>
-
-                  {/* Conteúdo */}
-                  <div className="relative rounded-[22px] bg-slate-950 text-slate-50 p-10 h-full border border-emerald-400/60 overflow-hidden">
+                  <div className="relative rounded-[22px] bg-slate-950 text-slate-50 p-10 border border-amber-400/60 overflow-hidden">
                     <div
-                      className="absolute top-0 left-0 -translate-x-full w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12
-                                 group-hover:translate-x-full transition-transform duration-700 ease-in-out"
+                      className="absolute top-0 left-0 -translate-x-full w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700 ease-in-out"
                       aria-hidden="true"
                     />
 
-                    <div className="flex items-start justify-between gap-4">
-                      <h3 className="text-2xl md:text-3xl font-black text-slate-50">ZailonSoft Premium</h3>
-                      <span className="text-xs font-semibold text-emerald-200 bg-emerald-500/20 rounded-full px-2.5 py-1 border border-emerald-300/60">
-                        ROI mais rápido
-                      </span>
-                    </div>
+                    <h3 className="text-2xl md:text-3xl font-black text-slate-50 mb-2">
+                      ZailonSoft
+                    </h3>
 
                     <p className="text-slate-100/90 mt-3 mb-8 text-lg">
-                      Para quem quer um pré-vendas profissional sem esquentar a cabeça com cadastro e configuração. Nós
-                      estruturamos tudo, você só acompanha e fecha.
+                      Sistema completo de pré-vendas e CRM automotivo. Formulários, funis, dashboard e muito mais.
                     </p>
 
                     <div className="mb-8">
-                      <span className="text-6xl font-black text-slate-50">R$ 499</span>
+                      <span className="text-6xl font-black text-slate-50">R$ 99</span>
                       <span className="text-xl text-slate-400 font-normal">/mês</span>
-                      <p className="text-sm text-slate-400 mt-1">Menos que 1 venda/mês e já se paga.</p>
+                      <p className="text-sm text-slate-400 mt-1">Sem fidelidade • Cancele quando quiser</p>
                     </div>
 
                     <ul className="space-y-3 mb-10 text-slate-50/95">
                       <li className="flex items-center gap-3">
-                        <Feather.CheckCircle className="text-emerald-300" size={20} /> Tudo do Pro
+                        <Feather.CheckCircle className="text-emerald-300" size={20} />
+                        Formulários + Pré-vendas + CRM + Dashboard
                       </li>
                       <li className="flex items-center gap-3">
-                        <Feather.CheckCircle className="text-emerald-300" size={20} />{' '}
-                        <strong>Suporte via WhatsApp</strong>
+                        <Feather.CheckCircle className="text-emerald-300" size={20} />
+                        Suporte por e-mail
                       </li>
                       <li className="flex items-center gap-3">
-                        <Feather.CheckCircle className="text-emerald-300" size={20} />{' '}
-                        <strong>Nós cadastramos seus veículos</strong>
+                        <Feather.CheckCircle className="text-emerald-300" size={20} />
+                        Ativação em até 24h
                       </li>
                       <li className="flex items-center gap-3">
-                        <Feather.CheckCircle className="text-emerald-300" size={20} />{' '}
-                        <strong>Onboarding assistido do seu pré-vendas</strong>
+                        <Feather.CheckCircle className="text-emerald-300" size={20} />
+                        Sem fidelidade • Cancele quando quiser
                       </li>
                     </ul>
 
-                    {/* CTA principal com gradiente */}
-                    <a
-                      href="https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20assinar%20o%20plano%20ZailonSoft%20Premium%20(R$%20499/mês)."
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full text-center rounded-2xl font-bold text-lg py-4
-                                  bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-500
-                                  text-slate-950 shadow-md hover:shadow-lg transition"
+                    <Link
+                      to="/signup"
+                      className="block text-center bg-gradient-to-r from-amber-300 via-amber-500 to-orange-500 text-slate-950 py-4 rounded-2xl font-bold text-lg hover:shadow-[0_22px_60px_rgba(245,158,11,0.9)] transition"
                     >
-                      Assinar Premium no WhatsApp
-                    </a>
-
-                    {/* Garantia / prova */}
-                    <p className="mt-4 text-sm text-slate-400 text-center">
-                      Sem taxa de setup • Sem fidelidade • Ativação em até 24h
-                    </p>
+                      Assinar Agora
+                    </Link>
                   </div>
                 </motion.div>
               </div>
