@@ -5,12 +5,23 @@ import { Link } from "react-router-dom";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } }
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
 };
 
 const stagger = {
-  visible: { transition: { staggerChildren: 0.12 } }
+  visible: { transition: { staggerChildren: 0.15 } }
+};
+
+const cardHover = {
+  rest: { scale: 1, y: 0, boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)" },
+  hover: { scale: 1.05, y: -8, boxShadow: "0 20px 25px -5px rgba(0,0,0,0.3)" },
+  transition: { type: "spring", stiffness: 300, damping: 20 }
+};
+
+const iconHover = {
+  rest: { scale: 1, rotate: 0 },
+  hover: { scale: 1.15, rotate: 8 }
 };
 
 export default function HomePage() {
@@ -31,37 +42,50 @@ export default function HomePage() {
 
           <div className="relative max-w-7xl mx-auto px-6 py-28 md:py-40 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div initial="hidden" animate="visible" variants={stagger}>
-              <span className="inline-flex items-center gap-2 text-sm px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6">
+              <motion.span
+                variants={fadeInUp}
+                className="inline-flex items-center gap-2 text-sm px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6"
+              >
                 <Sparkles className="w-4 h-4 text-emerald-400" /> Soluções que geram receita real
-              </span>
+              </motion.span>
 
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
+              <motion.h1
+                variants={fadeInUp}
+                className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight"
+              >
                 Tecnologia que <span className="text-emerald-400">vende</span>,
                 <br /> automatiza e escala
-              </h1>
+              </motion.h1>
 
-              <p className="mt-6 text-xl text-neutral-400 max-w-xl leading-relaxed">
+              <motion.p
+                variants={fadeInUp}
+                className="mt-6 text-xl text-neutral-400 max-w-xl leading-relaxed"
+              >
                 Criamos software sob medida e o Zailon Auto — sistema de pré-vendas automático que trabalha 24/7 para lojas de veículos, qualificando leads e aumentando conversão sem aumentar equipe.
-              </p>
+              </motion.p>
 
-              <div className="mt-10 flex flex-wrap gap-5">
-                <Link
-                  to="/leadflow"
-                  className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 transition font-semibold text-lg shadow-lg shadow-emerald-900/30"
-                >
-                  Conhecer Zailon Auto <Car className="w-5 h-5" />
-                </Link>
+              <motion.div variants={fadeInUp} className="mt-10 flex flex-wrap gap-5">
+                <motion.div whileHover="hover" initial="rest" variants={cardHover}>
+                  <Link
+                    to="/leadflow"
+                    className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 transition font-semibold text-lg shadow-lg shadow-emerald-900/30"
+                  >
+                    Conhecer Zailon Auto <Car className="w-5 h-5" />
+                  </Link>
+                </motion.div>
 
-                <a
-                  href="#sob-medida"
-                  className="inline-flex items-center gap-3 px-8 py-4 rounded-xl border border-neutral-700 hover:bg-neutral-800/50 transition font-semibold text-lg"
-                >
-                  Software sob medida <ArrowRight className="w-5 h-5" />
-                </a>
-              </div>
+                <motion.div whileHover="hover" initial="rest" variants={cardHover}>
+                  <a
+                    href="#sob-medida"
+                    className="inline-flex items-center gap-3 px-8 py-4 rounded-xl border border-neutral-700 hover:bg-neutral-800/50 transition font-semibold text-lg"
+                  >
+                    Software sob medida <ArrowRight className="w-5 h-5" />
+                  </a>
+                </motion.div>
+              </motion.div>
             </motion.div>
 
-            {/* Visual com cards */}
+            {/* Visual com cards animados */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -70,10 +94,18 @@ export default function HomePage() {
             >
               <div className="rounded-3xl border border-neutral-800/80 bg-gradient-to-br from-neutral-900/80 to-neutral-950/80 p-10 backdrop-blur-sm shadow-2xl shadow-black/40">
                 <div className="grid grid-cols-2 gap-6">
-                  <FeatureCard icon={<Bot className="w-8 h-8" />} title="Atendimento Inteligente" color="emerald" />
-                  <FeatureCard icon={<Car className="w-8 h-8" />} title="Pré-vendas Auto" color="emerald" />
-                  <FeatureCard icon={<Code2 className="w-8 h-8" />} title="Software Custom" color="cyan" />
-                  <FeatureCard icon={<Zap className="w-8 h-8" />} title="Automação Total" color="cyan" />
+                  <motion.div whileHover="hover" initial="rest" variants={cardHover}>
+                    <FeatureCard icon={<Bot className="w-8 h-8" />} title="Atendimento Inteligente" color="emerald" />
+                  </motion.div>
+                  <motion.div whileHover="hover" initial="rest" variants={cardHover}>
+                    <FeatureCard icon={<Car className="w-8 h-8" />} title="Pré-vendas Auto" color="emerald" />
+                  </motion.div>
+                  <motion.div whileHover="hover" initial="rest" variants={cardHover}>
+                    <FeatureCard icon={<Code2 className="w-8 h-8" />} title="Software Custom" color="cyan" />
+                  </motion.div>
+                  <motion.div whileHover="hover" initial="rest" variants={cardHover}>
+                    <FeatureCard icon={<Zap className="w-8 h-8" />} title="Automação Total" color="cyan" />
+                  </motion.div>
                 </div>
               </div>
             </motion.div>
@@ -109,7 +141,10 @@ export default function HomePage() {
                 <motion.div
                   key={i}
                   variants={fadeInUp}
-                  className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-8 text-center hover:border-emerald-600/50 transition"
+                  whileHover="hover"
+                  initial="rest"
+                  variants={cardHover}
+                  className="bg-neutral-900/60 border border-neutral-800 rounded-2xl p-8 text-center"
                 >
                   <p className="text-lg font-medium">{item}</p>
                 </motion.div>
@@ -135,31 +170,39 @@ export default function HomePage() {
             </motion.p>
 
             <div className="grid md:grid-cols-3 gap-8">
-              <ServiceCard
-                icon={<Code2 className="w-10 h-10 text-cyan-400" />}
-                title="Sistemas Web & SaaS Custom"
-                text="Plataformas rápidas, seguras e escaláveis construídas do zero para o seu modelo de negócio."
-              />
-              <ServiceCard
-                icon={<Zap className="w-10 h-10 text-cyan-400" />}
-                title="Automações & Integrações"
-                text="Conecte WhatsApp, ERP, CRM, pagamentos e tudo que você usa. Adeus tarefas repetitivas."
-              />
-              <ServiceCard
-                icon={<BarChart3 className="w-10 h-10 text-cyan-400" />}
-                title="Dashboards e Inteligência"
-                text="Visão 360° em tempo real. Relatórios que mostram onde está o dinheiro de verdade."
-              />
+              <motion.div whileHover="hover" initial="rest" variants={cardHover}>
+                <ServiceCard
+                  icon={<Code2 className="w-10 h-10 text-cyan-400" />}
+                  title="Sistemas Web & SaaS Custom"
+                  text="Plataformas rápidas, seguras e escaláveis construídas do zero para o seu modelo de negócio."
+                />
+              </motion.div>
+              <motion.div whileHover="hover" initial="rest" variants={cardHover}>
+                <ServiceCard
+                  icon={<Zap className="w-10 h-10 text-cyan-400" />}
+                  title="Automações & Integrações"
+                  text="Conecte WhatsApp, ERP, CRM, pagamentos e tudo que você usa. Adeus tarefas repetitivas."
+                />
+              </motion.div>
+              <motion.div whileHover="hover" initial="rest" variants={cardHover}>
+                <ServiceCard
+                  icon={<BarChart3 className="w-10 h-10 text-cyan-400" />}
+                  title="Dashboards e Inteligência"
+                  text="Visão 360° em tempo real. Relatórios que mostram onde está o dinheiro de verdade."
+                />
+              </motion.div>
             </div>
 
             <motion.div variants={fadeInUp} className="text-center mt-16">
-              <a
+              <motion.a
+                whileHover={{ scale: 1.05, y: -4 }}
+                whileTap={{ scale: 0.98 }}
                 href="https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20software%20sob%20medida%20para%20meu%20neg%C3%B3cio."
                 target="_blank"
                 className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 rounded-xl font-bold text-lg shadow-lg shadow-emerald-900/30 transition"
               >
                 Quero meu software sob medida <ArrowRight className="w-5 h-5" />
-              </a>
+              </motion.a>
             </motion.div>
           </motion.div>
         </section>
@@ -168,10 +211,10 @@ export default function HomePage() {
         <section id="zailon-auto" className="bg-neutral-900/60 border-t border-neutral-800">
           <div className="max-w-7xl mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.9, ease: "easeOut" }}
             >
               <h2 className="text-5xl font-bold mb-6">
                 Zailon <span className="text-emerald-400">Auto</span>
@@ -200,23 +243,26 @@ export default function HomePage() {
                 </li>
               </ul>
 
-              <Link
-                to="/leadflow"
-                className="inline-flex items-center gap-3 px-10 py-5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-lg shadow-lg shadow-emerald-900/30 transition"
-              >
-                Ver Zailon Auto em ação <ArrowRight className="w-5 h-5" />
-              </Link>
+              <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
+                <Link
+                  to="/leadflow"
+                  className="inline-flex items-center gap-3 px-10 py-5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-lg shadow-lg shadow-emerald-900/30 transition"
+                >
+                  Ver Zailon Auto em ação <ArrowRight className="w-5 h-5" />
+                </Link>
+              </motion.div>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
               className="rounded-3xl bg-gradient-to-br from-emerald-900/20 to-cyan-900/10 border border-emerald-800/30 p-10 shadow-2xl"
+              whileHover={{ scale: 1.03 }}
             >
               <div className="text-center">
-                <MessageCircle className="w-16 h-16 mx-auto mb-6 text-emerald-400" />
+                <MessageCircle className="w-16 h-16 mx-auto mb-6 text-emerald-400 animate-pulse" />
                 <p className="text-3xl font-bold mb-4">Seu vendedor que nunca dorme</p>
                 <p className="text-xl text-neutral-400">24/7 qualificando e atendendo — você só fecha negócio.</p>
               </div>
@@ -226,29 +272,44 @@ export default function HomePage() {
 
         {/* CTA FINAL */}
         <section className="max-w-7xl mx-auto px-6 py-32 text-center">
-          <h2 className="text-5xl font-bold mb-8">
+          <motion.h2
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-5xl font-bold mb-8"
+          >
             Qual caminho resolve sua dor hoje?
-          </h2>
+          </motion.h2>
 
-          <p className="text-xl text-neutral-400 mb-12 max-w-3xl mx-auto">
+          <motion.p
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-xl text-neutral-400 mb-12 max-w-3xl mx-auto"
+          >
             Software sob medida ou Zailon Auto pronto para usar. Escolha o que faz sentido para o seu negócio agora.
-          </p>
+          </motion.p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Link
-              to="/leadflow"
-              className="px-10 py-6 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-xl shadow-lg shadow-emerald-900/40 transition"
-            >
-              Quero o Zailon Auto agora
-            </Link>
+            <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
+              <Link
+                to="/leadflow"
+                className="px-10 py-6 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-xl shadow-lg shadow-emerald-900/40 transition"
+              >
+                Quero o Zailon Auto agora
+              </Link>
+            </motion.div>
 
-            <a
-              href="https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20software%20sob%20medida%20para%20meu%20neg%C3%B3cio."
-              target="_blank"
-              className="px-10 py-6 border border-neutral-700 hover:bg-neutral-800/50 rounded-xl font-bold text-xl transition"
-            >
-              Quero software sob medida
-            </a>
+            <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
+              <a
+                href="https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20software%20sob%20medida%20para%20meu%20neg%C3%B3cio."
+                target="_blank"
+                className="px-10 py-6 border border-neutral-700 hover:bg-neutral-800/50 rounded-xl font-bold text-xl transition"
+              >
+                Quero software sob medida
+              </a>
+            </motion.div>
           </div>
         </section>
       </div>
@@ -259,19 +320,36 @@ export default function HomePage() {
 function FeatureCard({ icon, title, color = "emerald" }: { icon: React.ReactNode; title: string; color?: "emerald" | "cyan" }) {
   const colorClass = color === "emerald" ? "text-emerald-400" : "text-cyan-400";
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 text-center hover:border-neutral-600 transition">
-      <div className={`flex justify-center mb-4 ${colorClass}`}>{icon}</div>
+    <motion.div
+      whileHover="hover"
+      initial="rest"
+      variants={cardHover}
+      className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 text-center"
+    >
+      <motion.div variants={iconHover} className={`flex justify-center mb-4 ${colorClass}`}>
+        {icon}
+      </motion.div>
       <p className="font-semibold">{title}</p>
-    </div>
+    </motion.div>
   );
 }
 
 function ServiceCard({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
   return (
-    <div className="rounded-3xl border border-neutral-800 bg-neutral-900/40 p-10 hover:border-emerald-700/50 transition group">
-      <div className="text-emerald-400 mb-6 group-hover:scale-110 transition">{icon}</div>
+    <motion.div
+      whileHover="hover"
+      initial="rest"
+      variants={cardHover}
+      className="rounded-3xl border border-neutral-800 bg-neutral-900/40 p-10 hover:border-emerald-700/50 transition group"
+    >
+      <motion.div
+        variants={iconHover}
+        className="text-emerald-400 mb-6 group-hover:scale-110 transition"
+      >
+        {icon}
+      </motion.div>
       <h3 className="text-2xl font-bold mb-4">{title}</h3>
       <p className="text-neutral-400 leading-relaxed">{text}</p>
-    </div>
+    </motion.div>
   );
 }
