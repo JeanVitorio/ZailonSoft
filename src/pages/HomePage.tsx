@@ -85,7 +85,7 @@ export default function HomePage() {
               </motion.div>
             </motion.div>
 
-            {/* Visual com cards animados */}
+            {/* Visual com cards */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -270,7 +270,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* CTA FINAL */}
+        {/* CTA FINAL (desktop) */}
         <section className="max-w-7xl mx-auto px-6 py-32 text-center">
           <motion.h2
             initial={{ opacity: 0, y: 40 }}
@@ -312,7 +312,41 @@ export default function HomePage() {
             </motion.div>
           </div>
         </section>
+      </main>
+
+      {/* Sticky CTA mobile – corrigido e responsivo */}
+      <div className="md:hidden fixed inset-x-4 bottom-6 z-50 flex gap-4 max-w-md mx-auto pointer-events-auto">
+        <motion.div
+          whileHover={{ scale: 1.05, y: -4 }}
+          whileTap={{ scale: 0.98 }}
+          className="flex-1 min-w-0"
+        >
+          <Link
+            to="/leadflow"
+            className="block w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-center text-base shadow-lg shadow-emerald-900/40 transition"
+          >
+            Quero o Zailon Auto agora
+          </Link>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ scale: 1.05, y: -4 }}
+          whileTap={{ scale: 0.98 }}
+          className="flex-1 min-w-0"
+        >
+          <a
+            href="https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20software%20sob%20medida%20para%20meu%20neg%C3%B3cio."
+            target="_blank"
+            className="block w-full py-4 px-6 border border-neutral-700 hover:bg-neutral-800/50 rounded-xl font-bold text-center text-base transition shadow-md"
+          >
+            Quero software sob medida
+          </a>
+        </motion.div>
       </div>
+
+      <footer className="bg-neutral-950 border-t border-neutral-800 py-12 px-6 text-center text-neutral-500">
+        <p>© {new Date().getFullYear()} ZailonSoft. Todos os direitos reservados.</p>
+      </footer>
     </HelmetProvider>
   );
 }
