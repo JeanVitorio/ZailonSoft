@@ -92,7 +92,7 @@ const iconHover = {
   hover: { scale: 1.15, rotate: 8 }
 };
 
-// Metric e FaqItem com animações
+// Metric e FaqItem
 const Metric = ({ value, label }: { value: string; label: string }) => (
   <motion.div
     whileHover="hover"
@@ -149,7 +149,7 @@ const FaqItem = ({
   );
 };
 
-// Mobile Menu (mantido)
+// Mobile Menu
 const MobileMenu = () => {
   const [open, setOpen] = useState(false);
   const { user, loading, logout } = useAuth();
@@ -274,7 +274,7 @@ const LeadFlow = () => {
           </div>
         </header>
 
-        <main className="pt-28 pb-20">
+        <main className="pt-28 pb-32 md:pb-20"> {/* Aumentei pb para dar espaço ao sticky CTA */}
           {/* HERO */}
           <section ref={heroRef} className="relative overflow-hidden py-20 px-6">
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 via-cyan-600/10 to-transparent pointer-events-none" />
@@ -614,21 +614,29 @@ const LeadFlow = () => {
             </div>
           </section>
 
-          {/* Sticky CTA mobile */}
-          <div className="md:hidden fixed bottom-6 left-6 right-6 z-50 flex gap-4">
-            <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
+          {/* Sticky CTA mobile – corrigido e responsivo */}
+          <div className="md:hidden fixed inset-x-4 bottom-6 z-50 flex gap-4 max-w-md mx-auto pointer-events-auto">
+            <motion.div
+              whileHover={{ scale: 1.05, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-1 min-w-0"
+            >
               <Link
                 to={loading || !user ? '/signup' : '/sistema'}
-                className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-center text-lg shadow-lg shadow-emerald-900/40 transition"
+                className="block w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-center text-base shadow-lg shadow-emerald-900/40 transition"
               >
                 Começar Agora
               </Link>
             </motion.div>
 
-            <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
+            <motion.div
+              whileHover={{ scale: 1.05, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex-1 min-w-0"
+            >
               <button
                 onClick={() => window.open("https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20do%20Zailon%20Auto.", "_blank")}
-                className="flex-1 py-4 border border-neutral-700 hover:bg-neutral-800/50 rounded-xl font-bold text-center text-lg transition"
+                className="block w-full py-4 px-6 border border-neutral-700 hover:bg-neutral-800/50 rounded-xl font-bold text-center text-base transition shadow-md"
               >
                 WhatsApp
               </button>
