@@ -16,6 +16,7 @@ import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
 import { SubscribePage } from './pages/SubscribePage';
 import HomePage from './pages/HomePage';
+import LeadFlow from './pages/LeadFlow';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 
@@ -69,6 +70,7 @@ const AnimatedRoutes = () => {
         {/* ROTAS PÚBLICAS */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/leadflow" element={<LeadFlow />} />
         <Route path="/signup" element={<SignUpPage />} />
 
         {/* Página de erro de renovação */}
