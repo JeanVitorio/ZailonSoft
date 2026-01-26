@@ -73,20 +73,36 @@ const useAutoPlayVideo = () => {
 
 // Variants para animações
 const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } }
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
 };
 
 const stagger = {
   visible: { transition: { staggerChildren: 0.15 } }
 };
 
-// Metric e FaqItem
+const cardHover = {
+  rest: { scale: 1, y: 0, boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)" },
+  hover: { scale: 1.05, y: -8, boxShadow: "0 20px 25px -5px rgba(0,0,0,0.3)" },
+  transition: { type: "spring", stiffness: 300, damping: 20 }
+};
+
+const iconHover = {
+  rest: { scale: 1, rotate: 0 },
+  hover: { scale: 1.15, rotate: 8 }
+};
+
+// Metric e FaqItem com animações
 const Metric = ({ value, label }: { value: string; label: string }) => (
-  <div className="rounded-3xl border border-neutral-800 bg-neutral-900/60 p-8 text-center hover:border-emerald-700/50 transition">
+  <motion.div
+    whileHover="hover"
+    initial="rest"
+    variants={cardHover}
+    className="rounded-3xl border border-neutral-800 bg-neutral-900/60 p-8 text-center"
+  >
     <p className="text-4xl md:text-5xl font-extrabold text-emerald-400 mb-3">{value}</p>
     <p className="text-neutral-400">{label}</p>
-  </div>
+  </motion.div>
 );
 
 const FaqItem = ({
@@ -104,7 +120,10 @@ const FaqItem = ({
   return (
     <motion.div
       layout
-      className="rounded-2xl border border-neutral-800 bg-neutral-900/60 overflow-hidden hover:border-neutral-600 transition"
+      whileHover="hover"
+      initial="rest"
+      variants={cardHover}
+      className="rounded-2xl border border-neutral-800 bg-neutral-900/60 overflow-hidden"
     >
       <button
         onClick={onClick}
@@ -130,7 +149,7 @@ const FaqItem = ({
   );
 };
 
-// Mobile Menu
+// Mobile Menu (mantido)
 const MobileMenu = () => {
   const [open, setOpen] = useState(false);
   const { user, loading, logout } = useAuth();
@@ -265,43 +284,59 @@ const LeadFlow = () => {
               className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center"
             >
               <motion.div initial="hidden" animate="visible" variants={stagger}>
-                <span className="inline-flex items-center gap-2 text-sm px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6">
+                <motion.span
+                  variants={fadeInUp}
+                  className="inline-flex items-center gap-2 text-sm px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6"
+                >
                   <Car className="w-4 h-4 text-emerald-400" /> Pré-vendas automático
-                </span>
+                </motion.span>
 
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
+                <motion.h1
+                  variants={fadeInUp}
+                  className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight"
+                >
                   Seu vendedor que <span className="text-emerald-400">nunca dorme</span>
-                </h1>
+                </motion.h1>
 
-                <p className="mt-6 text-xl text-neutral-400 max-w-xl leading-relaxed">
+                <motion.p
+                  variants={fadeInUp}
+                  className="mt-6 text-xl text-neutral-400 max-w-xl leading-relaxed"
+                >
                   Atende 24/7 no WhatsApp, qualifica leads, coleta dados e entrega apenas contatos quentes para você colocar **mais grana no bolso**.
-                </p>
+                </motion.p>
 
-                <div className="mt-10 flex flex-wrap gap-5">
-                  <Link
-                    to={loading || !user ? '/signup' : '/sistema'}
-                    className="inline-flex items-center gap-3 px-8 py-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 transition font-bold text-lg shadow-lg shadow-emerald-900/30"
-                  >
-                    {loading ? "Verificando..." : user ? "Acessar Sistema" : "Começar Agora"} <ArrowRight className="w-5 h-5" />
-                  </Link>
+                <motion.div variants={fadeInUp} className="mt-10 flex flex-wrap gap-5">
+                  <motion.div whileHover="hover" initial="rest" variants={cardHover}>
+                    <Link
+                      to={loading || !user ? '/signup' : '/sistema'}
+                      className="inline-flex items-center gap-3 px-8 py-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 transition font-bold text-lg shadow-lg shadow-emerald-900/30"
+                    >
+                      {loading ? "Verificando..." : user ? "Acessar Sistema" : "Começar Agora"} <ArrowRight className="w-5 h-5" />
+                    </Link>
+                  </motion.div>
 
-                  <button
-                    onClick={() => window.open("https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20do%20Zailon%20Auto.%20Pode%20me%20chamar%20por%20aqui?", "_blank")}
-                    className="inline-flex items-center gap-3 px-8 py-5 rounded-xl border border-neutral-700 hover:bg-neutral-800/50 transition font-bold text-lg"
-                  >
-                    Agendar Demonstração <PlayCircle className="w-5 h-5" />
-                  </button>
-                </div>
+                  <motion.div whileHover="hover" initial="rest" variants={cardHover}>
+                    <button
+                      onClick={() => window.open("https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20do%20Zailon%20Auto.%20Pode%20me%20chamar%20por%20aqui?", "_blank")}
+                      className="inline-flex items-center gap-3 px-8 py-5 rounded-xl border border-neutral-700 hover:bg-neutral-800/50 transition font-bold text-lg"
+                    >
+                      Agendar Demonstração <PlayCircle className="w-5 h-5" />
+                    </button>
+                  </motion.div>
+                </motion.div>
               </motion.div>
 
               {/* Mockup com vídeo principal */}
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.92 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
+                transition={{ duration: 1, delay: 0.4 }}
                 className="relative"
               >
-                <div className="rounded-3xl border border-neutral-800 bg-neutral-900/80 overflow-hidden shadow-2xl shadow-black/40">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  className="rounded-3xl border border-neutral-800 bg-neutral-900/80 overflow-hidden shadow-2xl shadow-black/40"
+                >
                   <div className="h-12 bg-neutral-950/80 backdrop-blur flex items-center px-5 gap-3">
                     <div className="w-4 h-4 rounded-full bg-red-500/80" />
                     <div className="w-4 h-4 rounded-full bg-yellow-500/80" />
@@ -318,12 +353,12 @@ const LeadFlow = () => {
                     playsInline
                     preload="metadata"
                   />
-                </div>
+                </motion.div>
               </motion.div>
             </motion.div>
           </section>
 
-          {/* Benefícios – copy ajustada para "mais grana" */}
+          {/* Benefícios */}
           <section id="beneficios" className="max-w-7xl mx-auto px-6 py-24 border-t border-neutral-800">
             <motion.h2
               initial="hidden"
@@ -364,9 +399,14 @@ const LeadFlow = () => {
                   whileInView="visible"
                   viewport={{ once: true }}
                   variants={fadeInUp}
-                  className="bg-neutral-900/60 border border-neutral-800 rounded-3xl p-8 hover:border-emerald-700/50 transition group"
+                  whileHover="hover"
+                  initial="rest"
+                  variants={cardHover}
+                  className="bg-neutral-900/60 border border-neutral-800 rounded-3xl p-8"
                 >
-                  <div className="text-emerald-400 mb-6 group-hover:scale-110 transition">{item.icon}</div>
+                  <motion.div variants={iconHover} className="text-emerald-400 mb-6 group-hover:scale-110 transition">
+                    {item.icon}
+                  </motion.div>
                   <h3 className="text-xl font-bold mb-3">{item.title}</h3>
                   <p className="text-neutral-400">{item.desc}</p>
                 </motion.div>
@@ -416,14 +456,25 @@ const LeadFlow = () => {
                   whileInView="visible"
                   viewport={{ once: true }}
                   variants={fadeInUp}
-                  className="bg-neutral-900/60 border border-neutral-800 rounded-3xl overflow-hidden hover:border-emerald-700/50 transition"
+                  whileHover="hover"
+                  initial="rest"
+                  variants={cardHover}
+                  className="bg-neutral-900/60 border border-neutral-800 rounded-3xl overflow-hidden"
                 >
                   <div className="p-8">
-                    <div className="text-emerald-400 mb-6">{item.icon}</div>
+                    <motion.div variants={iconHover} className="text-emerald-400 mb-6">
+                      {item.icon}
+                    </motion.div>
                     <h3 className="text-2xl font-bold mb-4">{item.title}</h3>
                     <p className="text-neutral-400 mb-6">{item.desc}</p>
                   </div>
-                  <div className="relative bg-neutral-950">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8 }}
+                    className="relative bg-neutral-950"
+                  >
                     <video
                       ref={registerVideo}
                       src={item.video}
@@ -434,13 +485,13 @@ const LeadFlow = () => {
                       playsInline
                       preload="metadata"
                     />
-                  </div>
+                  </motion.div>
                 </motion.div>
               ))}
             </div>
           </section>
 
-          {/* Resultados – copy ajustada */}
+          {/* Resultados */}
           <section id="resultados" className="max-w-7xl mx-auto px-6 py-24 border-t border-neutral-800">
             <motion.h2
               initial="hidden"
@@ -489,7 +540,7 @@ const LeadFlow = () => {
                 </p>
 
                 <div className="mb-10">
-                  <span className="text-6xl font-extrabold text-emerald-400">R$ 99</span>
+                  <span className="text-6xl font-extrabold text-emerald-400 animate-pulse">R$ 99</span>
                   <span className="text-2xl text-neutral-400"> /mês</span>
                   <p className="text-sm text-neutral-500 mt-2">Sem fidelidade • Cancele quando quiser</p>
                 </div>
@@ -509,12 +560,14 @@ const LeadFlow = () => {
                   </li>
                 </ul>
 
-                <Link
-                  to="/signup"
-                  className="block w-full py-5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-xl text-center transition shadow-lg shadow-emerald-900/30"
-                >
-                  Assinar Agora
-                </Link>
+                <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
+                  <Link
+                    to="/signup"
+                    className="block w-full py-5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-xl text-center transition shadow-lg shadow-emerald-900/30"
+                  >
+                    Assinar Agora
+                  </Link>
+                </motion.div>
               </motion.div>
             </motion.div>
           </section>
@@ -563,18 +616,23 @@ const LeadFlow = () => {
 
           {/* Sticky CTA mobile */}
           <div className="md:hidden fixed bottom-6 left-6 right-6 z-50 flex gap-4">
-            <Link
-              to={loading || !user ? '/signup' : '/sistema'}
-              className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-center text-lg shadow-lg shadow-emerald-900/40 transition"
-            >
-              Começar Agora
-            </Link>
-            <button
-              onClick={() => window.open("https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20do%20Zailon%20Auto.", "_blank")}
-              className="flex-1 py-4 border border-neutral-700 hover:bg-neutral-800/50 rounded-xl font-bold text-center text-lg transition"
-            >
-              WhatsApp
-            </button>
+            <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
+              <Link
+                to={loading || !user ? '/signup' : '/sistema'}
+                className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-center text-lg shadow-lg shadow-emerald-900/40 transition"
+              >
+                Começar Agora
+              </Link>
+            </motion.div>
+
+            <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
+              <button
+                onClick={() => window.open("https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20do%20Zailon%20Auto.", "_blank")}
+                className="flex-1 py-4 border border-neutral-700 hover:bg-neutral-800/50 rounded-xl font-bold text-center text-lg transition"
+              >
+                WhatsApp
+              </button>
+            </motion.div>
           </div>
         </main>
 
