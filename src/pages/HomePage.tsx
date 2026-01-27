@@ -42,25 +42,16 @@ export default function HomePage() {
 
           <div className="relative max-w-7xl mx-auto px-6 py-28 md:py-40 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div initial="hidden" animate="visible" variants={stagger}>
-              <motion.span
-                variants={fadeInUp}
-                className="inline-flex items-center gap-2 text-sm px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6"
-              >
+              <motion.span variants={fadeInUp} className="inline-flex items-center gap-2 text-sm px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6">
                 <Sparkles className="w-4 h-4 text-emerald-400" /> Soluções que geram receita real
               </motion.span>
 
-              <motion.h1
-                variants={fadeInUp}
-                className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight"
-              >
+              <motion.h1 variants={fadeInUp} className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
                 Tecnologia que <span className="text-emerald-400">vende</span>,
                 <br /> automatiza e escala
               </motion.h1>
 
-              <motion.p
-                variants={fadeInUp}
-                className="mt-6 text-xl text-neutral-400 max-w-xl leading-relaxed"
-              >
+              <motion.p variants={fadeInUp} className="mt-6 text-xl text-neutral-400 max-w-xl leading-relaxed">
                 Criamos software sob medida e o Zailon Auto — sistema de pré-vendas automático que trabalha 24/7 para lojas de veículos, qualificando leads e aumentando conversão sem aumentar equipe.
               </motion.p>
 
@@ -312,41 +303,41 @@ export default function HomePage() {
             </motion.div>
           </div>
         </section>
-      </main>
 
-      {/* Sticky CTA mobile – CORRIGIDO: sem sobreposição, lado a lado */}
-      <div className="md:hidden fixed inset-x-5 bottom-8 z-50 flex flex-nowrap gap-3 max-w-md mx-auto pointer-events-auto">
-        <motion.div
-          whileHover={{ scale: 1.05, y: -4 }}
-          whileTap={{ scale: 0.98 }}
-          className="flex-1 min-w-[120px]"
-        >
-          <Link
-            to="/leadflow"
-            className="block w-full py-4 px-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-center text-xs shadow-lg shadow-emerald-900/40 transition"
+        {/* Sticky CTA mobile – CORRIGIDO */}
+        <div className="md:hidden fixed inset-x-5 bottom-8 z-50 flex flex-nowrap gap-3 max-w-md mx-auto pointer-events-auto">
+          <motion.div
+            whileHover={{ scale: 1.05, y: -4 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex-1 min-w-[120px]"
           >
-            Quero o Zailon Auto agora
-          </Link>
-        </motion.div>
+            <Link
+              to="/leadflow"
+              className="block w-full py-4 px-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-center text-xs shadow-lg shadow-emerald-900/40 transition"
+            >
+              Quero o Zailon Auto agora
+            </Link>
+          </motion.div>
 
-        <motion.div
-          whileHover={{ scale: 1.05, y: -4 }}
-          whileTap={{ scale: 0.98 }}
-          className="flex-1 min-w-[120px]"
-        >
-          <a
-            href="https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20software%20sob%20medida%20para%20meu%20neg%C3%B3cio."
-            target="_blank"
-            className="block w-full py-4 px-4 border border-neutral-700 hover:bg-neutral-800/50 rounded-xl font-bold text-center text-xs transition shadow-md"
+          <motion.div
+            whileHover={{ scale: 1.05, y: -4 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex-1 min-w-[120px]"
           >
-            Quero software sob medida
-          </a>
-        </motion.div>
+            <a
+              href="https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20software%20sob%20medida%20para%20meu%20neg%C3%B3cio."
+              target="_blank"
+              className="block w-full py-4 px-4 border border-neutral-700 hover:bg-neutral-800/50 rounded-xl font-bold text-center text-xs transition shadow-md"
+            >
+              Quero software sob medida
+            </a>
+          </motion.div>
+        </div>
+
+        <footer className="bg-neutral-950 border-t border-neutral-800 py-12 px-6 text-center text-neutral-500">
+          <p>© {new Date().getFullYear()} ZailonSoft. Todos os direitos reservados.</p>
+        </footer>
       </div>
-
-      <footer className="bg-neutral-950 border-t border-neutral-800 py-12 px-6 text-center text-neutral-500">
-        <p>© {new Date().getFullYear()} ZailonSoft. Todos os direitos reservados.</p>
-      </footer>
     </HelmetProvider>
   );
 }
