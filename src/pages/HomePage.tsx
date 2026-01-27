@@ -314,16 +314,16 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* Sticky CTA mobile – corrigido para não sobrepor */}
-      <div className="md:hidden fixed inset-x-6 bottom-8 z-50 flex flex-row flex-nowrap gap-3 max-w-md mx-auto pointer-events-auto">
+      {/* Sticky CTA mobile – CORRIGIDO: sem sobreposição, lado a lado */}
+      <div className="md:hidden fixed inset-x-5 bottom-8 z-50 flex flex-nowrap gap-3 max-w-md mx-auto pointer-events-auto">
         <motion.div
           whileHover={{ scale: 1.05, y: -4 }}
           whileTap={{ scale: 0.98 }}
-          className="flex-1 min-w-[140px]"
+          className="flex-1 min-w-[120px]"
         >
           <Link
             to="/leadflow"
-            className="block w-full py-4 px-5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-center text-sm shadow-lg shadow-emerald-900/40 transition"
+            className="block w-full py-4 px-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-center text-xs shadow-lg shadow-emerald-900/40 transition"
           >
             Quero o Zailon Auto agora
           </Link>
@@ -332,12 +332,12 @@ export default function HomePage() {
         <motion.div
           whileHover={{ scale: 1.05, y: -4 }}
           whileTap={{ scale: 0.98 }}
-          className="flex-1 min-w-[140px]"
+          className="flex-1 min-w-[120px]"
         >
           <a
             href="https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20software%20sob%20medida%20para%20meu%20neg%C3%B3cio."
             target="_blank"
-            className="block w-full py-4 px-5 border border-neutral-700 hover:bg-neutral-800/50 rounded-xl font-bold text-center text-sm transition shadow-md"
+            className="block w-full py-4 px-4 border border-neutral-700 hover:bg-neutral-800/50 rounded-xl font-bold text-center text-xs transition shadow-md"
           >
             Quero software sob medida
           </a>
