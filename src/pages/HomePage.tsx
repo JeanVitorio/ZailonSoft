@@ -271,27 +271,6 @@ export default function HomePage() {
           >
             Qual caminho resolve sua dor hoje?
           </motion.h2>
-
-          <motion.p
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-neutral-400 mb-12 max-w-3xl mx-auto"
-          >
-            Software sob medida ou Zailon Auto pronto para usar. Escolha o que faz sentido para o seu negócio agora.
-          </motion.p>
-
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
-              <Link
-                to="/leadflow"
-                className="px-10 py-6 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-xl shadow-lg shadow-emerald-900/40 transition"
-              >
-                Quero o Zailon Auto agora
-              </Link>
-            </motion.div>
-
             <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
               <a
                 href="https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20software%20sob%20medida%20para%20meu%20neg%C3%B3cio."
