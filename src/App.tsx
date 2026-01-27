@@ -70,7 +70,7 @@ const AnimatedRoutes = () => {
         {/* ROTAS PÚBLICAS */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/leadflow" element={<LeadFlow />} />
+        <Route path="/ZailonAuto" element={<LeadFlow />} />
         <Route path="/signup" element={<SignUpPage />} />
 
         {/* Página de erro de renovação */}

@@ -58,7 +58,7 @@ export default function HomePage() {
               <motion.div variants={fadeInUp} className="mt-10 flex flex-wrap gap-5">
                 <motion.div whileHover="hover" initial="rest" variants={cardHover}>
                   <Link
-                    to="/leadflow"
+                    to="/ZailonAuto"
                     className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 transition font-semibold text-lg shadow-lg shadow-emerald-900/30"
                   >
                     Conhecer Zailon Auto <Car className="w-5 h-5" />
@@ -236,7 +236,7 @@ export default function HomePage() {
 
               <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
                 <Link
-                  to="/leadflow"
+                  to="/ZailonAuto"
                   className="inline-flex items-center gap-3 px-10 py-5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-lg shadow-lg shadow-emerald-900/30 transition"
                 >
                   Ver Zailon Auto em ação <ArrowRight className="w-5 h-5" />
@@ -269,7 +269,7 @@ export default function HomePage() {
             className="flex-1 min-w-[120px]"
           >
             <Link
-              to="/leadflow"
+              to="/ZailonAuto"
               className="block w-full py-4 px-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-center text-xs shadow-lg shadow-emerald-900/40 transition"
             >
               Quero o Zailon Auto agora
