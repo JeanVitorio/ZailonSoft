@@ -261,28 +261,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* CTA FINAL (desktop) */}
-        <section className="max-w-7xl mx-auto px-6 py-32 text-center">
-          <motion.h2
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-5xl font-bold mb-8"
-          >
-            Qual caminho resolve sua dor hoje?
-          </motion.h2>
-            <motion.div whileHover={{ scale: 1.05, y: -4 }} whileTap={{ scale: 0.98 }}>
-              <a
-                href="https://wa.me/554691163405?text=Ol%C3%A1!%20Quero%20software%20sob%20medida%20para%20meu%20neg%C3%B3cio."
-                target="_blank"
-                className="px-10 py-6 border border-neutral-700 hover:bg-neutral-800/50 rounded-xl font-bold text-xl transition"
-              >
-                Quero software sob medida
-              </a>
-            </motion.div>
-          </div>
-        </section>
-
         {/* Sticky CTA mobile – CORRIGIDO */}
         <div className="md:hidden fixed inset-x-5 bottom-8 z-50 flex flex-nowrap gap-3 max-w-md mx-auto pointer-events-auto">
           <motion.div
