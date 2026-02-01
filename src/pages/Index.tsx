@@ -112,7 +112,7 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 font-poppins relative overflow-x-hidden">
+    <div className="min-h-screen bg-black text-slate-50 font-poppins relative overflow-x-hidden">
 
       <LightDotsBackground />
       <AnimatedBackground />

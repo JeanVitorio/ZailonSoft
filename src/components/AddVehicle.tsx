@@ -297,7 +297,7 @@ export function AddVehicle() {
                 className="w-12 h-12 rounded-full object-contain bg-slate-900 shadow border border-slate-800"
               />
             ) : (
-              <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-slate-950 font-bold text-xl shadow">
+              <div className="w-12 h-12 glass-card rounded-full flex items-center justify-center text-amber-400 font-bold text-xl shadow">
                 {storeDetails?.nome?.[0] || 'Z'}
               </div>
             )}
@@ -307,7 +307,7 @@ export function AddVehicle() {
           </div>
           <Progress
             value={25}
-            className="w-full h-2 bg-slate-900 [&>div]:bg-emerald-500 animate-pulse"
+            className="w-full h-2 bg-slate-900 [&>div]:bg-yellow-500 animate-pulse"
           />
         </div>
       </div>
@@ -342,17 +342,17 @@ export function AddVehicle() {
               <img
                 src={storeDetails.logo_url}
                 alt="Logo"
-                className="w-14 h-14 rounded-full object-contain bg-slate-900 shadow border border-slate-800"
+                className="w-14 h-14 rounded-full object-contain glass-card shadow"
               />
             ) : (
-              <div className="w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center text-slate-950 font-bold text-2xl shadow">
+              <div className="w-14 h-14 glass-card rounded-full flex items-center justify-center text-amber-400 font-bold text-2xl shadow">
                 {storeDetails?.nome?.[0] || 'Z'}
               </div>
             )}
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-50">
                 Novo veículo •{' '}
-                <span className="text-emerald-400">
+                <span className="gradient-text">
                   {storeDetails?.nome || 'Zailon'}
                 </span>
               </h1>
@@ -367,7 +367,7 @@ export function AddVehicle() {
         <div className="mb-6">
           <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
             <div
-              className="h-1.5 bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400 rounded-full transition-all"
+              className="h-1.5 bg-gradient-to-r from-yellow-500 via-green-500 to-yellow-400 rounded-full transition-all"
               style={{ width: `${progressValue}%` }}
             />
           </div>
@@ -391,11 +391,11 @@ export function AddVehicle() {
         {/* Cartão da etapa */}
         <Card
           key={step}
-          className="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl"
+          className="glass-card rounded-2xl shadow-xl"
         >
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-slate-50">
-              <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400 rounded-full w-10" />
+              <div className="h-1.5 bg-gradient-to-r from-yellow-500 via-green-500 to-yellow-400 rounded-full w-10" />
               {currentStepInfo?.title}
             </CardTitle>
           </CardHeader>
@@ -416,7 +416,7 @@ export function AddVehicle() {
                   onChange={e =>
                     handleInputChange('name', e.target.value)
                   }
-                  className="border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                  className="border-slate-700 bg-slate-950 text-slate-50 focus:border-yellow-500 focus:ring-yellow-500/20"
                 />
               </div>
             )}
@@ -444,7 +444,7 @@ export function AddVehicle() {
                   }}
                   type="tel"
                   maxLength={4}
-                  className="border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                  className="border-slate-700 bg-slate-950 text-slate-50 focus:border-yellow-500 focus:ring-yellow-500/20"
                 />
               </div>
             )}
@@ -477,7 +477,7 @@ export function AddVehicle() {
                   }
                   type="text"
                   inputMode="decimal"
-                  className="border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                  className="border-slate-700 bg-slate-950 text-slate-50 focus:border-yellow-500 focus:ring-yellow-500/20"
                 />
               </div>
             )}
@@ -499,7 +499,7 @@ export function AddVehicle() {
                     handleInputChange('description', e.target.value)
                   }
                   rows={5}
-                  className="border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                  className="border-slate-700 bg-slate-950 text-slate-50 focus:border-yellow-500 focus:ring-yellow-500/20"
                 />
               </div>
             )}
@@ -509,7 +509,7 @@ export function AddVehicle() {
               <div className="space-y-4">
                 <Label
                   htmlFor="image-upload"
-                  className="p-6 border-2 border-dashed border-slate-700 rounded-xl text-center cursor-pointer hover:border-emerald-400/60 hover:bg-slate-900/70 transition-colors block"
+                  className="p-6 border-2 border-dashed border-slate-700 rounded-xl text-center cursor-pointer hover:border-yellow-500/60 hover:bg-slate-900/70 transition-colors block"
                   aria-disabled={isCompressing}
                 >
                   {isCompressing ? (
@@ -560,9 +560,9 @@ export function AddVehicle() {
                       </div>
                     ))}
                     {isCompressing && (
-                      <div className="p-4 flex items-center justify-center bg-slate-900 rounded-lg border-2 border-emerald-400/50">
-                        <Loader2 className="h-6 w-6 text-emerald-400 animate-spin mr-2" />
-                        <span className="text-sm text-emerald-200">
+                      <div className="p-4 flex items-center justify-center glass-card rounded-lg border-2 border-yellow-500/50">
+                        <Loader2 className="h-6 w-6 text-yellow-400 animate-spin mr-2" />
+                        <span className="text-sm text-yellow-300">
                           Comprimindo...
                         </span>
                       </div>

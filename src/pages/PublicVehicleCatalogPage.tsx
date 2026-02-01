@@ -269,7 +269,7 @@ export function PublicVehicleCatalogPage() {
   // -------------------- Estados de carregamento/erro --------------------
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-50 p-4 md:p-8">
+      <div className="min-h-screen bg-black text-slate-50 p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 rounded-full bg-slate-800 animate-pulse" />
@@ -303,7 +303,7 @@ export function PublicVehicleCatalogPage() {
 
   if (errorVehicles || errorLoja) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-50 p-4 md:p-8">
+      <div className="min-h-screen bg-black text-slate-50 p-4 md:p-8">
         <div className="max-w-xl mx-auto bg-slate-900 border border-red-500/30 rounded-xl p-6 text-center shadow-lg">
           <Feather.AlertTriangle className="mx-auto h-10 w-10 text-red-400" />
           <h2 className="mt-3 text-lg font-semibold text-slate-50">Falha ao carregar</h2>
@@ -336,7 +336,7 @@ export function PublicVehicleCatalogPage() {
 
   // -------------------- UI principal --------------------
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 p-4 md:p-8 space-y-8">
+    <div className="min-h-screen bg-black text-slate-50 p-4 md:p-8 space-y-8">
       {/* Cabeçalho */}
       <motion.div
         initial="hidden"

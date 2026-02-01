@@ -103,10 +103,10 @@ function MenuContent({ closeMenu }: { closeMenu?: () => void }) {
               }}
               className={cn(
                 'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 border',
-                'hover:bg-emerald-500/10 hover:border-emerald-400/50',
+                'hover:bg-yellow-500/10 hover:border-yellow-400/50',
                 isCurrentActive
-                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-lg shadow-emerald-500/40 font-semibold'
-                  : 'bg-slate-900/60 border-slate-800 text-slate-200 font-medium'
+                  ? 'bg-gradient-to-r from-yellow-500 to-green-500 text-black border-yellow-500 shadow-lg shadow-yellow-500/40 font-semibold'
+                  : 'bg-slate-900/40 border-slate-700 text-slate-200 font-medium hover:bg-slate-800/40'
               )}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -114,7 +114,7 @@ function MenuContent({ closeMenu }: { closeMenu?: () => void }) {
               <Icon
                 className={cn(
                   'w-5 h-5 transition-colors',
-                  isCurrentActive ? 'text-slate-950' : 'text-emerald-400'
+                  isCurrentActive ? 'text-black' : 'text-yellow-400'
                 )}
               />
               <span>{item.label}</span>
@@ -124,7 +124,7 @@ function MenuContent({ closeMenu }: { closeMenu?: () => void }) {
       </nav>
 
       <motion.button
-        className="w-full flex items-center justify-start gap-3 px-4 py-3 mt-4 text-slate-300 bg-slate-900/60 border border-slate-800 hover:bg-slate-800 hover:border-emerald-400/40 transition-all rounded-xl"
+        className="w-full flex items-center justify-start gap-3 px-4 py-3 mt-4 text-slate-300 bg-slate-900/40 border border-slate-700 hover:bg-slate-800/40 hover:border-blue-400/40 transition-all rounded-xl hover:text-slate-100"
         onClick={handleLogout}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
@@ -145,13 +145,13 @@ function MainSidebar({
   companyName?: string;
 }) {
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-slate-950 border-r border-slate-800 shadow-xl hidden md:flex flex-col z-40">
-      {/* Top bar/linha de destaque */}
-      <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-cyan-500" />
-      <div className="p-6 border-b border-slate-800 flex-shrink-0">
+    <aside className="fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-slate-950 to-black border-r border-yellow-500/10 shadow-xl hidden md:flex flex-col z-40">
+      {/* Top gradient line - New Notion style */}
+      <div className="h-1.5 w-full bg-gradient-to-r from-yellow-500 via-green-500 to-yellow-500 shadow-lg" />
+      <div className="p-6 border-b border-yellow-500/10 flex-shrink-0">
         <BrandMark logoSrc={logoSrc} companyName={companyName} />
       </div>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 scrollbar-custom">
         <MenuContent />
       </ScrollArea>
     </aside>
@@ -174,11 +174,11 @@ function MobileSidebar({
 
   return (
     <>
-      {/* Top Bar fixa no mobile */}
+      {/* Top Bar fixa no mobile - Notion Style */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50">
-        <div className="mx-3 my-3 rounded-2xl bg-slate-950/90 backdrop-blur border border-slate-800 shadow-lg">
-          {/* Linha de destaque no topo */}
-          <div className="h-1 w-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-cyan-500 rounded-t-2xl" />
+        <div className="mx-3 my-3 rounded-2xl bg-gradient-to-r from-slate-950 to-black backdrop-blur border border-yellow-500/10 shadow-lg">
+          {/* Gradient line at top */}
+          <div className="h-1 w-full bg-gradient-to-r from-yellow-500 via-green-500 to-yellow-500 rounded-t-2xl" />
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-3 min-w-0">
               <BrandMark logoSrc={resolvedLogo} companyName={companyName} compact />
@@ -186,11 +186,11 @@ function MobileSidebar({
 
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger
-                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-700 bg-slate-900 text-emerald-400 hover:bg-slate-800 hover:border-emerald-400/60 transition-all shadow-sm"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-yellow-500/30 bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30 hover:border-yellow-400/60 transition-all shadow-sm hover:shadow-lg"
                 aria-label="Abrir menu"
               >
-                {/* Ícone real (favicon) ao lado do hambúrguer */}
-                <div className="w-6 h-6 rounded-md overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center">
+                {/* Logo icon next to hamburger */}
+                <div className="w-6 h-6 rounded-md overflow-hidden bg-slate-900 border border-yellow-500/30 flex items-center justify-center">
                   <img
                     src={resolvedLogo}
                     alt="Logo"
@@ -202,7 +202,7 @@ function MobileSidebar({
 
               <SheetContent
                 side="left"
-                className="w-4/5 max-w-[300px] h-full p-0 bg-slate-950 border-r border-slate-800 flex flex-col z-50 text-slate-50"
+                className="w-4/5 max-w-[300px] h-full p-0 bg-gradient-to-b from-slate-950 to-black border-r border-yellow-500/10 flex flex-col z-50 text-slate-50"
                 overlayClassName="bg-black/60"
               >
                 <SheetTitle className="sr-only">Menu Principal</SheetTitle>
@@ -210,15 +210,15 @@ function MobileSidebar({
                   Navegue pelas seções do sistema.
                 </SheetDescription>
 
-                {/* Cabeçalho do menu com logo real */}
+                {/* Menu header with logo */}
                 <div className="flex flex-col flex-shrink-0">
-                  <div className="h-1 w-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-cyan-500" />
-                  <div className="flex items-center gap-3 p-6 border-b border-slate-800">
+                  <div className="h-1 w-full bg-gradient-to-r from-yellow-500 via-green-500 to-yellow-500" />
+                  <div className="flex items-center gap-3 p-6 border-b border-yellow-500/10">
                     <BrandMark logoSrc={resolvedLogo} companyName={companyName} />
                   </div>
                 </div>
 
-                <ScrollArea className="flex-1">
+                <ScrollArea className="flex-1 scrollbar-custom">
                   <MenuContent closeMenu={closeMenu} />
                 </ScrollArea>
               </SheetContent>

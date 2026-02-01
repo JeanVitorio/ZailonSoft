@@ -235,7 +235,7 @@ const LeadFlow = () => {
 
   return (
     <HelmetProvider>
-      <div className="min-h-screen bg-neutral-950 text-neutral-100">
+      <div className="min-h-screen bg-black text-neutral-100">
         {/* Header */}
         <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b border-neutral-800 transition-all ${scrolled ? 'bg-neutral-950/90' : 'bg-transparent'}`}>
           <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">

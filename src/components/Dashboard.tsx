@@ -816,8 +816,8 @@ export function Dashboard() {
   /* ---------- Loading ---------- */
   if (authLoading || cLoading || vLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] bg-slate-950">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-500 border-t-transparent" />
+      <div className="flex items-center justify-center min-h-[60vh] bg-gradient-to-b from-slate-950 to-black">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-yellow-500 border-t-transparent" />
       </div>
     );
   }
@@ -864,7 +864,7 @@ export function Dashboard() {
   return (
     <div
       ref={dashboardRef}
-      className="min-h-screen bg-slate-950 text-slate-50"
+      className="min-h-screen bg-black text-slate-50"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
         {/* HEADER */}
@@ -887,7 +887,7 @@ export function Dashboard() {
             <div>
               <h1 className="text-2xl md:text-3xl font-black tracking-tight">
                 Visão Geral{' '}
-                <span className="text-emerald-400">
+                <span className="gradient-text">
                   {storeDetailsData?.nome || 'ZailonSoft'}
                 </span>
               </h1>
@@ -909,7 +909,7 @@ export function Dashboard() {
 
           {/* Filtro / PDF */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="flex items-center gap-1 bg-slate-900/70 border border-slate-700/70 rounded-xl p-1">
+            <div className="flex items-center gap-1 glass-card rounded-xl p-1">
               {[
                 { id: 'today', label: 'Hoje' },
                 { id: '7d', label: '7 dias' },
@@ -921,8 +921,8 @@ export function Dashboard() {
                   className={[
                     'px-2.5 py-1.5 text-xs sm:text-sm rounded-lg font-medium transition',
                     mode === opt.id
-                      ? 'bg-emerald-500 text-slate-950 shadow-lg'
-                      : 'text-slate-300 hover:bg-slate-800',
+                      ? 'bg-gradient-to-r from-yellow-500 to-green-500 text-black shadow-lg shadow-yellow-500/40'
+                      : 'text-slate-300 hover:bg-yellow-500/10 hover:text-yellow-300',
                   ].join(' ')}
                   onClick={() => setMode(opt.id as RangeMode)}
                 >
@@ -937,20 +937,20 @@ export function Dashboard() {
                   type="date"
                   value={customStart}
                   onChange={(e) => setCustomStart(e.target.value)}
-                  className="px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
                 />
                 <input
                   type="date"
                   value={customEnd}
                   onChange={(e) => setCustomEnd(e.target.value)}
-                  className="px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-amber-500"
                 />
               </div>
             )}
 
             <button
               onClick={exportToPDFFull}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 text-slate-950 text-sm font-semibold shadow-[0_18px_45px_rgba(16,185,129,0.45)] hover:bg-emerald-400 transition whitespace-nowrap"
+              className="btn-primary inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-slate-950 text-sm font-semibold transition whitespace-nowrap"
             >
               <Feather.Download className="w-4 h-4" />
               Exportar PDF
@@ -958,33 +958,30 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* CARDS PRINCIPAIS */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-10">
+        {/* CARDS PRINCIPAIS - Notion Style */}
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-10">
           {dashboardData.cards.map((card, i) => (
             <motion.button
               type="button"
               key={card.title}
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
+              transition={{ delay: i * 0.04 }}
               onClick={() =>
                 (card as any).route && navigate((card as any).route)
               }
               className={[
-                'group relative overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/80',
-                'px-4 py-4 text-left shadow-[0_18px_40px_rgba(15,23,42,0.9)]',
-                (card as any).route ? 'cursor-pointer hover:-translate-y-1 transition-transform' : '',
+                'group relative rounded-xl bg-slate-900/50 border border-slate-800 hover:border-yellow-500/30',
+                'px-4 py-5 text-left transition-all hover:bg-slate-900/70',
+                (card as any).route ? 'cursor-pointer' : '',
               ].join(' ')}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-cyan-500/5 to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative">
-                <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 mb-1">
-                  {card.title}
-                </p>
-                <p className="text-xl sm:text-2xl font-black text-slate-50">
-                  {card.value}
-                </p>
-              </div>
+              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-2">
+                {card.title}
+              </p>
+              <p className="text-2xl md:text-3xl font-bold text-yellow-400">
+                {card.value}
+              </p>
             </motion.button>
           ))}
         </div>
@@ -1016,7 +1013,7 @@ export function Dashboard() {
               return (
                 <div
                   key={tipo}
-                  className="rounded-2xl border border-slate-800 bg-slate-900/80 px-4 py-4 shadow-[0_18px_40px_rgba(15,23,42,0.9)]"
+                  className="rounded-2xl glass-card px-4 py-4"
                 >
                   <p className="text-xs font-medium text-slate-300 mb-1">
                     {tipo}
@@ -1024,12 +1021,12 @@ export function Dashboard() {
                   <p className="text-2xl font-bold text-slate-50">
                     {value}
                   </p>
-                  <p className="text-[11px] text-emerald-400 mt-1">
+                  <p className="text-[11px] text-amber-400 mt-1">
                     {pct.toFixed(0)}% dos leads
                   </p>
-                  <div className="mt-3 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div className="mt-3 h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full"
+                      className="h-full bg-gradient-to-r from-yellow-500 to-green-500 rounded-full"
                       style={{ width: `${Math.min(pct, 100)}%` }}
                     />
                   </div>
@@ -1039,31 +1036,27 @@ export function Dashboard() {
           </div>
         </section>
 
-        {/* VALOR EM NEGOCIAÇÃO */}
+        {/* VALOR EM NEGOCIAÇÃO - Notion Style */}
         <section className="mb-10">
           <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="relative overflow-hidden rounded-3xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/20 via-cyan-500/15 to-amber-400/20 px-6 sm:px-10 py-7 shadow-[0_30px_90px_rgba(6,95,70,0.7)]"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-slate-900/50 border border-slate-800 rounded-2xl p-8 hover:border-yellow-500/30 transition-colors"
           >
-            <div className="absolute -inset-10 opacity-40 bg-[radial-gradient(circle_at_top,_rgba(34,197,94,0.65),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(56,189,248,0.4),_transparent_55%)]" />
-            <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
-                <p className="text-xs uppercase tracking-[0.16em] text-emerald-100">
-                  Potencial de faturamento
+                <p className="text-xs font-semibold text-yellow-400 uppercase tracking-wide">
+                  Potencial de Faturamento
                 </p>
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-50 mt-1">
-                  Valor Total em Negociação
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-50 mt-2">
+                  Valor em Negociação
                 </h2>
-                <p className="text-xs sm:text-sm text-emerald-50/80 mt-2 max-w-xl">
-                  O sistema mostra o potencial, mas a sua estratégia realiza a venda. Estamos aqui para garantir que você visualize o sucesso!
+                <p className="text-sm text-slate-400 mt-3 max-w-lg">
+                  Valor total dos veículos em negociação com os clientes qualificados.
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-emerald-100/80 mb-1">
-                  Total estimado
-                </p>
-                <p className="text-3xl sm:text-4xl md:text-5xl font-black text-emerald-50">
+                <p className="text-4xl md:text-5xl font-bold text-yellow-400">
                   {dashboardData.valorNegociacao}
                 </p>
               </div>
@@ -1074,10 +1067,10 @@ export function Dashboard() {
         {/* VISITAS — Calendário + Próximas */}
         <section className="mb-8 grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* CALENDÁRIO */}
-          <div className="xl:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 sm:p-6 shadow-[0_18px_40px_rgba(15,23,42,0.9)]">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base sm:text-lg font-semibold text-slate-50">
-                Visitas marcadas (calendário)
+          <div className="xl:col-span-2 rounded-xl bg-slate-900/50 border border-slate-800 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-slate-50">
+                Visitas Marcadas
               </h3>
               <div className="flex items-center gap-2 text-slate-300">
                 <button

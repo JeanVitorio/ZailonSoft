@@ -98,7 +98,7 @@ const Toaster = ({ toasts, dispatch }: { toasts: any[]; dispatch: any }) => {
   const variantClasses: Record<string, string> = {
     default: "bg-slate-800 text-slate-100 border border-slate-700",
     destructive: "bg-red-500/15 text-red-300 border border-red-500/30",
-    success: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
+    success: "bg-green-600/15 text-green-300 border border-green-600/30",
   };
   return (
     <div className="fixed bottom-0 right-0 p-6 space-y-2 z-[100]">
@@ -199,7 +199,7 @@ function priorityBadge(p?: string | null) {
     return <Badge className="bg-red-600 text-white">Alta</Badge>;
   if (val === "baixa")
     return <Badge className="bg-slate-700 text-slate-200">Baixa</Badge>;
-  return <Badge className="bg-amber-500 text-white">Normal</Badge>;
+  return <Badge className="bg-yellow-500 text-black">Normal</Badge>;
 }
 
 function interestedVehicleFromBot(bot_data: any) {
@@ -459,8 +459,8 @@ function Column({
         ref={setNodeRef}
         className={`rounded-2xl p-4 h-[calc(100vh-16rem)] flex flex-col transition-colors ${
           isOver
-            ? "bg-emerald-500/5 border border-emerald-500/30"
-            : "bg-slate-900/70 border border-slate-800/50"
+            ? "bg-yellow-500/5 border border-yellow-500/30"
+            : "glass-card"
         }`}
       >
         <div className="flex items-center justify-between mb-4">
@@ -501,7 +501,7 @@ function Column({
 }
 
 // =========================== PDF Components (Branding Dashboard) ===========================
-// *Nota: PDFs mantêm fundo branco para impressão, mas usam a paleta de acentos do dashboard (emerald/cyan)*
+// *Nota: PDFs mantêm fundo branco para impressão, mas usam a paleta de acentos do dashboard (amber/cyan)*
 function normalizeClientForPdf(client: any) {
   const c = { ...client };
   try {
@@ -602,7 +602,7 @@ function PdfMain({ client, externalTradeImages }: { client: any; externalTradeIm
         {/* Dados do Cliente */}
         <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
           <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-2 rounded-t-lg">
-            <ClipboardList className="w-5 h-5 text-emerald-600" />
+            <ClipboardList className="w-5 h-5 text-amber-600" />
             <h3 className="font-semibold text-lg">Dados do Cliente</h3>
           </div>
           <div className="p-6 grid grid-cols-2 gap-6 text-sm">
@@ -638,7 +638,7 @@ function PdfMain({ client, externalTradeImages }: { client: any; externalTradeIm
         {/* Resumo do Interesse */}
         <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
           <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center gap-2 rounded-t-lg">
-            <ClipboardList className="w-5 h-5 text-emerald-600" />
+            <ClipboardList className="w-5 h-5 text-amber-600" />
             <h3 className="font-semibold text-lg">Resumo do Interesse</h3>
           </div>
           <div className="p-6 grid grid-cols-2 gap-6 text-sm">

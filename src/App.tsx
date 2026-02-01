@@ -23,6 +23,8 @@ import NotFound from './pages/NotFound';
 // Rotas Públicas
 import PublicCarFormPage from './pages/PublicCarFormPage';
 import { PublicVehicleCatalogPage } from './pages/PublicVehicleCatalogPage';
+import PublicCatalogPage from './pages/PublicCatalogPage';
+import PublicVehicleDetailPage from './pages/PublicVehicleDetailPage';
 
 // Nova rota — ativação de conta
 import ActivateAccountPage from './pages/ActivateAccountPage';
@@ -82,6 +84,8 @@ const AnimatedRoutes = () => {
         {/* Páginas públicas sem login */}
         <Route path="/form-proposta/:carId" element={<PublicCarFormPage />} />
         <Route path="/catalogo-loja/:lojaId" element={<PublicVehicleCatalogPage />} />
+        <Route path="/catalogo/:lojaId" element={<PublicCatalogPage />} />
+        <Route path="/veiculo/:id" element={<PublicVehicleDetailPage />} />
 
         {/* ÁREA PROTEGIDA */}
         <Route

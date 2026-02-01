@@ -257,9 +257,9 @@ export function StoreSettingsPage() {
   // ====== LOADING / ERROR ======
   if (isLoadingStore) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="max-w-2xl mx-auto p-6 md:p-10 text-center">
-          <Loader2 className="mx-auto h-8 w-8 text-emerald-400 animate-spin" />
+          <Loader2 className="mx-auto h-8 w-8 text-yellow-400 animate-spin" />
           <p className="mt-3 text-slate-300">
             Carregando configurações da loja...
           </p>
@@ -270,7 +270,7 @@ export function StoreSettingsPage() {
 
   if (storeError) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="max-w-2xl mx-auto p-4 md:p-8">
           <Card className="border-red-500/50 bg-red-950/60 text-red-100">
             <CardHeader>
@@ -302,7 +302,7 @@ export function StoreSettingsPage() {
 
   // ====== UI PRINCIPAL ======
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50">
+    <div className="min-h-screen bg-black text-slate-50">
       <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-10">
         {/* HEADER com logo e nome */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -314,14 +314,14 @@ export function StoreSettingsPage() {
                 className="w-14 h-14 rounded-full object-contain bg-slate-900 shadow border border-slate-800"
               />
             ) : (
-              <div className="w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center text-slate-950 font-bold text-2xl shadow">
+              <div className="w-14 h-14 glass-card rounded-full flex items-center justify-center text-yellow-400 font-bold text-2xl shadow">
                 {lojaData?.nome?.[0] || 'Z'}
               </div>
             )}
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-50">
                 Configurações •{' '}
-                <span className="text-emerald-400">
+                <span className="gradient-text">
                   {lojaData?.nome || 'Sua loja'}
                 </span>
               </h1>
@@ -334,7 +334,7 @@ export function StoreSettingsPage() {
           <Button
             type="submit"
             form="store-settings-form"
-            className="px-5 py-3 bg-emerald-500 text-slate-950 rounded-xl shadow hover:bg-emerald-400 transition flex items-center gap-2 text-sm font-semibold whitespace-nowrap disabled:bg-emerald-300"
+            className="btn-primary px-5 py-3 text-slate-950 rounded-xl shadow transition flex items-center gap-2 text-sm font-semibold whitespace-nowrap disabled:opacity-50"
             disabled={isSaving}
           >
             {isSaving ? (
@@ -350,10 +350,10 @@ export function StoreSettingsPage() {
           className="space-y-8"
         >
           {/* DADOS DA LOJA */}
-          <Card className="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl">
+          <Card className="glass-card rounded-2xl shadow-xl">
             <CardHeader>
               <CardTitle className="text-slate-50 flex items-center gap-2">
-                <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400 rounded-full w-10" />
+                <div className="h-1.5 bg-gradient-to-r from-yellow-500 via-green-500 to-yellow-400 rounded-full w-10" />
                 Dados da loja
               </CardTitle>
               <CardDescription className="text-slate-400">
@@ -386,7 +386,7 @@ export function StoreSettingsPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="border-slate-700 bg-slate-900 text-slate-100 hover:border-emerald-400 hover:bg-slate-800"
+                    className="border-slate-700 bg-slate-900 text-slate-100 hover:border-yellow-500 hover:bg-slate-800"
                     onClick={() =>
                       document.getElementById('logo-upload')?.click()
                     }
@@ -409,7 +409,7 @@ export function StoreSettingsPage() {
                     onChange={e =>
                       handleLojaInputChange('nome', e.target.value)
                     }
-                    className="border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                    className="border-slate-700 bg-slate-950 text-slate-50 focus:border-amber-500 focus:ring-amber-500/20"
                   />
                 </div>
                 <div className="space-y-2">
@@ -428,7 +428,7 @@ export function StoreSettingsPage() {
                         e.target.value
                       )
                     }
-                    className="border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                    className="border-slate-700 bg-slate-950 text-slate-50 focus:border-yellow-500 focus:ring-yellow-500/20"
                   />
                 </div>
               </div>
@@ -444,7 +444,7 @@ export function StoreSettingsPage() {
                     handleLojaInputChange('descricao', e.target.value)
                   }
                   rows={4}
-                  className="border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                  className="border-slate-700 bg-slate-950 text-slate-50 focus:border-yellow-500 focus:ring-yellow-500/20"
                 />
               </div>
 
@@ -457,7 +457,7 @@ export function StoreSettingsPage() {
                     <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                     <Input
                       id="whatsapp"
-                      className="pl-9 border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                      className="pl-9 border-slate-700 bg-slate-950 text-slate-50 focus:border-amber-500 focus:ring-amber-500/20"
                       value={lojaData?.whatsapp || ''}
                       onChange={e =>
                         handleLojaInputChange('whatsapp', e.target.value)
@@ -474,7 +474,7 @@ export function StoreSettingsPage() {
                     <Input
                       id="email"
                       type="email"
-                      className="pl-9 border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                      className="pl-9 border-slate-700 bg-slate-950 text-slate-50 focus:border-amber-500 focus:ring-amber-500/20"
                       value={lojaData?.email || ''}
                       onChange={e =>
                         handleLojaInputChange('email', e.target.value)
@@ -492,7 +492,7 @@ export function StoreSettingsPage() {
                     onChange={e =>
                       handleLojaInputChange('site', e.target.value)
                     }
-                    className="border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                    className="border-slate-700 bg-slate-950 text-slate-50 focus:border-amber-500 focus:ring-amber-500/20"
                   />
                 </div>
               </div>
@@ -539,7 +539,7 @@ export function StoreSettingsPage() {
                 {vendedores.map((v, idx) => (
                   <div
                     key={v.id}
-                    className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-emerald-400/60 transition"
+                    className="p-4 rounded-xl glass-card hover:border-amber-400/60 transition"
                   >
                     <div className="grid md:grid-cols-4 gap-4">
                       <div className="space-y-2">
@@ -547,7 +547,7 @@ export function StoreSettingsPage() {
                         <div className="relative">
                           <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                           <Input
-                            className="pl-9 border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                            className="pl-9 border-slate-700 bg-slate-950 text-slate-50 focus:border-amber-500 focus:ring-amber-500/20"
                             placeholder="Ex: Ana Silva"
                             value={v.nome}
                             onChange={e =>
@@ -563,7 +563,7 @@ export function StoreSettingsPage() {
                       <div className="space-y-2">
                         <Label className="text-slate-200">Telefone</Label>
                         <Input
-                          className="border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                          className="border-slate-700 bg-slate-950 text-slate-50 focus:border-amber-500 focus:ring-amber-500/20"
                           placeholder="(00) 0000-0000"
                           value={v.telefone}
                           onChange={e =>
@@ -578,7 +578,7 @@ export function StoreSettingsPage() {
                       <div className="space-y-2">
                         <Label className="text-slate-200">WhatsApp</Label>
                         <Input
-                          className="border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                          className="border-slate-700 bg-slate-950 text-slate-50 focus:border-amber-500 focus:ring-amber-500/20"
                           placeholder="(00) 00000-0000"
                           value={v.whatsapp}
                           onChange={e =>
@@ -594,7 +594,7 @@ export function StoreSettingsPage() {
                         <Label className="text-slate-200">E-mail</Label>
                         <Input
                           type="email"
-                          className="border-slate-700 bg-slate-950 text-slate-50 focus:border-emerald-500 focus:ring-emerald-500/20"
+                          className="border-slate-700 bg-slate-950 text-slate-50 focus:border-amber-500 focus:ring-amber-500/20"
                           placeholder="vendas@exemplo.com"
                           value={v.email}
                           onChange={e =>

@@ -29,7 +29,7 @@ export function ActivateAccountPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-100 text-center p-4 font-poppins">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-center p-4 font-poppins">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
         
         <CreditCard className="w-16 h-16 mx-auto text-amber-500 mb-4" />

@@ -35,7 +35,7 @@ export default function HomePage() {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-neutral-950 text-neutral-100">
+      <div className="min-h-screen bg-black text-neutral-100">
         {/* HERO */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 via-cyan-600/10 to-transparent pointer-events-none" />

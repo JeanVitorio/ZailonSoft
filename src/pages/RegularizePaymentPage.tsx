@@ -13,7 +13,7 @@ export function RegularizePaymentPage() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-center p-4 font-poppins">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-black text-center p-4 font-poppins">
             <div className="bg-slate-900 p-8 rounded-2xl shadow-lg border border-slate-800 max-w-md w-full">
                 {/* Ícone de Alerta (Estilo Dark) */}
                 <svg 

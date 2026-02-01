@@ -55,7 +55,7 @@ export function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-950 text-slate-50 font-poppins relative overflow-hidden flex items-center justify-center px-4">
+    <div className="min-h-screen w-full bg-black text-slate-50 font-poppins relative overflow-hidden flex items-center justify-center px-4">
       {/* Fundo dark premium no mesmo mood da Home */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(251,191,36,0.12),transparent_55%),radial-gradient(circle_at_100%_0%,rgba(56,189,248,0.18),transparent_55%)]" />

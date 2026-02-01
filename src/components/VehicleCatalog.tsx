@@ -199,10 +199,9 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
   const imgList = getImages(data) as string[];
 
   return (
-    <div className="bg-slate-950 text-slate-50 pb-24 sm:pb-8">
+    <div className="bg-black text-slate-50 pb-24 sm:pb-8">
       {/* Header do modal */}
-      <div className="p-6 md:p-8 border-b border-slate-800">
-        <div className="h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-300 rounded-full mb-4" />
+      <div className="p-6 md:p-8 border-b border-slate-800 m-4 rounded-lg bg-slate-900/50">
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-2xl md:text-3xl font-bold text-slate-50">
             {edit ? (
@@ -232,7 +231,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
                     if (validateData()) save.mutate();
                   }}
                   disabled={save.isPending}
-                  className="px-5 py-2 bg-amber-500 text-slate-950 rounded-xl shadow hover:bg-amber-400 transition disabled:opacity-50 text-sm font-semibold"
+                  className="px-5 py-2 btn-primary text-slate-950 rounded-xl shadow transition disabled:opacity-50 text-sm font-semibold"
                 >
                   {save.isPending ? 'Salvando...' : 'Salvar'}
                 </button>
@@ -247,7 +246,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
                 </button>
                 <button
                   onClick={() => setEdit(true)}
-                  className="px-5 py-2 bg-amber-500 text-slate-950 rounded-xl shadow hover:bg-amber-400 transition flex items-center gap-2 text-sm font-semibold"
+                  className="px-5 py-2 btn-primary text-slate-950 rounded-xl shadow transition flex items-center gap-2 text-sm font-semibold"
                 >
                   <Feather.Edit className="w-4 h-4" /> Editar
                 </button>
@@ -261,7 +260,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
       <div className="p-6 md:p-8 grid lg:grid-cols-2 gap-10">
         {/* Galeria */}
         <div className="space-y-4">
-          <div className="relative aspect-video bg-slate-900 rounded-2xl overflow-hidden border border-slate-800">
+          <div className="relative aspect-video glass-card rounded-2xl overflow-hidden">
             {imgList?.[idx] ? (
               <>
                 <img src={imgList[idx]} className="w-full h-full object-cover" />
@@ -285,13 +284,13 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
               <>
                 <button
                   onClick={() => setIdx((i) => (i - 1 + imgList.length) % imgList.length)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-slate-900/80 backdrop-blur p-2 rounded-full shadow border border-slate-700"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 glass-card p-2 rounded-full shadow"
                 >
                   <Feather.ChevronLeft className="text-slate-100" />
                 </button>
                 <button
                   onClick={() => setIdx((i) => (i + 1) % imgList.length)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-slate-900/80 backdrop-blur p-2 rounded-full shadow border border-slate-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 glass-card p-2 rounded-full shadow"
                 >
                   <Feather.ChevronRight className="text-slate-100" />
                 </button>
@@ -304,7 +303,7 @@ function CarDetailsView({ vehicle, onBack }: { vehicle: Vehicle; onBack: () => v
                 key={i}
                 onClick={() => setIdx(i)}
                 className={`relative aspect-square rounded-xl border overflow-hidden cursor-pointer ${
-                  i === idx ? 'border-amber-400' : 'border-slate-800'
+                  i === idx ? 'border-yellow-500' : 'border-slate-700'
                 }`}
                 role="button"
               >
@@ -454,8 +453,14 @@ export function VehicleCatalog() {
     toast({ title: 'Copiado!', description: 'Link do catálogo' });
   };
 
+  const sharePublicCatalog = () => {
+    const url = `${window.location.origin}/catalogo/${lojaId}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: 'Copiado!', description: 'Link do catálogo público para compartilhar' });
+  };
+
   return (
-    <div className="min-h-screen bg-transparent text-slate-50">
+    <div className="min-h-screen bg-black text-slate-50">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-10">
         {/* HEADER */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -464,17 +469,17 @@ export function VehicleCatalog() {
               <img
                 src={storeDetails.logo_url}
                 alt="Logo da loja"
-                className="w-14 h-14 rounded-full object-contain bg-slate-900 border border-slate-700 shadow-lg"
+                className="w-14 h-14 rounded-full object-contain glass-card shadow-lg"
               />
             ) : (
-              <div className="w-14 h-14 bg-slate-900 border border-slate-700 rounded-full flex items-center justify-center text-amber-400 font-bold text-2xl shadow-lg">
+              <div className="w-14 h-14 glass-card rounded-full flex items-center justify-center text-amber-400 font-bold text-2xl shadow-lg">
                 {storeDetails?.nome?.[0] || 'Z'}
               </div>
             )}
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-50">
                 Catálogo{' '}
-                <span className="text-amber-400">
+                <span className="gradient-text">
                   {storeDetails?.nome || 'Zailon'}
                 </span>
               </h1>
@@ -483,24 +488,33 @@ export function VehicleCatalog() {
               </p>
             </div>
           </div>
-          <button
-            onClick={copyCat}
-            className="px-5 py-3 bg-amber-500 text-slate-950 rounded-xl shadow-lg shadow-amber-500/30 hover:bg-amber-400 transition flex items-center gap-2 text-sm font-semibold whitespace-nowrap"
-          >
-            <Feather.Link className="w-5 h-5" />
-            Copiar link do catálogo
-          </button>
+          <div className="flex gap-2 flex-col sm:flex-row">
+            <button
+              onClick={copyCat}
+              className="btn-primary px-5 py-3 text-slate-950 rounded-xl shadow-lg transition flex items-center gap-2 text-sm font-semibold whitespace-nowrap"
+            >
+              <Feather.Link className="w-5 h-5" />
+              Catálogo Admin
+            </button>
+            <button
+              onClick={sharePublicCatalog}
+              className="px-5 py-3 bg-cyan-500 text-slate-950 rounded-xl shadow-lg shadow-cyan-500/30 hover:bg-cyan-400 transition flex items-center gap-2 text-sm font-semibold whitespace-nowrap"
+            >
+              <Feather.Share2 className="w-5 h-5" />
+              Compartilhar Público
+            </button>
+          </div>
         </div>
 
-        {/* BUSCA */}
-        <div className="flex flex-col md:flex-row gap-4 mb-10">
-          <div className="relative flex-1 max-w-xl">
+        {/* BUSCA - Notion Style */}
+        <div className="mb-10">
+          <div className="relative max-w-md">
             <Feather.Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
             <Input
-              placeholder="Buscar por nome, ano ou preço"
+              placeholder="Buscar veículo..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-slate-900/70 border border-slate-700 text-slate-100 placeholder:text-slate-500 focus:border-amber-400 focus:ring-0"
+              className="pl-10 bg-slate-900/50 border border-slate-800 text-slate-100 placeholder:text-slate-500 focus:border-yellow-500 focus:ring-0 rounded-lg"
             />
           </div>
         </div>
@@ -513,9 +527,9 @@ export function VehicleCatalog() {
           </div>
         )}
 
-        {/* GRID */}
+        {/* GRID - Notion Style */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
           variants={fade}
           initial="hidden"
           animate="visible"
@@ -532,57 +546,60 @@ export function VehicleCatalog() {
             return (
               <motion.div
                 key={(c as any).id}
-                className="bg-slate-950/80 rounded-2xl border border-slate-800/80 overflow-hidden shadow-[0_18px_45px_rgba(15,23,42,0.9)] hover:shadow-[0_22px_55px_rgba(15,23,42,1)] hover:border-amber-400/60 transition-all backdrop-blur"
-                whileHover={{ y: -6 }}
+                className="rounded-lg bg-slate-900/50 border border-slate-800 overflow-hidden hover:border-yellow-500/30 transition-colors group"
+                whileHover={{ y: -2 }}
               >
-                <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-cyan-400 to-amber-400" />
-                <div className="aspect-video bg-slate-900">
-                  <img src={img0} alt={title} className="w-full h-full object-cover" />
+                {/* Image */}
+                <div className="aspect-video bg-slate-900 overflow-hidden">
+                  <img src={img0} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 </div>
-                <div className="p-5 space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="font-semibold text-slate-50 text-lg leading-tight">
-                        {title}
-                      </h3>
-                      <p className="text-sm text-slate-400 flex items-center gap-1 mt-1">
-                        <Feather.Calendar className="w-4 h-4" /> {year}
-                      </p>
-                    </div>
-                    <p className="text-xl font-bold text-amber-400 whitespace-nowrap">
-                      {formatCurrency(price)}
+                
+                {/* Content */}
+                <div className="p-4 space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-slate-50 text-base leading-tight">
+                      {title}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {year}
                     </p>
                   </div>
 
                   <p className="text-sm text-slate-400 line-clamp-2">{desc}</p>
 
-                  <div className="flex gap-2 pt-2">
-                    <button
-                      onClick={() => setCar(c)}
-                      className="flex-1 py-2 border border-amber-400 text-amber-300 rounded-lg hover:bg-amber-400/10 flex items-center justify-center gap-2 text-sm font-medium"
-                    >
-                      <Feather.Eye className="w-4 h-4" /> Ver
-                    </button>
-                    <button
-                      onClick={() => {
-                        const url = `${window.location.origin}/form-proposta/${(c as any).id}`;
-                        navigator.clipboard.writeText(url);
-                        toast({ title: 'Copiado!', description: 'Link do formulário' });
-                      }}
-                      className="p-2 border border-slate-700 rounded-lg hover:bg-slate-900"
-                      title="Copiar link do formulário"
-                    >
-                      <Feather.Link className="w-4 h-4 text-slate-300" />
-                    </button>
-                    <button
-                      onClick={() =>
-                        confirm('Excluir este veículo?') && del.mutate((c as any).id)
-                      }
-                      className="p-2 border border-slate-800 rounded-lg hover:bg-red-950/50"
-                      title="Excluir"
-                    >
-                      <Feather.Trash2 className="w-4 h-4 text-red-400" />
-                    </button>
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                    <p className="text-lg font-bold text-yellow-400">
+                      {formatCurrency(price)}
+                    </p>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setCar(c)}
+                        className="p-2 rounded-lg hover:bg-yellow-500/10 text-yellow-400 hover:text-yellow-300 transition"
+                        title="Ver detalhes"
+                      >
+                        <Feather.Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          const url = `${window.location.origin}/form-proposta/${(c as any).id}`;
+                          navigator.clipboard.writeText(url);
+                          toast({ title: 'Copiado!', description: 'Link do formulário' });
+                        }}
+                        className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
+                        title="Copiar link"
+                      >
+                        <Feather.Link className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          confirm('Excluir este veículo?') && del.mutate((c as any).id)
+                        }
+                        className="p-2 rounded-lg hover:bg-red-950/30 text-red-400 hover:text-red-300 transition"
+                        title="Excluir"
+                      >
+                        <Feather.Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </motion.div>

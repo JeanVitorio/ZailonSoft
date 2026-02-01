@@ -49,7 +49,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 font-poppins relative overflow-hidden">
+    <div className="min-h-screen bg-black text-slate-50 font-poppins relative overflow-hidden">
 
       {/* --- Fundo Dark Premium com gradientes --- */}
       <div className="absolute inset-0 pointer-events-none">

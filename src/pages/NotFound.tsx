@@ -13,7 +13,7 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 p-4 font-poppins">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-black p-4 font-poppins">
       <div className="flex flex-col items-center text-center">
         
         {/* Ícone */}
