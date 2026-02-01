@@ -23,6 +23,7 @@ const PublicCatalogPage = () => {
     priceMin: 0,
     priceMax: 2000000,
     brand: '',
+    model: '',
     type: '',
   });
 
@@ -42,20 +43,26 @@ const PublicCatalogPage = () => {
       const searchLower = search.toLowerCase();
       const nome = (vehicle.nome || '').toLowerCase();
       const marca = ((vehicle as any).marca || '').toLowerCase();
+      const modelo = ((vehicle as any).modelo || (vehicle as any).model || '').toLowerCase();
       const ano = String(vehicle.ano || '');
+      const preco = parsePrice(vehicle.preco || 0);
 
+      const priceStr = String(preco);
       const matchesSearch =
         nome.includes(searchLower) ||
         marca.includes(searchLower) ||
-        ano.includes(search);
+        modelo.includes(searchLower) ||
+        ano.includes(searchLower) ||
+        priceStr.includes(searchLower);
 
-      const preco = parsePrice(vehicle.preco || 0);
       const yearNum = parseInt(ano, 10) || 0;
 
       const matchesYear = yearNum >= filters.yearMin && yearNum <= filters.yearMax;
       const matchesPrice = preco >= filters.priceMin && preco <= filters.priceMax;
+      const matchesBrand = filters.brand ? marca.includes(filters.brand.toLowerCase()) : true;
+      const matchesModel = filters.model ? modelo.includes(filters.model.toLowerCase()) : true;
 
-      return matchesSearch && matchesYear && matchesPrice;
+      return matchesSearch && matchesYear && matchesPrice && matchesBrand && matchesModel;
     });
   }, [vehicles, search, filters, lojaId]);
 

@@ -58,11 +58,14 @@ export function VehicleCard({ vehicle, index, catalogMode }: VehicleCardProps) {
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent" />
-            <div className="absolute bottom-3 left-3 right-3">
-              <span className="text-xs font-medium px-2 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                VEÍCULO
-              </span>
-            </div>
+              <div className="absolute bottom-3 left-3">
+                <span className="text-xs font-medium px-2 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  VEÍCULO
+                </span>
+              </div>
+              <div className="absolute bottom-3 right-3">
+                <span className="text-xs font-semibold px-3 py-2 rounded-lg bg-yellow-500 text-black shadow-sm opacity-95">Ver detalhes</span>
+              </div>
           </div>
 
           <div className="p-4 space-y-3">

@@ -11,6 +11,7 @@ interface FiltersProps {
     priceMin: number;
     priceMax: number;
     brand: string;
+    model?: string;
     type: string;
   };
   onFiltersChange: (filters: FiltersProps['filters']) => void;
@@ -87,6 +88,28 @@ export function Filters({ filters, onFiltersChange }: FiltersProps) {
               </div>
 
               <div className="space-y-6">
+                <div>
+                  <label className="text-sm font-medium text-slate-300 mb-2 block">Marca</label>
+                  <input
+                    type="text"
+                    value={filters.brand}
+                    onChange={(e) => onFiltersChange({ ...filters, brand: e.target.value })}
+                    placeholder="Ex: Fiat, Toyota"
+                    className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-slate-300 mb-2 block">Modelo</label>
+                  <input
+                    type="text"
+                    value={filters.model || ''}
+                    onChange={(e) => onFiltersChange({ ...filters, model: e.target.value })}
+                    placeholder="Ex: Corolla, Gol"
+                    className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200"
+                  />
+                </div>
+
                 <div>
                   <label className="text-sm font-medium text-slate-300 mb-3 block">Ano: {filters.yearMin} - {filters.yearMax}</label>
                   <Slider
