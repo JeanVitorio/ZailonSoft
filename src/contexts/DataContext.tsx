@@ -25,6 +25,36 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+// Helpers
+const parsePriceString = (value: any) => {
+  if (value == null) return 0;
+  if (typeof value === 'number') return value;
+  let s = String(value || '');
+  s = s.replace(/[^0-9.,-]/g, '');
+  if (!s) return 0;
+  if (s.indexOf('.') !== -1 && s.indexOf(',') !== -1) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else {
+    s = s.replace(/,/g, '.');
+  }
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : 0;
+};
+
+const normalizeStateToStatus = (raw: any) => {
+  const s = String(raw || '').toLowerCase();
+  if (!s) return 'new';
+  if (s.includes('vend') || s.includes('sold')) return 'sold';
+  if (s.includes('perd') || s.includes('lost')) return 'lost';
+  if (s.includes('proposta') || s.includes('proposal')) return 'proposal';
+  if (s.includes('negoc') || s.includes('negoti')) return 'negotiation';
+  if (s.includes('qualif') || s.includes('qual')) return 'qualified';
+  if (s.includes('contat') || s.includes('contact') || s.includes('tentativa')) return 'contacted';
+  if (s.includes('visita') || s.includes('visit')) return 'contacted';
+  if (s.includes('novo') || s.includes('new')) return 'new';
+  return 'new';
+};
+
 // Helper: converte dados do Supabase para formato local
 const mapCarToVehicle = (car: apiService.Car): Vehicle => ({
   id: car.id,
@@ -32,7 +62,7 @@ const mapCarToVehicle = (car: apiService.Car): Vehicle => ({
   brand: '',
   model: '',
   year: car.ano || new Date().getFullYear(),
-  price: Number(car.preco) || 0,
+  price: parsePriceString(car.preco),
   mileage: 0,
   fuel: '',
   transmission: '',
@@ -70,10 +100,10 @@ const mapClientToLead = (client: apiService.Client): Lead => {
     email: undefined,
     phone: client.phone || '',
     interest: vehicleName,
-    budget: Number(bot.financing_details?.entry || 0) || 0,
+    budget: parsePriceString(bot.financing_details?.entry ?? client['value'] ?? 0),
     priority: 'medium' as any,
     source: 'website' as any,
-    status: 'new' as any,
+    status: normalizeStateToStatus(client.state || bot.state || client.bot_data?.state),
     notes: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
