@@ -154,13 +154,16 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       return false;
     }
     return !!data;
-  const loading = authLoading || subLoading || lojaLoading; 
+  };
+
+  const loading = authLoading || subLoading || lojaLoading;
 
   const isLoggedIn = !!user;
   const isActive = subscription ? subscription.status === 'active' : true;
 
-  // 🚨 NOVO OBJETO DE VALOR (atualizado com login, signup, isLoggedIn, isActive)
   const value = { user, subscription, loading, logout, refreshSubscription, lojaId, lojaLoading, login, signup, isLoggedIn, isActive };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // --- Hook de Acesso (MANTIDO) ---
