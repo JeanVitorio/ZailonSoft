@@ -17,14 +17,16 @@ interface AuthContextType {
   
   // 🚨 NOVAS PROPRIEDADES PARA ISOLAMENTO DE DADOS
   lojaId: string | null; 
-  lojaLoading: boolean; 
-}
-
+  lojaLoading: boolean;
+  login?: (email: string, password: string) => Promise<boolean>;
+  signup?: (email: string, password: string, meta?: Record<string, any>) => Promise<boolean>;
+  isLoggedIn?: boolean;
+  isActive?: boolean;
 // --- Contexto ---
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // --- Provider ---
-export function AuthProvider({ children, queryClient }: { children: ReactNode, queryClient: QueryClient }) {
+export function AuthProvider({ children, queryClient }: { children: ReactNode; queryClient?: QueryClient }) {
   const [user, setUser] = useState<User | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [authLoading, setAuthLoading] = useState(true); 
@@ -127,21 +129,36 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode, q
   const logout = async () => {
     console.log("Iniciando logout completo e limpeza de caches...");
     await supabase.auth.signOut();
-    queryClient.clear();
-    setUser(null);
-    setSubscription(null);
-    setLojaId(null); // Limpa o ID da loja no logout
-    window.location.href = '/login';
-  };
+    if (queryClient) queryClient.clear();
+    setUser(null);
+    setSubscription(null);
+    setLojaId(null); // Limpa o ID da loja no logout
+    window.location.href = '/login';
+  };
 
-  // 🚨 NOVO LOADING COMBINADO
-  // A aplicação só está "pronta" se a autenticação, a subscrição E o ID da loja terminaram de carregar.
+  const login = async (email: string, password: string): Promise<boolean> => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.error('Login error:', error.message);
+      return false;
+    }
+    return true;
+  };
+
+  const signup = async (email: string, password: string, meta: Record<string, any> = {}): Promise<boolean> => {
+    const { data, error } = await supabase.auth.signUp({ email, password }, { data: meta });
+    if (error) {
+      console.error('Signup error:', error.message);
+      return false;
+    }
+    return !!data;
   const loading = authLoading || subLoading || lojaLoading; 
 
-  // 🚨 NOVO OBJETO DE VALOR
-  const value = { user, subscription, loading, logout, refreshSubscription, lojaId, lojaLoading };
+  const isLoggedIn = !!user;
+  const isActive = subscription ? subscription.status === 'active' : true;
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  // 🚨 NOVO OBJETO DE VALOR (atualizado com login, signup, isLoggedIn, isActive)
+  const value = { user, subscription, loading, logout, refreshSubscription, lojaId, lojaLoading, login, signup, isLoggedIn, isActive };
 }
 
 // --- Hook de Acesso (MANTIDO) ---
