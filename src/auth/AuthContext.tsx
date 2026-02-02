@@ -22,6 +22,8 @@ interface AuthContextType {
   signup?: (email: string, password: string, meta?: Record<string, any>) => Promise<boolean>;
   isLoggedIn?: boolean;
   isActive?: boolean;
+}
+
 // --- Contexto ---
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
