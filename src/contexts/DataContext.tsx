@@ -41,14 +41,13 @@ const parsePriceString = (value: any) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const normalizeStateToStatus = (raw: any) => {
+const normalizeStateToStatus = (raw: any): Lead['status'] => {
   const s = String(raw || '').toLowerCase();
   if (!s) return 'new';
-  if (s.includes('vend') || s.includes('sold')) return 'sold';
+  if (s.includes('vend') || s.includes('sold') || s.includes('fechad') || s.includes('closed')) return 'closed';
   if (s.includes('perd') || s.includes('lost')) return 'lost';
   if (s.includes('proposta') || s.includes('proposal')) return 'proposal';
-  if (s.includes('negoc') || s.includes('negoti')) return 'negotiation';
-  if (s.includes('qualif') || s.includes('qual')) return 'qualified';
+  if (s.includes('negoc') || s.includes('negoti')) return 'negotiating';
   if (s.includes('contat') || s.includes('contact') || s.includes('tentativa')) return 'contacted';
   if (s.includes('visita') || s.includes('visit')) return 'contacted';
   if (s.includes('novo') || s.includes('new')) return 'new';
@@ -97,18 +96,18 @@ const mapClientToLead = (client: apiService.Client): Lead => {
   return {
     id: client.chat_id,
     name: client.name || 'Sem nome',
-    email: undefined,
+    email: '',
     phone: client.phone || '',
-    interest: vehicleName,
-    budget: parsePriceString(bot.financing_details?.entry ?? client['value'] ?? 0),
-    priority: 'medium' as any,
-    source: 'website' as any,
+    vehicleId: interested?.id || '',
+    vehicleName: vehicleName,
+    value: parsePriceString(bot.financing_details?.entry ?? 0),
+    priority: 'medium' as Lead['priority'],
+    source: 'catalog' as Lead['source'],
     status: normalizeStateToStatus(client.state || bot.state || client.bot_data?.state),
-    notes: [],
+    notes: '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    appointmentDate: bot.visit_details?.day,
-    appointmentTime: bot.visit_details?.time
+    followUpDate: bot.visit_details?.day
   };
 };
 
