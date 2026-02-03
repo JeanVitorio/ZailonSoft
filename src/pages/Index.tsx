@@ -64,42 +64,42 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#050505]">
       {/* Hero Header */}
       <header className="relative overflow-hidden">
         {/* Background Effects */}
         <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-transparent" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-amber-500/10 rounded-full blur-[120px] opacity-50" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] md:w-[800px] h-[300px] md:h-[400px] bg-amber-500/10 rounded-full blur-[120px] opacity-50" />
         
-        <div className="relative container mx-auto px-4 py-8 md:py-12">
+        <div className="relative container mx-auto px-4 py-6 md:py-12">
           {/* Top Bar */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6 md:mb-8">
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-3"
+              className="flex items-center gap-2 md:gap-3"
             >
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-glow-md">
-                <Car className="w-6 h-6 text-slate-950" />
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-glow-md">
+                <Car className="w-5 h-5 md:w-6 md:h-6 text-slate-950" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">{store.name}</h1>
-                <p className="text-xs text-muted-foreground">Catálogo Premium</p>
+                <h1 className="text-lg md:text-xl font-bold text-white">{store.name}</h1>
+                <p className="text-[10px] md:text-xs text-muted-foreground">Catálogo Premium</p>
               </div>
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-3"
+              className="flex items-center gap-2 md:gap-3"
             >
               <Link to="/login">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-xs md:text-sm h-8 md:h-9">
                   Entrar
                 </Button>
               </Link>
-              <Link to="/home">
-                <Button variant="outline" size="sm">
+              <Link to="/home" className="hidden sm:block">
+                <Button variant="outline" size="sm" className="text-xs md:text-sm h-8 md:h-9">
                   Saiba mais
                 </Button>
               </Link>
@@ -111,17 +111,17 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-center mb-8"
+            className="text-center mb-6 md:mb-8"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-4">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-medium text-amber-400">Veículos Exclusivos</span>
+            <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-3 md:mb-4">
+              <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-amber-400" />
+              <span className="text-xs md:text-sm font-medium text-amber-400">Veículos Exclusivos</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4 leading-tight">
               Encontre seu próximo
               <span className="text-gradient block mt-1">veículo dos sonhos</span>
             </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">
+            <p className="text-sm md:text-base text-muted-foreground max-w-lg mx-auto px-4">
               Navegue pelo nosso catálogo premium de veículos selecionados com curadoria especial
             </p>
           </motion.div>
@@ -131,7 +131,7 @@ const Index = () => {
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
-              placeholder="Buscar por marca, modelo ou ano..."
+              placeholder="Buscar por marca, modelo..."
               onFilterClick={() => setFiltersOpen(true)}
             />
           </div>

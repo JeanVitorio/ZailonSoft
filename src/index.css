@@ -90,16 +90,23 @@
 
   html {
     scroll-behavior: smooth;
+    background-color: #050505;
+  }
+
+  html, body, #root {
+    min-height: 100%;
+    background-color: #050505 !important;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Poppins', sans-serif;
-    background-color: #050505;
+    background-color: #050505 !important;
     background-image: 
       radial-gradient(ellipse at top, rgba(251, 191, 36, 0.03) 0%, transparent 50%),
       url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
     background-blend-mode: overlay;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Premium scrollbar */
@@ -125,6 +132,19 @@
   ::selection {
     background: rgba(251, 191, 36, 0.3);
     color: #fafafa;
+  }
+
+  /* Mobile tap highlight */
+  * {
+    -webkit-tap-highlight-color: rgba(251, 191, 36, 0.1);
+  }
+
+  /* Fix for iOS safe areas */
+  @supports (padding: max(0px)) {
+    body {
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
   }
 }
 

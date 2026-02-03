@@ -87,11 +87,11 @@ const MainLayout = () => {
         <div className="p-4 border-t border-white/5">
           <div className="flex items-center gap-3 px-4 py-3 mb-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/20 to-orange-400/20 flex items-center justify-center">
-              <span className="text-amber-400 font-semibold">{user?.name?.charAt(0) || 'A'}</span>
+              <span className="text-amber-400 font-semibold">{user?.email?.charAt(0).toUpperCase() || 'A'}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-              <p className="text-xs text-muted-foreground truncate">{user?.storeName}</p>
+              <p className="text-sm font-medium text-white truncate">{user?.email || 'Usuário'}</p>
+              <p className="text-xs text-muted-foreground truncate">Minha Loja</p>
             </div>
           </div>
           <button

@@ -76,11 +76,29 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   };
 
   useEffect(() => {
+    // Check for existing session from localStorage first for faster restore
+    const storedSession = localStorage.getItem('autoconnect_session');
+    if (storedSession) {
+      try {
+        const parsed = JSON.parse(storedSession);
+        if (parsed.user) {
+          setUser(parsed.user);
+        }
+      } catch (e) {
+        console.error('Error parsing stored session:', e);
+      }
+    }
+
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       setAuthLoading(false);
+
+      // Persist session to localStorage
+      if (currentUser) {
+        localStorage.setItem('autoconnect_session', JSON.stringify({ user: currentUser }));
+      }
 
       const loadPromises = [
         loadSubscription(currentUser?.id),
@@ -95,6 +113,14 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       setAuthLoading(false);
+      
+      // Persist session to localStorage
+      if (currentUser) {
+        localStorage.setItem('autoconnect_session', JSON.stringify({ user: currentUser }));
+      } else {
+        localStorage.removeItem('autoconnect_session');
+      }
+      
       loadSubscription(currentUser?.id);
       loadLojaId(currentUser?.id);
     });
@@ -118,7 +144,11 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   };
 
   const signup = async (email: string, password: string, meta: Record<string, any> = {}): Promise<boolean> => {
-    const { data, error } = await supabase.auth.signUp({ email, password }, { data: meta });
+    const { data, error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: { data: meta }
+    });
     if (error) {
       console.error('Signup error:', error.message);
       return false;
@@ -129,6 +159,7 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   const logout = async () => {
     await supabase.auth.signOut();
     if (queryClient) queryClient.clear();
+    localStorage.removeItem('autoconnect_session');
     setUser(null);
     setSubscription(null);
     setLojaId(null);
