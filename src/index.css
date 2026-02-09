@@ -353,6 +353,12 @@
     }
   }
 
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
   /* Gradient text */
   .gradient-text-amber {
     @apply bg-clip-text text-transparent;
