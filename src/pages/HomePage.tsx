@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Car, Check, ArrowRight, Zap, Users, BarChart3, Package, Headphones, Shield, MessageCircle, ChevronDown } from 'lucide-react';
+import { Check, ArrowRight, Zap, Users, BarChart3, Package, Headphones, Shield, MessageCircle, ChevronDown, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const HomePage = () => {
@@ -30,20 +30,15 @@ const HomePage = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                <Car className="w-5 h-5 text-slate-950" />
-              </div>
+              <img src="/favicon.ico" alt="Logo" className="w-10 h-10 rounded-xl" />
               <span className="text-lg font-bold text-white">AutoConnect</span>
             </Link>
 
             <div className="flex items-center gap-3">
-              <Link to="/">
+              <Link to="/demo">
                 <Button variant="ghost" size="sm">Catálogo</Button>
               </Link>
-              <Link to="/login">
-                <Button variant="outline" size="sm">Entrar</Button>
-              </Link>
-              <a href="https://wa.me/5511987654321" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer">
                 <Button variant="default" size="sm">
                   <MessageCircle className="w-4 h-4" />
                   Contato
@@ -80,14 +75,14 @@ const HomePage = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="https://wa.me/5511987654321" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer">
                 <Button variant="premium" size="xl">
                   <MessageCircle className="w-5 h-5" />
                   Solicitar Demonstração
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </a>
-              <Link to="/">
+              <Link to="/demo">
                 <Button variant="glass" size="xl">
                   Ver Catálogo Demo
                 </Button>
@@ -197,7 +192,7 @@ const HomePage = () => {
                 </div>
                 <p className="text-sm text-muted-foreground mb-6">Pagamento único, sem mensalidades</p>
                 
-                <a href="https://wa.me/5511987654321" target="_blank" rel="noopener noreferrer" className="block">
+                <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="block">
                   <Button variant="premium" size="xl" className="w-full mb-4">
                     <MessageCircle className="w-5 h-5" />
                     Solicitar Entrega
@@ -230,7 +225,7 @@ const HomePage = () => {
               <p className="text-muted-foreground max-w-lg mx-auto mb-8">
                 Entre em contato agora e receba uma demonstração gratuita do sistema
               </p>
-              <a href="https://wa.me/5511987654321" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer">
                 <Button variant="premium" size="xl" className="animate-glow-pulse">
                   <MessageCircle className="w-5 h-5" />
                   Falar no WhatsApp
@@ -247,17 +242,18 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                <Car className="w-4 h-4 text-slate-950" />
-              </div>
+              <img src="/favicon.ico" alt="Logo" className="w-8 h-8 rounded-lg" />
               <span className="text-sm text-muted-foreground">
                 AutoConnect © {new Date().getFullYear()}
               </span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link to="/" className="hover:text-amber-400 transition-colors">Catálogo</Link>
-              <Link to="/login" className="hover:text-amber-400 transition-colors">Área do Lojista</Link>
-              <a href="https://wa.me/5511987654321" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">WhatsApp</a>
+              <Link to="/demo" className="hover:text-amber-400 transition-colors">Catálogo</Link>
+              <a href="https://instagram.com/zailonsoft" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors flex items-center gap-1">
+                <Instagram className="w-4 h-4" />
+                @zailonsoft
+              </a>
+              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">WhatsApp</a>
             </div>
           </div>
         </div>

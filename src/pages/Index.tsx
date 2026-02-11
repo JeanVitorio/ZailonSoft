@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Car, Sparkles, Search, SlidersHorizontal, X } from 'lucide-react';
+import { Sparkles, Search, SlidersHorizontal, X, Instagram } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { VehiclePostCard } from '@/components/ui/VehiclePostCard';
 import { Link } from 'react-router-dom';
@@ -66,9 +66,7 @@ const Index = () => {
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center gap-2 md:gap-3"
             >
-              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-glow-md">
-                <Car className="w-5 h-5 md:w-6 md:h-6 text-slate-950" />
-              </div>
+              <img src="/favicon.ico" alt="Logo" className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-glow-md" />
               <div>
                 <h1 className="text-lg md:text-xl font-bold text-white">{store.name}</h1>
                 <p className="text-[10px] md:text-xs text-muted-foreground">Catálogo Premium</p>
@@ -80,12 +78,7 @@ const Index = () => {
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center gap-2 md:gap-3"
             >
-              <Link to="/login">
-                <Button variant="ghost" size="sm" className="text-xs md:text-sm h-8 md:h-9">
-                  Entrar
-                </Button>
-              </Link>
-              <Link to="/home" className="hidden sm:block">
+              <Link to="/">
                 <Button variant="outline" size="sm" className="text-xs md:text-sm h-8 md:h-9">
                   Saiba mais
                 </Button>
@@ -314,7 +307,7 @@ const Index = () => {
             className="flex flex-col items-center justify-center py-16 md:py-20 text-center"
           >
             <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
-              <Car className="w-8 h-8 md:w-10 md:h-10 text-amber-400" />
+              <img src="/favicon.ico" alt="Logo" className="w-8 h-8 md:w-10 md:h-10" />
             </div>
             <h3 className="text-lg md:text-xl font-semibold text-white mb-2">
               Nenhum veículo encontrado
@@ -334,9 +327,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-6 md:py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                <Car className="w-4 h-4 md:w-5 md:h-5 text-slate-950" />
-              </div>
+              <img src="/favicon.ico" alt="Logo" className="w-8 h-8 md:w-10 md:h-10 rounded-xl" />
               <span className="text-xs md:text-sm text-muted-foreground">
                 {store.name} © {new Date().getFullYear()}
               </span>
@@ -345,11 +336,12 @@ const Index = () => {
               <a href={`https://wa.me/${store.whatsapp}`} target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors">
                 WhatsApp
               </a>
-              <Link to="/home" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors">
+              <a href="https://instagram.com/zailonsoft" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors flex items-center gap-1">
+                <Instagram className="w-3 h-3 md:w-4 md:h-4" />
+                @zailonsoft
+              </a>
+              <Link to="/" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors">
                 Sobre
-              </Link>
-              <Link to="/login" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors">
-                Área do Lojista
               </Link>
             </div>
           </div>
