@@ -9,7 +9,6 @@ import {
   Settings, 
   HelpCircle, 
   LogOut,
-  Car,
   Menu,
   X,
   ChevronRight
@@ -51,9 +50,7 @@ const MainLayout = () => {
         {/* Logo */}
         <div className="p-6 border-b border-white/5">
           <Link to="/sistema/dashboard" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-              <Car className="w-5 h-5 text-slate-950" />
-            </div>
+            <img src="/favicon.ico" alt="Logo" className="w-10 h-10 rounded-xl" />
             <div>
               <h1 className="text-lg font-bold text-white">AutoConnect</h1>
               <p className="text-xs text-muted-foreground">Painel Admin</p>
@@ -108,9 +105,7 @@ const MainLayout = () => {
       <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5">
         <div className="flex items-center justify-between px-4 py-3">
           <Link to="/sistema/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-              <Car className="w-4 h-4 text-slate-950" />
-            </div>
+            <img src="/favicon.ico" alt="Logo" className="w-8 h-8 rounded-lg" />
             <span className="font-bold text-white">AutoConnect</span>
           </Link>
           <button
@@ -142,9 +137,7 @@ const MainLayout = () => {
             >
               <div className="flex items-center justify-between p-6 border-b border-white/5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                    <Car className="w-5 h-5 text-slate-950" />
-                  </div>
+                  <img src="/favicon.ico" alt="Logo" className="w-10 h-10 rounded-xl" />
                   <span className="font-bold text-white">AutoConnect</span>
                 </div>
                 <button

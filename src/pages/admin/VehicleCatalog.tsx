@@ -55,7 +55,7 @@ const VehicleCatalog = () => {
   };
 
   const handleExportUrl = () => {
-    const url = `${window.location.origin}/catalogo-loja/store-1`;
+    const url = `${window.location.origin}/demo`;
     navigator.clipboard.writeText(url);
     toast({
       title: "URL Copiada!",

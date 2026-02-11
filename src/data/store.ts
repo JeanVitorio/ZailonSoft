@@ -22,13 +22,13 @@ export const defaultStore: Store = {
   description: "Sua concessionária de veículos de luxo. Especialistas em supercarros e veículos exclusivos desde 2010.",
   email: "contato@autoconnect.com.br",
   phone: "(11) 3456-7890",
-  whatsapp: "5511987654321",
+  whatsapp: "5546991163405",
   address: "Av. Europa, 1000 - Jardim Europa",
   city: "São Paulo",
   state: "SP",
   workingHours: "Seg-Sex: 9h-19h | Sáb: 9h-14h",
   socialMedia: {
-    instagram: "@autoconnect.premium",
+    instagram: "@zailonsoft",
     facebook: "autoconnectpremium"
   }
 };

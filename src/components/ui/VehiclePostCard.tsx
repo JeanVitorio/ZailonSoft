@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Eye, Play, ChevronRight } from 'lucide-react';
+import { Eye, Play, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Vehicle } from '@/data/vehicles';
 import { formatPrice } from '@/lib/formatters';
@@ -68,10 +68,6 @@ export const VehiclePostCard: React.FC<VehiclePostCardProps> = ({ vehicle, index
                   <span className="flex items-center gap-1">
                     <Eye className="w-3 h-3" />
                     {vehicle.views}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Heart className="w-3 h-3" />
-                    {vehicle.likes}
                   </span>
                 </div>
               </div>
