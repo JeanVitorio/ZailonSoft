@@ -18,7 +18,7 @@ export interface Store {
 
 export const defaultStore: Store = {
   id: "store-1",
-  name: "AutoConnect Premium",
+  name: "ZailonAuto Demo",
   description: "Sua concessionária de veículos de luxo. Especialistas em supercarros e veículos exclusivos desde 2010.",
   email: "contato@autoconnect.com.br",
   phone: "(11) 3456-7890",
