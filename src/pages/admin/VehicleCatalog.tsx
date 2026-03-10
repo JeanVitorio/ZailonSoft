@@ -92,13 +92,14 @@ const VehicleCatalog = () => {
     }
   };
 
-  const handleDelete = (id: string, name: string) => {
-    if (window.confirm(`Tem certeza que deseja excluir "${name}"?`)) {
-      deleteVehicle(id);
+  const handleDelete = () => {
+    if (deleteTarget) {
+      deleteVehicle(deleteTarget.id);
       toast({
         title: "Veículo excluído",
-        description: `${name} foi removido do catálogo.`,
+        description: `${deleteTarget.name} foi removido do catálogo.`,
       });
+      setDeleteTarget(null);
     }
   };
 
