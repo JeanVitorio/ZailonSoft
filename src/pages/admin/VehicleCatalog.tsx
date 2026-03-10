@@ -16,6 +16,7 @@ const VehicleCatalog = () => {
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'year'>('name');
   const [viewVehicle, setViewVehicle] = useState<Vehicle | null>(null);
   const [editVehicle, setEditVehicle] = useState<Vehicle | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Vehicle | null>(null);
   
   // Edit form state
   const [editName, setEditName] = useState('');
