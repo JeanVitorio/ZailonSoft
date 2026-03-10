@@ -293,19 +293,18 @@ const CRMKanban = () => {
       {/* Lead Detail Modal */}
       <AnimatePresence>
         {selectedLead && (
-          <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedLead(null)} />
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedLead(null)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg glass-card rounded-2xl z-50 overflow-hidden flex flex-col max-h-[90vh]"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg glass-card rounded-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
               {/* Modal Header */}
               <div className="flex items-center justify-between p-4 border-b border-white/5">
@@ -425,7 +424,7 @@ const CRMKanban = () => {
                 </Button>
               </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
