@@ -12,15 +12,15 @@ interface DataContextType {
   isLoading: boolean;
   error: string | null;
   refreshData: () => Promise<void>;
-  addVehicle: (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'views' | 'likes'>) => void;
-  updateVehicle: (id: string, updates: Partial<Vehicle>) => void;
-  deleteVehicle: (id: string) => void;
-  addLead: (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateLead: (id: string, updates: Partial<Lead>) => void;
-  deleteLead: (id: string) => void;
-  updateStore: (updates: Partial<Store>) => void;
-  addSeller: (seller: Omit<Seller, 'id' | 'salesCount'>) => void;
-  deleteSeller: (id: string) => void;
+  addVehicle: (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'views' | 'likes'>, images?: File[]) => Promise<void>;
+  updateVehicle: (id: string, updates: Partial<Vehicle>) => Promise<void>;
+  deleteVehicle: (id: string) => Promise<void>;
+  addLead: (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateLead: (id: string, updates: Partial<Lead>) => Promise<void>;
+  deleteLead: (id: string) => Promise<void>;
+  updateStore: (updates: Partial<Store>) => Promise<void>;
+  addSeller: (seller: Omit<Seller, 'id' | 'salesCount'>) => Promise<void>;
+  deleteSeller: (id: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -130,22 +130,32 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       setError(null);
 
-      // Buscar carros do Supabase
       const carsData = await apiService.fetchAllCars();
       const vehiclesData = carsData.map(mapCarToVehicle);
       setVehicles(vehiclesData);
 
-      // Buscar clientes do Supabase
       const clientsData = await apiService.fetchClients();
       const leadsData = clientsData.map(mapClientToLead);
       setLeads(leadsData);
+
+      const storeData = await apiService.fetchStoreDetails();
+      if (storeData) {
+        setStore({
+          id: storeData.id,
+          name: storeData.nome,
+          logo: storeData.logo_url || '',
+          address: storeData.endereco || '',
+          phone: storeData.telefone || '',
+          email: storeData.email || '',
+          website: storeData.website || '',
+          social: storeData.social || {}
+        });
+      }
 
       setError(null);
     } catch (err: any) {
       console.error('Erro ao carregar dados do Supabase:', err);
       setError(err?.message || 'Erro ao carregar dados');
-      
-      // Fallback para dados locais
       setVehicles(initialVehicles);
       setLeads(initialLeads);
     } finally {
@@ -153,86 +163,133 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Carregar dados ao montar
   useEffect(() => {
     refreshData();
   }, []);
 
-  const addVehicle = (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'views' | 'likes'>) => {
-    const newVehicle: Vehicle = {
-      ...vehicle,
-      id: `vehicle-${Date.now()}`,
-      createdAt: new Date().toISOString().split('T')[0],
-      views: 0,
-      likes: 0
-    };
-    setVehicles(prev => [newVehicle, ...prev]);
+  const addVehicle = async (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'views' | 'likes'>, images: File[] = []) => {
+    try {
+      const storeData = await apiService.fetchStoreDetails();
+      if (!storeData?.id) throw new Error('Loja não identificada.');
+
+      const result = await apiService.addVehicle({
+        name: vehicle.name,
+        year: String(vehicle.year),
+        price: String(vehicle.price),
+        description: vehicle.description
+      }, images, storeData.id);
+
+      const newVehicle = mapCarToVehicle(result);
+      setVehicles(prev => [newVehicle, ...prev]);
+    } catch (err) {
+      console.error('Erro ao adicionar veículo:', err);
+      throw err;
+    }
   };
 
-  const updateVehicle = (id: string, updates: Partial<Vehicle>) => {
-    setVehicles(prev => prev.map(v => v.id === id ? { ...v, ...updates } : v));
+  const updateVehicle = async (id: string, updates: Partial<Vehicle>) => {
+    try {
+      const dataToSupabase: Record<string, any> = {};
+      if (updates.name) dataToSupabase.nome = updates.name;
+      if (updates.price !== undefined) dataToSupabase.preco = String(updates.price);
+      if (updates.year) dataToSupabase.ano = Number(updates.year);
+      if (updates.description) dataToSupabase.descricao = updates.description;
+
+      await apiService.updateVehicle({
+        carId: id,
+        updatedData: dataToSupabase
+      });
+
+      setVehicles(prev => prev.map(v => v.id === id ? { ...v, ...updates } : v));
+    } catch (err) {
+      console.error('Erro ao atualizar veículo:', err);
+      throw err;
+    }
   };
 
-  const deleteVehicle = (id: string) => {
-    setVehicles(prev => prev.filter(v => v.id !== id));
+  const deleteVehicle = async (id: string) => {
+    try {
+      await apiService.deleteVehicle(id);
+      setVehicles(prev => prev.filter(v => v.id !== id));
+    } catch (err) {
+      console.error('Erro ao deletar veículo:', err);
+      throw err;
+    }
   };
 
-  const addLead = (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addLead = async (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => {
+    // Implementar se necessário integração com createClient do apiService
     const now = new Date().toISOString();
-    const newLead: Lead = {
-      ...lead,
-      id: `lead-${Date.now()}`,
-      createdAt: now,
-      updatedAt: now
-    };
+    const newLead: Lead = { ...lead, id: `lead-${Date.now()}`, createdAt: now, updatedAt: now };
     setLeads(prev => [newLead, ...prev]);
   };
 
-  const updateLead = (id: string, updates: Partial<Lead>) => {
-    setLeads(prev => prev.map(l => 
-      l.id === id ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l
-    ));
+  const updateLead = async (id: string, updates: Partial<Lead>) => {
+    try {
+      if (updates.status) {
+        await apiService.updateClientStatus({ chatId: id, newState: updates.status });
+      }
+      setLeads(prev => prev.map(l => 
+        l.id === id ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l
+      ));
+    } catch (err) {
+      console.error('Erro ao atualizar lead:', err);
+    }
   };
 
-  const deleteLead = (id: string) => {
-    setLeads(prev => prev.filter(l => l.id !== id));
+  const deleteLead = async (id: string) => {
+    try {
+      await apiService.deleteClient(id);
+      setLeads(prev => prev.filter(l => l.id !== id));
+    } catch (err) {
+      console.error('Erro ao deletar lead:', err);
+    }
   };
 
-  const updateStore = (updates: Partial<Store>) => {
-    setStore(prev => ({ ...prev, ...updates }));
+  const updateStore = async (updates: Partial<Store>) => {
+    try {
+      if (!store.id) return;
+      await apiService.updateStoreDetails({
+        lojaId: store.id,
+        updates: {
+          nome: updates.name,
+          telefone: updates.phone,
+          endereco: updates.address
+        }
+      });
+      setStore(prev => ({ ...prev, ...updates }));
+    } catch (err) {
+      console.error('Erro ao atualizar loja:', err);
+    }
   };
 
-  const addSeller = (seller: Omit<Seller, 'id' | 'salesCount'>) => {
-    const newSeller: Seller = {
-      ...seller,
-      id: `seller-${Date.now()}`,
-      salesCount: 0
-    };
-    setSellers(prev => [...prev, newSeller]);
+  const addSeller = async (seller: Omit<Seller, 'id' | 'salesCount'>) => {
+    try {
+      const storeData = await apiService.fetchStoreDetails();
+      const result = await apiService.createVendedor({
+        ...seller,
+        loja_id: storeData.id
+      });
+      setSellers(prev => [...prev, { ...seller, id: result.id, salesCount: 0 }]);
+    } catch (err) {
+      console.error('Erro ao adicionar vendedor:', err);
+    }
   };
 
-  const deleteSeller = (id: string) => {
-    setSellers(prev => prev.filter(s => s.id !== id));
+  const deleteSeller = async (id: string) => {
+    try {
+      await apiService.deleteVendedor(id);
+      setSellers(prev => prev.filter(s => s.id !== id));
+    } catch (err) {
+      console.error('Erro ao deletar vendedor:', err);
+    }
   };
 
   return (
     <DataContext.Provider value={{
-      vehicles,
-      leads,
-      store,
-      sellers,
-      isLoading,
-      error,
-      refreshData,
-      addVehicle,
-      updateVehicle,
-      deleteVehicle,
-      addLead,
-      updateLead,
-      deleteLead,
-      updateStore,
-      addSeller,
-      deleteSeller
+      vehicles, leads, store, sellers, isLoading, error,
+      refreshData, addVehicle, updateVehicle, deleteVehicle,
+      addLead, updateLead, deleteLead, updateStore, addSeller, deleteSeller
     }}>
       {children}
     </DataContext.Provider>
@@ -241,8 +298,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 export const useData = () => {
   const context = useContext(DataContext);
-  if (context === undefined) {
-    throw new Error('useData must be used within a DataProvider');
-  }
+  if (context === undefined) throw new Error('useData must be used within a DataProvider');
   return context;
 };

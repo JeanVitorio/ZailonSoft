@@ -157,26 +157,6 @@ const LoginPage = () => {
           </form>
 
           {/* Divider */}
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-[#050505] px-4 text-muted-foreground">Ou</span>
-            </div>
-          </div>
-
-          {/* Signup Link */}
-          <div className="text-center">
-            <p className="text-muted-foreground mb-4">
-              Ainda não tem uma conta?
-            </p>
-            <Link to="/signup">
-              <Button variant="outline" className="w-full">
-                Criar conta
-              </Button>
-            </Link>
-          </div>
 
           {/* WhatsApp */}
           <div className="mt-8 text-center">

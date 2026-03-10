@@ -191,11 +191,11 @@ export const addVehicle = async (
 export const updateVehicle = async ({
   carId,
   updatedData,
-  newImages,
+  newImages = [],
 }: {
   carId: string;
   updatedData: { [key: string]: any };
-  newImages: File[];
+  newImages?: File[];
 }) => {
   try {
     const imageUrls: string[] = [];
@@ -241,7 +241,6 @@ export const updateVehicle = async ({
     }
 
     const finalImages = [...(currentCar?.imagens || []), ...imageUrls];
-
     const dataToUpdate = { ...updatedData, imagens: finalImages };
 
     const { data, error: dbError } = await supabase
