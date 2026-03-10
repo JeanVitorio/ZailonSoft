@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Edit, Trash2, Eye, Package, Link2, X, Save } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, Package, Link2, X, Save, AlertTriangle } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { formatPrice } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ const VehicleCatalog = () => {
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'year'>('name');
   const [viewVehicle, setViewVehicle] = useState<Vehicle | null>(null);
   const [editVehicle, setEditVehicle] = useState<Vehicle | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Vehicle | null>(null);
   
   // Edit form state
   const [editName, setEditName] = useState('');
@@ -91,13 +92,14 @@ const VehicleCatalog = () => {
     }
   };
 
-  const handleDelete = (id: string, name: string) => {
-    if (window.confirm(`Tem certeza que deseja excluir "${name}"?`)) {
-      deleteVehicle(id);
+  const handleDelete = () => {
+    if (deleteTarget) {
+      deleteVehicle(deleteTarget.id);
       toast({
         title: "Veículo excluído",
-        description: `${name} foi removido do catálogo.`,
+        description: `${deleteTarget.name} foi removido do catálogo.`,
       });
+      setDeleteTarget(null);
     }
   };
 
@@ -212,7 +214,7 @@ const VehicleCatalog = () => {
                       <Edit className="w-4 h-4" />
                     </button>
                     <button 
-                      onClick={() => handleDelete(vehicle.id, vehicle.name)}
+                      onClick={() => setDeleteTarget(vehicle)}
                       className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-red-400 hover:bg-red-400/10 transition-all"
                       title="Excluir"
                     >
@@ -251,19 +253,18 @@ const VehicleCatalog = () => {
       {/* View Modal */}
       <AnimatePresence>
         {viewVehicle && (
-          <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setViewVehicle(null)} />
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setViewVehicle(null)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-2xl glass-card rounded-2xl z-50 overflow-hidden flex flex-col max-h-[90vh]"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-2xl glass-card rounded-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
               {/* Modal Header */}
               <div className="flex items-center justify-between p-4 border-b border-white/5">
@@ -328,26 +329,25 @@ const VehicleCatalog = () => {
                 </Link>
               </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
 
       {/* Edit Modal */}
       <AnimatePresence>
         {editVehicle && (
-          <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditVehicle(null)} />
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setEditVehicle(null)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg glass-card rounded-2xl z-50 overflow-hidden flex flex-col max-h-[90vh]"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg glass-card rounded-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
               {/* Modal Header */}
               <div className="flex items-center justify-between p-4 border-b border-white/5">
@@ -435,7 +435,75 @@ const VehicleCatalog = () => {
                 </Button>
               </div>
             </motion.div>
-          </>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setDeleteTarget(null)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-md glass-card rounded-2xl overflow-hidden"
+            >
+              {/* Red accent bar */}
+              <div className="h-1 bg-gradient-to-r from-red-500 to-orange-500" />
+              
+              <div className="p-6 text-center">
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
+                  <AlertTriangle className="w-8 h-8 text-red-400" />
+                </div>
+
+                <h3 className="text-xl font-bold text-white mb-2">Excluir Veículo</h3>
+                <p className="text-muted-foreground mb-1">
+                  Tem certeza que deseja excluir
+                </p>
+                <p className="text-white font-semibold text-lg mb-1">"{deleteTarget.name}"</p>
+                <p className="text-xs text-muted-foreground mb-6">
+                  Esta ação não pode ser desfeita.
+                </p>
+
+                {/* Vehicle preview */}
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5 mb-6">
+                  <img 
+                    src={deleteTarget.images[0] || '/placeholder.svg'} 
+                    alt={deleteTarget.name}
+                    className="w-16 h-12 object-cover rounded-lg"
+                  />
+                  <div className="text-left min-w-0">
+                    <p className="text-sm text-white font-medium truncate">{deleteTarget.name}</p>
+                    <p className="text-xs text-muted-foreground">{deleteTarget.brand} • {deleteTarget.year}</p>
+                  </div>
+                  <span className="text-sm font-semibold text-amber-400 ml-auto flex-shrink-0">{formatPrice(deleteTarget.price)}</span>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1">
+                    Cancelar
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDelete} 
+                    className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Excluir
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
