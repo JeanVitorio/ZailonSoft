@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Edit, Trash2, Eye, Package, Link2, X, Save } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, Package, Link2, X, Save, AlertTriangle } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { formatPrice } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
