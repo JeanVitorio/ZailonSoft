@@ -214,7 +214,7 @@ const VehicleCatalog = () => {
                       <Edit className="w-4 h-4" />
                     </button>
                     <button 
-                      onClick={() => handleDelete(vehicle.id, vehicle.name)}
+                      onClick={() => setDeleteTarget(vehicle)}
                       className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-red-400 hover:bg-red-400/10 transition-all"
                       title="Excluir"
                     >
