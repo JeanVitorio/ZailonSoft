@@ -186,11 +186,11 @@ const HomePage = () => {
               className="glass-card p-8 rounded-3xl"
             >
               <div className="text-center">
-                <p className="text-muted-foreground mb-2">Investimento único</p>
+                <p className="text-muted-foreground mb-2">Domine as vendas de sua loja na palma de sua mão</p>
                 <div className="flex items-baseline justify-center gap-2 mb-4">
-                  <span className="text-5xl font-bold text-gradient">R$ 2.997</span>
+                  <span className="text-5xl font-bold text-gradient">Investimento único</span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-6">Pagamento único, sem mensalidades</p>
+                <p className="text-sm text-muted-foreground mb-6">sem mensalidades</p>
                 
                 <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="block">
                   <Button variant="premium" size="xl" className="w-full mb-4">
