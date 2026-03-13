@@ -90,8 +90,14 @@ const VehicleCatalog = () => {
     if (editVehicle) {
       updateVehicle(editVehicle.id, {
         name: editName,
+        brand: editBrand,
+        model: editModel,
         price: parseFloat(editPrice) || 0,
         year: parseInt(editYear) || new Date().getFullYear(),
+        mileage: parseInt(editMileage) || 0,
+        fuel: editFuel,
+        transmission: editTransmission,
+        color: editColor,
         description: editDescription,
         stock: parseInt(editStock) || 1,
         status: editStatus
