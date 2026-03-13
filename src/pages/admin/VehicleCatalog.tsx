@@ -20,8 +20,14 @@ const VehicleCatalog = () => {
   
   // Edit form state
   const [editName, setEditName] = useState('');
+  const [editBrand, setEditBrand] = useState('');
+  const [editModel, setEditModel] = useState('');
   const [editPrice, setEditPrice] = useState('');
   const [editYear, setEditYear] = useState('');
+  const [editMileage, setEditMileage] = useState('');
+  const [editFuel, setEditFuel] = useState('');
+  const [editTransmission, setEditTransmission] = useState('');
+  const [editColor, setEditColor] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editStock, setEditStock] = useState('');
   const [editStatus, setEditStatus] = useState<'available' | 'reserved' | 'sold'>('available');
