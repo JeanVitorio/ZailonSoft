@@ -38,7 +38,7 @@ const HomePage = () => {
               <Link to="/demo">
                 <Button variant="ghost" size="sm">Catálogo</Button>
               </Link>
-              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5546991370461" target="_blank" rel="noopener noreferrer">
                 <Button variant="default" size="sm">
                   <MessageCircle className="w-4 h-4" />
                   Contato
@@ -75,7 +75,7 @@ const HomePage = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5546991370461" target="_blank" rel="noopener noreferrer">
                 <Button variant="premium" size="xl">
                   <MessageCircle className="w-5 h-5" />
                   Solicitar Demonstração
@@ -192,7 +192,7 @@ const HomePage = () => {
                 </div>
                 <p className="text-sm text-muted-foreground mb-6">sem mensalidades</p>
                 
-                <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="block">
+                <a href="https://wa.me/5546991370461" target="_blank" rel="noopener noreferrer" className="block">
                   <Button variant="premium" size="xl" className="w-full mb-4">
                     <MessageCircle className="w-5 h-5" />
                     Solicitar Acesso A Ferramenta
@@ -225,7 +225,7 @@ const HomePage = () => {
               <p className="text-muted-foreground max-w-lg mx-auto mb-8">
                 Entre em contato agora e receba uma demonstração gratuita do sistema
               </p>
-              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5546991370461" target="_blank" rel="noopener noreferrer">
                 <Button variant="premium" size="xl" className="animate-glow-pulse">
                   <MessageCircle className="w-5 h-5" />
                   Falar no WhatsApp
@@ -253,7 +253,7 @@ const HomePage = () => {
                 <Instagram className="w-4 h-4" />
                 @zailonsoft
               </a>
-              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">WhatsApp</a>
+              <a href="https://wa.me/5546991370461" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">WhatsApp</a>
             </div>
           </div>
         </div>
