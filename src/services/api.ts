@@ -6,35 +6,71 @@ import { v4 as uuidv4 } from 'uuid';
 export interface Car {
   id: string;
   nome: string;
+  marca: string | null;
+  modelo: string | null;
   ano: number | null;
-  preco: string;
+  preco: number | string;
   descricao: string;
   imagens: string[];
   loja_id: string;
+  status: string;
+  estoque: number;
+  quilometragem: number;
+  combustivel: string | null;
+  cambio: string | null;
+  cor: string | null;
+  created_at: string;
 }
 
 export interface LojaDetails {
   id: string;
   nome: string;
+  descricao: string | null;
+  telefone_principal: string | null;
+  email: string | null;
+  site: string | null;
+  whatsapp: string | null;
+  horario_funcionamento: any;
+  localizacao: any;
+  redes_sociais: any;
   logo_url: string | null;
+  proprietario: string | null;
+  user_id: string | null;
 }
 
 export interface Client {
+  id: string;
   chat_id: string;
   name: string;
   phone: string;
   cpf: string;
   job: string;
   state: string;
-  interested_vehicles: string[];
   documents: string[];
   report: string;
   payment_method: string;
   rg_number: string;
   incomeProof: string;
   rg_photo: string;
-  visit_details: { day: string; time: string };
+  visit_details: any;
   bot_data: any;
+  deal_type: string;
+  financing_details: string;
+  interested_vehicles: string;
+  trade_in_car: string;
+  loja_id: string | null;
+  created_at: string;
+  updated_at: string;
+  owner: string | null;
+  priority: string;
+  next_action_at: string | null;
+  last_contact_at: string | null;
+  appointment_at: string | null;
+  tags: string[];
+  notes: string | null;
+  follow_up_count: number;
+  outcome: string | null;
+  channel: string | null;
 }
 
 export interface ClientPayload {
@@ -43,9 +79,9 @@ export interface ClientPayload {
   cpf: string;
   job: string;
   state: string;
-  interested_vehicles: { id: string; nome: string }[];
-  trade_in_car?: { model: string; year: string; value: string };
-  financing_details?: { entry: string; parcels: string };
+  interested_vehicles: string;
+  trade_in_car?: string;
+  financing_details?: string;
   visit_details?: { day: string; time: string };
   deal_type: string;
   payment_method?: string;
@@ -114,7 +150,7 @@ export const fetchAllCars = async (): Promise<Car[]> => {
 export const fetchLojaDetails = async (lojaId: string): Promise<LojaDetails> => {
   const { data, error } = await supabase
     .from('lojas')
-    .select('id, nome, logo_url')
+    .select('*')
     .eq('id', lojaId)
     .single();
 
@@ -127,7 +163,20 @@ export const fetchLojaDetails = async (lojaId: string): Promise<LojaDetails> => 
 };
 
 export const addVehicle = async (
-  vehicleData: { name: string; year: string; price: string; description: string },
+  vehicleData: {
+    name: string;
+    brand: string;
+    model: string;
+    year: string;
+    price: string;
+    description: string;
+    mileage?: number;
+    fuel?: string;
+    transmission?: string;
+    color?: string;
+    stock?: number;
+    status?: string;
+  },
   images: File[],
   lojaId: string
 ) => {
@@ -168,9 +217,17 @@ export const addVehicle = async (
       id: carId,
       loja_id: lojaId,
       nome: (vehicleData.name ?? '').trim(),
+      marca: (vehicleData.brand ?? '').trim() || null,
+      modelo: (vehicleData.model ?? '').trim() || null,
       descricao: (vehicleData.description ?? '').trim(),
-      preco: String(vehicleData.price ?? '').trim(),
+      preco: Number(vehicleData.price) || 0,
       ano: vehicleData.year ? Number(vehicleData.year) : null,
+      quilometragem: vehicleData.mileage || 0,
+      combustivel: vehicleData.fuel || null,
+      cambio: vehicleData.transmission || null,
+      cor: vehicleData.color || null,
+      estoque: vehicleData.stock || 1,
+      status: vehicleData.status || 'available',
       imagens: imageUrls,
     };
 
@@ -272,7 +329,7 @@ export const deleteVehicle = async (vehicleId: string): Promise<string> => {
     if (fetchError) console.warn('Veículo não encontrado para listar imagens (continua exclusão).');
 
     const filePaths = (vehicle?.imagens || [])
-      .map((url) => url.split('/car-images/')[1])
+      .map((url: string) => url.split('/car-images/')[1])
       .filter(Boolean);
 
     if (filePaths.length > 0) {
@@ -383,19 +440,14 @@ export const createClient = async ({
       }
     }
 
-    const interestedVehiclesStrings = clientPayload.interested_vehicles.map((v) =>
-      JSON.stringify(v)
-    );
-
     const finalClientPayload = {
       ...clientPayload,
       chat_id,
       loja_id: lojaId,
       documents: documentUrls,
-      interested_vehicles: interestedVehiclesStrings,
       bot_data: {
         ...clientPayload.bot_data,
-        trade_in_car: { ...clientPayload.trade_in_car, photos: tradeInUrls },
+        trade_in_photos: tradeInUrls,
       },
     };
 
@@ -517,7 +569,7 @@ export const deleteClientFile = async ({
 
 // ======================= LOJA =======================
 
-export const fetchStoreDetails = async () => {
+export const fetchStoreDetails = async (): Promise<LojaDetails> => {
   const { data: auth } = await supabase.auth.getUser();
   const user = auth?.user;
   if (!user) throw new Error('Usuário não autenticado.');
@@ -533,7 +585,7 @@ export const fetchStoreDetails = async () => {
     console.error('Supabase erro ao buscar loja:', error);
     throw new Error('Falha ao buscar dados da sua loja.');
   }
-  return data;
+  return data as LojaDetails;
 };
 
 export const updateStoreDetails = async ({
