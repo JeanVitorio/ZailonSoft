@@ -73,8 +73,14 @@ const VehicleCatalog = () => {
   const openEditModal = (vehicle: Vehicle) => {
     setEditVehicle(vehicle);
     setEditName(vehicle.name);
+    setEditBrand(vehicle.brand || '');
+    setEditModel(vehicle.model || '');
     setEditPrice(vehicle.price.toString());
     setEditYear(vehicle.year.toString());
+    setEditMileage((vehicle.mileage || 0).toString());
+    setEditFuel(vehicle.fuel || '');
+    setEditTransmission(vehicle.transmission || '');
+    setEditColor(vehicle.color || '');
     setEditDescription(vehicle.description);
     setEditStock(vehicle.stock.toString());
     setEditStatus(vehicle.status);
