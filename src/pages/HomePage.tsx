@@ -195,7 +195,7 @@ const HomePage = () => {
                 <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="block">
                   <Button variant="premium" size="xl" className="w-full mb-4">
                     <MessageCircle className="w-5 h-5" />
-                    Solicitar Entrega
+                    Solicitar Acesso A Ferramenta
                   </Button>
                 </a>
                 
