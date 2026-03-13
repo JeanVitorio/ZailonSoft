@@ -9,7 +9,8 @@ export interface Store {
   address: string;
   city: string;
   state: string;
-  workingHours: string;
+  website: string;
+  workingHours: any;
   socialMedia: {
     instagram?: string;
     facebook?: string;
@@ -26,6 +27,7 @@ export const defaultStore: Store = {
   address: "Av. Europa, 1000 - Jardim Europa",
   city: "São Paulo",
   state: "SP",
+  website: "",
   workingHours: "Seg-Sex: 9h-19h | Sáb: 9h-14h",
   socialMedia: {
     instagram: "@zailonsoft",

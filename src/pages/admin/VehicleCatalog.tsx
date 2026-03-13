@@ -20,8 +20,14 @@ const VehicleCatalog = () => {
   
   // Edit form state
   const [editName, setEditName] = useState('');
+  const [editBrand, setEditBrand] = useState('');
+  const [editModel, setEditModel] = useState('');
   const [editPrice, setEditPrice] = useState('');
   const [editYear, setEditYear] = useState('');
+  const [editMileage, setEditMileage] = useState('');
+  const [editFuel, setEditFuel] = useState('');
+  const [editTransmission, setEditTransmission] = useState('');
+  const [editColor, setEditColor] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editStock, setEditStock] = useState('');
   const [editStatus, setEditStatus] = useState<'available' | 'reserved' | 'sold'>('available');
@@ -67,8 +73,14 @@ const VehicleCatalog = () => {
   const openEditModal = (vehicle: Vehicle) => {
     setEditVehicle(vehicle);
     setEditName(vehicle.name);
+    setEditBrand(vehicle.brand || '');
+    setEditModel(vehicle.model || '');
     setEditPrice(vehicle.price.toString());
     setEditYear(vehicle.year.toString());
+    setEditMileage((vehicle.mileage || 0).toString());
+    setEditFuel(vehicle.fuel || '');
+    setEditTransmission(vehicle.transmission || '');
+    setEditColor(vehicle.color || '');
     setEditDescription(vehicle.description);
     setEditStock(vehicle.stock.toString());
     setEditStatus(vehicle.status);
@@ -78,8 +90,14 @@ const VehicleCatalog = () => {
     if (editVehicle) {
       updateVehicle(editVehicle.id, {
         name: editName,
+        brand: editBrand,
+        model: editModel,
         price: parseFloat(editPrice) || 0,
         year: parseInt(editYear) || new Date().getFullYear(),
+        mileage: parseInt(editMileage) || 0,
+        fuel: editFuel,
+        transmission: editTransmission,
+        color: editColor,
         description: editDescription,
         stock: parseInt(editStock) || 1,
         status: editStatus
@@ -364,49 +382,67 @@ const VehicleCatalog = () => {
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-muted-foreground mb-2">Nome</label>
-                  <Input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="h-12"
-                  />
+                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-12" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Marca</label>
+                    <Input value={editBrand} onChange={(e) => setEditBrand(e.target.value)} className="h-12" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Modelo</label>
+                    <Input value={editModel} onChange={(e) => setEditModel(e.target.value)} className="h-12" />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Preço</label>
-                    <Input
-                      type="number"
-                      value={editPrice}
-                      onChange={(e) => setEditPrice(e.target.value)}
-                      className="h-12"
-                    />
+                    <Input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} className="h-12" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Ano</label>
-                    <Input
-                      type="number"
-                      value={editYear}
-                      onChange={(e) => setEditYear(e.target.value)}
-                      className="h-12"
-                    />
+                    <Input type="number" value={editYear} onChange={(e) => setEditYear(e.target.value)} className="h-12" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Km</label>
+                    <Input type="number" value={editMileage} onChange={(e) => setEditMileage(e.target.value)} className="h-12" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Combustível</label>
+                    <select value={editFuel} onChange={(e) => setEditFuel(e.target.value)} className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 text-sm">
+                      <option value="">Selecionar</option>
+                      <option value="Gasolina">Gasolina</option>
+                      <option value="Etanol">Etanol</option>
+                      <option value="Flex">Flex</option>
+                      <option value="Diesel">Diesel</option>
+                      <option value="Elétrico">Elétrico</option>
+                      <option value="Híbrido">Híbrido</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Câmbio</label>
+                    <select value={editTransmission} onChange={(e) => setEditTransmission(e.target.value)} className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 text-sm">
+                      <option value="">Selecionar</option>
+                      <option value="Automático">Automático</option>
+                      <option value="Manual">Manual</option>
+                      <option value="CVT">CVT</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Cor</label>
+                    <Input value={editColor} onChange={(e) => setEditColor(e.target.value)} className="h-12" />
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Estoque</label>
-                    <Input
-                      type="number"
-                      value={editStock}
-                      onChange={(e) => setEditStock(e.target.value)}
-                      className="h-12"
-                    />
+                    <Input type="number" value={editStock} onChange={(e) => setEditStock(e.target.value)} className="h-12" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Status</label>
-                    <select
-                      value={editStatus}
-                      onChange={(e) => setEditStatus(e.target.value as typeof editStatus)}
-                      className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-amber-500/50"
-                    >
+                    <select value={editStatus} onChange={(e) => setEditStatus(e.target.value as typeof editStatus)} className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 text-sm">
                       <option value="available">Disponível</option>
                       <option value="reserved">Reservado</option>
                       <option value="sold">Vendido</option>
@@ -415,12 +451,7 @@ const VehicleCatalog = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-muted-foreground mb-2">Descrição</label>
-                  <Textarea
-                    value={editDescription}
-                    onChange={(e) => setEditDescription(e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                  />
+                  <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={4} className="resize-none" />
                 </div>
               </div>
 
