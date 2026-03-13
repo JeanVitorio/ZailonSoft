@@ -161,7 +161,7 @@ const LoginPage = () => {
           {/* WhatsApp */}
           <div className="mt-8 text-center">
             <a 
-              href="https://wa.me/5546991370461" 
+              href="https://wa.me/5546991163405" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-amber-400 transition-colors"
