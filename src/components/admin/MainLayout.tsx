@@ -36,7 +36,7 @@ const MainLayout = () => {
   }
 
   if (!isActive) {
-    return <Navigate to="/ativar-conta" replace />;
+    return <Navigate to="/assinar" replace />;
   }
 
   const handleLogout = () => {

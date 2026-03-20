@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import VehicleDetail from "./pages/VehicleDetail";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
+import SubscribePage from "./pages/SubscribePage";
 import NotFound from "./pages/NotFound";
 
 // Admin Pages
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/demo" element={<Index />} />
               <Route path="/veiculo/:id" element={<VehicleDetail />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/assinar" element={<SubscribePage />} />
 
               {/* Admin Routes */}
               <Route path="/sistema" element={<MainLayout />}>
