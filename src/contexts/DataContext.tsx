@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Vehicle, vehicles as initialVehicles } from '@/data/vehicles';
-import { Lead, leads as initialLeads } from '@/data/leads';
-import { Store, defaultStore, Seller, sellers as initialSellers } from '@/data/store';
+import { Vehicle } from '@/data/vehicles';
+import { Lead } from '@/data/leads';
+import { Store, Seller } from '@/data/store';
+import { useAuth } from '@/contexts/AuthContext';
 import * as apiService from '@/services/api';
 
 interface DataContextType {
@@ -25,7 +26,6 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-// Helpers
 const parsePriceString = (value: any) => {
   if (value == null) return 0;
   if (typeof value === 'number') return value;
@@ -54,7 +54,6 @@ const normalizeStateToStatus = (raw: any): Lead['status'] => {
   return 'new';
 };
 
-// Helper: converte dados do Supabase para formato local
 const mapCarToVehicle = (car: apiService.Car): Vehicle => ({
   id: car.id,
   name: car.nome || '',
@@ -80,7 +79,6 @@ const mapCarToVehicle = (car: apiService.Car): Vehicle => ({
 const mapClientToLead = (client: apiService.Client): Lead => {
   const bot = client.bot_data || {};
 
-  // Parse interested_vehicles - it's a text field in DB
   let vehicleName = 'Veículo';
   let vehicleId = '';
   try {
@@ -95,7 +93,6 @@ const mapClientToLead = (client: apiService.Client): Lead => {
       }
     }
   } catch {
-    // If parsing fails, try bot_data
     const interested = bot.interested_vehicles?.[0] || bot.interested_vehicle;
     if (interested) {
       vehicleName = interested?.nome || interested?.name || (typeof interested === 'string' ? interested : 'Veículo');
@@ -103,7 +100,6 @@ const mapClientToLead = (client: apiService.Client): Lead => {
     }
   }
 
-  // Parse financing for value
   let value = 0;
   try {
     if (client.financing_details) {
@@ -116,14 +112,12 @@ const mapClientToLead = (client: apiService.Client): Lead => {
     value = parsePriceString(bot?.financing_details?.entry ?? 0);
   }
 
-  // Parse visit details for follow-up
   let followUpDate: string | undefined;
   try {
     const visit = client.visit_details || bot?.visit_details;
     if (visit?.day) followUpDate = visit.day;
   } catch {}
 
-  // Priority mapping
   const priorityMap: Record<string, Lead['priority']> = {
     alta: 'high', high: 'high',
     media: 'medium', medium: 'medium', normal: 'medium',
@@ -173,17 +167,18 @@ const mapLojaToStore = (loja: apiService.LojaDetails): Store => {
   };
 };
 
+const emptyStore: Store = {
+  id: '', name: '', description: '', email: '', phone: '', whatsapp: '',
+  address: '', city: '', state: '', website: '', workingHours: '',
+  socialMedia: { instagram: '', facebook: '' }
+};
+
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { lojaId, user } = useAuth();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [store, setStore] = useState<Store>(() => {
-    const saved = localStorage.getItem('autoconnect_store');
-    return saved ? JSON.parse(saved) : defaultStore;
-  });
-  const [sellers, setSellers] = useState<Seller[]>(() => {
-    const saved = localStorage.getItem('autoconnect_sellers');
-    return saved ? JSON.parse(saved) : initialSellers;
-  });
+  const [store, setStore] = useState<Store>(emptyStore);
+  const [sellers, setSellers] = useState<Seller[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -192,25 +187,46 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       setError(null);
 
+      // Fetch cars (public - no auth needed for display)
       const carsData = await apiService.fetchAllCars();
-      const vehiclesData = carsData.map(mapCarToVehicle);
-      setVehicles(vehiclesData);
+      setVehicles(carsData.map(mapCarToVehicle));
 
-      const clientsData = await apiService.fetchClients();
-      const leadsData = clientsData.map(mapClientToLead);
-      setLeads(leadsData);
+      // Only fetch admin data if user is logged in
+      if (user) {
+        try {
+          const clientsData = await apiService.fetchClients();
+          setLeads(clientsData.map(mapClientToLead));
+        } catch (err) {
+          console.warn('Não foi possível carregar clientes:', err);
+          setLeads([]);
+        }
 
-      const storeData = await apiService.fetchStoreDetails();
-      if (storeData) {
-        setStore(mapLojaToStore(storeData));
+        try {
+          const storeData = await apiService.fetchStoreDetails();
+          if (storeData) {
+            setStore(mapLojaToStore(storeData));
+            // Fetch sellers for this store
+            try {
+              const vendedoresData = await apiService.fetchVendedores(storeData.id);
+              setSellers((vendedoresData || []).map((v: any) => ({
+                id: v.id,
+                name: v.nome || '',
+                email: v.email || '',
+                phone: v.telefone || v.whatsapp || '',
+                role: 'Consultor de Vendas',
+                salesCount: 0,
+              })));
+            } catch {
+              setSellers([]);
+            }
+          }
+        } catch (err) {
+          console.warn('Não foi possível carregar loja:', err);
+        }
       }
-
-      setError(null);
     } catch (err: any) {
-      console.error('Erro ao carregar dados do Supabase:', err);
+      console.error('Erro ao carregar dados:', err);
       setError(err?.message || 'Erro ao carregar dados');
-      setVehicles(initialVehicles);
-      setLeads(initialLeads);
     } finally {
       setIsLoading(false);
     }
@@ -218,7 +234,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     refreshData();
-  }, []);
+  }, [user]);
 
   const addVehicle = async (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'views' | 'likes'>, images: File[] = []) => {
     try {
@@ -264,11 +280,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (updates.stock !== undefined) dataToSupabase.estoque = updates.stock;
       if (updates.status !== undefined) dataToSupabase.status = updates.status;
 
-      await apiService.updateVehicle({
-        carId: id,
-        updatedData: dataToSupabase
-      });
-
+      await apiService.updateVehicle({ carId: id, updatedData: dataToSupabase });
       setVehicles(prev => prev.map(v => v.id === id ? { ...v, ...updates } : v));
     } catch (err) {
       console.error('Erro ao atualizar veículo:', err);
@@ -287,9 +299,32 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addLead = async (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date().toISOString();
-    const newLead: Lead = { ...lead, id: `lead-${Date.now()}`, createdAt: now, updatedAt: now };
-    setLeads(prev => [newLead, ...prev]);
+    // Save to Supabase via createClient
+    try {
+      const storeData = await apiService.fetchStoreDetails();
+      const result = await apiService.createClient({
+        clientPayload: {
+          name: lead.name,
+          phone: lead.phone,
+          cpf: lead.cpf || '',
+          job: '',
+          state: 'novo',
+          interested_vehicles: JSON.stringify([{ id: lead.vehicleId, nome: lead.vehicleName }]),
+          deal_type: lead.source || 'catalog',
+          bot_data: {},
+        },
+        files: { documents: [], trade_in_photos: [] },
+        lojaId: storeData.id,
+      });
+      const newLead = mapClientToLead(result);
+      setLeads(prev => [newLead, ...prev]);
+    } catch (err) {
+      console.error('Erro ao criar lead:', err);
+      // Fallback: add locally with temp id
+      const now = new Date().toISOString();
+      const newLead: Lead = { ...lead, id: `lead-${Date.now()}`, createdAt: now, updatedAt: now };
+      setLeads(prev => [newLead, ...prev]);
+    }
   };
 
   const updateLead = async (id: string, updates: Partial<Lead>) => {
@@ -300,7 +335,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (updates.notes !== undefined) {
         await apiService.updateClientDetails({ chatId: id, updatedData: { notes: updates.notes } });
       }
-      setLeads(prev => prev.map(l => 
+      setLeads(prev => prev.map(l =>
         l.id === id ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l
       ));
     } catch (err) {
@@ -341,10 +376,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         supabaseUpdates.horario_funcionamento = updates.workingHours;
       }
 
-      await apiService.updateStoreDetails({
-        lojaId: store.id,
-        updates: supabaseUpdates
-      });
+      await apiService.updateStoreDetails({ lojaId: store.id, updates: supabaseUpdates });
       setStore(prev => ({ ...prev, ...updates }));
     } catch (err) {
       console.error('Erro ao atualizar loja:', err);
