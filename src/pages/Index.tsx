@@ -6,10 +6,10 @@ import { VehiclePostCard } from '@/components/ui/VehiclePostCard';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/lib/formatters';
-import { brands, years } from '@/data/vehicles';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Index = () => {
-  const { vehicles, store } = useData();
+  const { vehicles, store, isLoading } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
@@ -17,11 +17,9 @@ const Index = () => {
   const [maxPrice, setMaxPrice] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
 
-  const priceRange = useMemo(() => {
-    if (!vehicles.length) return { min: 0, max: 5000000 };
-    const prices = vehicles.map(v => v.price);
-    return { min: Math.min(...prices), max: Math.max(...prices) };
-  }, [vehicles]);
+  // Derive brands and years from live data
+  const brands = useMemo(() => [...new Set(vehicles.map(v => v.brand).filter(Boolean))].sort(), [vehicles]);
+  const years = useMemo(() => [...new Set(vehicles.map(v => v.year))].sort((a, b) => b - a), [vehicles]);
 
   const filteredVehicles = useMemo(() => {
     return vehicles.filter(vehicle => {
@@ -68,7 +66,7 @@ const Index = () => {
             >
               <img src="/favicon.ico" alt="Logo" className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-glow-md" />
               <div>
-                <h1 className="text-lg md:text-xl font-bold text-white">{store.name}</h1>
+                <h1 className="text-lg md:text-xl font-bold text-white">{store.name || 'AutoConnect'}</h1>
                 <p className="text-[10px] md:text-xs text-muted-foreground">Catálogo Premium</p>
               </div>
             </motion.div>
@@ -113,7 +111,6 @@ const Index = () => {
             transition={{ delay: 0.2 }}
             className="max-w-3xl mx-auto"
           >
-            {/* Search Input */}
             <div className="relative flex items-center gap-2 mb-4">
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -124,10 +121,7 @@ const Index = () => {
                   className="input-premium w-full h-12 md:h-14 pl-12 pr-10 text-sm md:text-base rounded-xl"
                 />
                 {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
-                  >
+                  <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white">
                     <X className="w-4 h-4" />
                   </button>
                 )}
@@ -153,56 +147,60 @@ const Index = () => {
             >
               <div className="glass-card rounded-2xl p-4 md:p-5 space-y-4">
                 {/* Brand Filter */}
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-2">Marca</label>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setSelectedBrand('')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        !selectedBrand ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
-                      }`}
-                    >
-                      Todas
-                    </button>
-                    {brands.map((brand) => (
+                {brands.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-2">Marca</label>
+                    <div className="flex flex-wrap gap-2">
                       <button
-                        key={brand}
-                        onClick={() => setSelectedBrand(brand)}
+                        onClick={() => setSelectedBrand('')}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                          selectedBrand === brand ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                          !selectedBrand ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                         }`}
                       >
-                        {brand}
+                        Todas
                       </button>
-                    ))}
+                      {brands.map((brand) => (
+                        <button
+                          key={brand}
+                          onClick={() => setSelectedBrand(brand)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                            selectedBrand === brand ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                          }`}
+                        >
+                          {brand}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Year Filter */}
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-2">Ano</label>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setSelectedYear('')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        !selectedYear ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
-                      }`}
-                    >
-                      Todos
-                    </button>
-                    {years.map((year) => (
+                {years.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-2">Ano</label>
+                    <div className="flex flex-wrap gap-2">
                       <button
-                        key={year}
-                        onClick={() => setSelectedYear(year.toString())}
+                        onClick={() => setSelectedYear('')}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                          selectedYear === year.toString() ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                          !selectedYear ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                         }`}
                       >
-                        {year}
+                        Todos
                       </button>
-                    ))}
+                      {years.map((year) => (
+                        <button
+                          key={year}
+                          onClick={() => setSelectedYear(year.toString())}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                            selectedYear === year.toString() ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                          }`}
+                        >
+                          {year}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Price Range */}
                 <div>
@@ -231,18 +229,11 @@ const Index = () => {
                   </div>
                 </div>
 
-                {/* Filter Actions */}
                 <div className="flex items-center justify-between pt-1">
-                  <button
-                    onClick={handleResetFilters}
-                    className="text-xs text-muted-foreground hover:text-amber-400 transition-colors"
-                  >
+                  <button onClick={handleResetFilters} className="text-xs text-muted-foreground hover:text-amber-400 transition-colors">
                     Limpar filtros
                   </button>
-                  <button
-                    onClick={() => setShowFilters(false)}
-                    className="text-xs text-amber-400 font-medium hover:text-amber-300 transition-colors"
-                  >
+                  <button onClick={() => setShowFilters(false)} className="text-xs text-amber-400 font-medium hover:text-amber-300 transition-colors">
                     Aplicar
                   </button>
                 </div>
@@ -251,11 +242,7 @@ const Index = () => {
 
             {/* Active Filters Chips */}
             {hasActiveFilters && !showFilters && (
-              <motion.div
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 mt-3 flex-wrap"
-              >
+              <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 mt-3 flex-wrap">
                 <span className="text-xs text-muted-foreground">Filtros:</span>
                 {selectedBrand && (
                   <button onClick={() => setSelectedBrand('')} className="badge-premium flex items-center gap-1 hover:border-amber-500/50 transition-colors">
@@ -272,10 +259,7 @@ const Index = () => {
                     {minPrice > 0 ? formatPrice(minPrice) : 'R$ 0'} - {maxPrice > 0 ? formatPrice(maxPrice) : '∞'} <X className="w-3 h-3" />
                   </button>
                 )}
-                <button
-                  onClick={handleResetFilters}
-                  className="text-xs text-amber-400 hover:text-amber-300 underline"
-                >
+                <button onClick={handleResetFilters} className="text-xs text-amber-400 hover:text-amber-300 underline">
                   Limpar
                 </button>
               </motion.div>
@@ -286,7 +270,20 @@ const Index = () => {
 
       {/* Feed Grid */}
       <main className="container mx-auto px-4 py-6 md:py-8">
-        {filteredVehicles.length > 0 ? (
+        {isLoading ? (
+          <div className="feed-grid">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="glass-card rounded-2xl overflow-hidden">
+                <Skeleton className="w-full aspect-square" />
+                <div className="p-4 space-y-3">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-6 w-1/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredVehicles.length > 0 ? (
           <>
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <p className="text-xs md:text-sm text-muted-foreground">
@@ -313,11 +310,13 @@ const Index = () => {
               Nenhum veículo encontrado
             </h3>
             <p className="text-sm text-muted-foreground mb-6 max-w-md px-4">
-              Tente ajustar seus filtros ou termos de busca
+              {hasActiveFilters ? 'Tente ajustar seus filtros ou termos de busca' : 'Nenhum veículo disponível no momento'}
             </p>
-            <Button variant="outline" onClick={handleResetFilters}>
-              Limpar filtros
-            </Button>
+            {hasActiveFilters && (
+              <Button variant="outline" onClick={handleResetFilters}>
+                Limpar filtros
+              </Button>
+            )}
           </motion.div>
         )}
       </main>
@@ -329,11 +328,11 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <img src="/favicon.ico" alt="Logo" className="w-8 h-8 md:w-10 md:h-10 rounded-xl" />
               <span className="text-xs md:text-sm text-muted-foreground">
-                {store.name} © {new Date().getFullYear()}
+                {store.name || 'AutoConnect'} © {new Date().getFullYear()}
               </span>
             </div>
             <div className="flex items-center gap-4 md:gap-6">
-              <a href={`https://wa.me/${store.whatsapp}`} target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors">
+              <a href={`https://wa.me/${store.whatsapp || '5546991163405'}`} target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors">
                 WhatsApp
               </a>
               <a href="https://instagram.com/zailonsoft" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors flex items-center gap-1">

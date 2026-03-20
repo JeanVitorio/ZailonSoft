@@ -169,7 +169,8 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   const loading = authLoading || subLoading || lojaLoading;
 
   const isLoggedIn = !!user;
-  const isActive = subscription ? subscription.status === 'active' : true;
+  // User must have an active subscription to access the admin
+  const isActive = subscription ? subscription.status === 'active' : false;
 
   const value = { user, subscription, loading, logout, refreshSubscription, lojaId, lojaLoading, login, signup, isLoggedIn, isActive };
 
