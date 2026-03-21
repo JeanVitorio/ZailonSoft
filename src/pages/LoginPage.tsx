@@ -39,7 +39,8 @@ const LoginPage = () => {
           description: 'Login realizado com sucesso',
         });
         // Subscription check happens in MainLayout via AuthContext
-        navigate('/sistema/dashboard');
+        // Will redirect to slug-based route via /sistema redirect
+        navigate('/sistema');
       } else {
         toast({
           title: 'Credenciais inválidas',

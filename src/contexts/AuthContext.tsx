@@ -7,6 +7,13 @@ interface Subscription {
   status: 'active' | 'pending_payment' | 'incomplete' | 'canceled' | 'unpaid' | null;
 }
 
+interface LojaInfo {
+  id: string;
+  slug: string;
+  nome: string;
+  logo_url: string | null;
+}
+
 interface AuthContextType {
   user: User | null;
   subscription: Subscription | null;
@@ -14,6 +21,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refreshSubscription: () => Promise<void>;
   lojaId: string | null;
+  lojaSlug: string | null;
+  lojaInfo: LojaInfo | null;
   lojaLoading: boolean;
   login?: (email: string, password: string) => Promise<boolean>;
   signup?: (email: string, password: string, meta?: Record<string, any>) => Promise<boolean>;
@@ -28,6 +37,7 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [subLoading, setSubLoading] = useState(true);
+  const [lojaId, setLojaId] = useState<string | null>(null);
   const [lojaLoading, setLojaLoading] = useState(true);
 
   const [lojaId, setLojaId] = useState<string | null>(null);
@@ -47,12 +57,11 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
         .eq('user_id', currentUserId)
         .maybeSingle();
 
-      if (error) throw error;
-
-      setSubscription(data as Subscription | null);
-
-      if (!data) {
-        console.warn(`Nenhuma assinatura encontrada para user_id: ${currentUserId}`);
+      if (subError) {
+        console.error('Erro ao carregar assinatura:', subError.message);
+        setSubscription(null);
+      } else {
+        setSubscription(subData as Subscription | null);
       }
     } catch (err: any) {
       console.error('Erro ao carregar assinatura:', err.message);
@@ -63,33 +72,29 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   };
 
   const loadLojaId = async (currentUserId: string | undefined) => {
-    if (!currentUserId) {
-      setLojaId(null);
-      setLojaLoading(false);
-      return;
-    }
-
-    setLojaLoading(true);
-    try {
-      const { data, error } = await supabase
+    if (currentUserId) {
+      setLojaLoading(true);
+      const { data: lojaData, error: lojaError } = await supabase
         .from('lojas')
-        .select('id')
+        .select('id, slug, nome, logo_url')
         .eq('user_id', currentUserId)
         .maybeSingle();
 
-      if (error) throw error;
-
-      setLojaId(data?.id ?? null);
-    } catch (err: any) {
-      console.error('Erro ao carregar loja:', err.message);
+      if (lojaError) {
+        console.error('Erro ao carregar loja:', lojaError.message);
+        setLojaId(null);
+      } else {
+        setLojaId(lojaData?.id ?? null);
+      }
+      setLojaLoading(false);
+    } else {
       setLojaId(null);
-    } finally {
       setLojaLoading(false);
     }
   };
 
   useEffect(() => {
-    // Tenta restaurar sessão do localStorage para carregamento mais rápido
+    // Check for existing session from localStorage first for faster restore
     const storedSession = localStorage.getItem('autoconnect_session');
     if (storedSession) {
       try {
@@ -110,16 +115,13 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
 
       if (currentUser) {
         localStorage.setItem('autoconnect_session', JSON.stringify({ user: currentUser }));
-        await Promise.all([
-          loadSubscription(currentUser.id),
-          loadLojaId(currentUser.id),
-        ]);
-      } else {
-        setSubscription(null);
-        setLojaId(null);
-        setSubLoading(false);
-        setLojaLoading(false);
       }
+
+      const loadPromises = [
+        loadSubscription(currentUser?.id),
+        loadLojaId(currentUser?.id),
+      ];
+      await Promise.all(loadPromises);
     };
 
     checkSession();
@@ -131,14 +133,8 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
 
       if (currentUser) {
         localStorage.setItem('autoconnect_session', JSON.stringify({ user: currentUser }));
-        loadSubscription(currentUser.id);
-        loadLojaId(currentUser.id);
       } else {
         localStorage.removeItem('autoconnect_session');
-        setSubscription(null);
-        setLojaId(null);
-        setSubLoading(false);
-        setLojaLoading(false);
       }
     });
 
@@ -159,12 +155,6 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       console.error('Erro no login:', error.message);
       return false;
     }
-
-    // Pequeno delay para dar tempo ao webhook criar/atualizar a assinatura (opcional)
-    // Comente as linhas abaixo se não precisar
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    await refreshSubscription();
-
     return true;
   };
 
@@ -179,15 +169,7 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       console.error('Erro no signup:', error.message);
       return false;
     }
-
-    // Mesmo delay opcional para webhook
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    if (data.user?.id) {
-      await loadSubscription(data.user.id);
-      await loadLojaId(data.user.id);
-    }
-
-    return !!data.user;
+    return !!data;
   };
 
   const logout = async () => {
@@ -196,7 +178,7 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
     localStorage.removeItem('autoconnect_session');
     setUser(null);
     setSubscription(null);
-    setLojaId(null);
+    setLojaInfo(null);
     window.location.href = '/login';
   };
 
@@ -204,26 +186,10 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   const loading = authLoading || subLoading || lojaLoading;
 
   const isLoggedIn = !!user;
+  // User must have an active subscription to access the admin
+  const isActive = subscription ? subscription.status === 'active' : false;
 
-  // Correção principal: só considera active DEPOIS que o loading terminou
-  // Isso evita redirecionar prematuramente para mensalidades
-  const isActive = loading 
-    ? false 
-    : (subscription?.status === 'active' ?? false);
-
-  const value = {
-    user,
-    subscription,
-    loading,
-    logout,
-    refreshSubscription,
-    lojaId,
-    lojaLoading,
-    login,
-    signup,
-    isLoggedIn,
-    isActive,
-  };
+  const value = { user, subscription, loading, logout, refreshSubscription, lojaId, lojaLoading, login, signup, isLoggedIn, isActive };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
