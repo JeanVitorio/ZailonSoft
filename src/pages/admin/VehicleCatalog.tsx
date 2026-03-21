@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Link } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { Vehicle } from '@/data/vehicles';
+import { useAuth } from '@/contexts/AuthContext';
 
 const VehicleCatalog = () => {
   const { vehicles, deleteVehicle, updateVehicle } = useData();
