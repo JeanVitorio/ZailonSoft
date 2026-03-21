@@ -368,7 +368,7 @@ const AddVehicle = () => {
       <div className="flex items-center justify-between">
         <Button
           variant="secondary"
-          onClick={() => currentStep > 0 ? setCurrentStep(currentStep - 1) : navigate('/sistema/catalogo')}
+          onClick={() => currentStep > 0 ? setCurrentStep(currentStep - 1) : navigate(`/${lojaSlug}/catalogo`)}
         >
           <ArrowLeft className="w-4 h-4" />
           {currentStep > 0 ? 'Voltar' : 'Cancelar'}
