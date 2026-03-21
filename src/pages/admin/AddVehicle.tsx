@@ -69,8 +69,7 @@ const AddVehicle = () => {
       title: 'Veículo cadastrado!',
       description: `${formData.name} foi adicionado ao catálogo`
     });
-    navigate('/sistema/catalogo');
-  };
+    navigate(`/${lojaSlug}/catalogo`);
 
   const canProceed = () => {
     switch (currentStep) {
