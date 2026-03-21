@@ -24,6 +24,7 @@ export interface Car {
 
 export interface LojaDetails {
   id: string;
+  slug: string;
   nome: string;
   descricao: string | null;
   telefone_principal: string | null;
@@ -138,6 +139,29 @@ export const fetchCarsByLojaId = async (lojaId: string): Promise<Car[]> => {
   return (data || []) as Car[];
 };
 
+export const fetchCarsByLojaSlug = async (slug: string): Promise<{ cars: Car[]; loja: LojaDetails }> => {
+  const { data: loja, error: lojaError } = await supabase
+    .from('lojas')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+
+  if (lojaError || !loja) {
+    throw new Error('Loja não encontrada.');
+  }
+
+  const { data: cars, error: carsError } = await supabase
+    .from('cars')
+    .select('*')
+    .eq('loja_id', loja.id);
+
+  if (carsError) {
+    throw new Error('Falha ao buscar veículos da loja.');
+  }
+
+  return { cars: (cars || []) as Car[], loja: loja as LojaDetails };
+};
+
 export const fetchAllCars = async (): Promise<Car[]> => {
   const { data, error } = await supabase.from('cars').select('*');
   if (error) {
@@ -159,6 +183,19 @@ export const fetchLojaDetails = async (lojaId: string): Promise<LojaDetails> => 
     throw new Error('Não foi possível carregar os dados da loja.');
   }
   if (!data) throw new Error('Loja não encontrada.');
+  return data as LojaDetails;
+};
+
+export const fetchLojaBySlug = async (slug: string): Promise<LojaDetails> => {
+  const { data, error } = await supabase
+    .from('lojas')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+
+  if (error || !data) {
+    throw new Error('Loja não encontrada.');
+  }
   return data as LojaDetails;
 };
 
