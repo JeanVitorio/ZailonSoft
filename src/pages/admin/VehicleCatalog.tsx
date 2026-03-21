@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const VehicleCatalog = () => {
   const { vehicles, deleteVehicle, updateVehicle } = useData();
+  const { lojaSlug } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'year'>('name');
   const [viewVehicle, setViewVehicle] = useState<Vehicle | null>(null);
