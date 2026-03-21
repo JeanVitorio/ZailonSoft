@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 const AddVehicle = () => {
   const navigate = useNavigate();
   const { addVehicle, store } = useData();
+  const { lojaSlug } = useAuth();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
