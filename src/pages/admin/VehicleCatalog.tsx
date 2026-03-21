@@ -144,7 +144,7 @@ const VehicleCatalog = () => {
             <span className="hidden sm:inline">Exportar URL</span>
             <span className="sm:hidden">URL</span>
           </Button>
-          <Link to="/sistema/adicionar" className="flex-1 sm:flex-none">
+          <Link to={`/${lojaSlug}/adicionar`} className="flex-1 sm:flex-none">
             <Button className="w-full">
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Novo Veículo</span>
