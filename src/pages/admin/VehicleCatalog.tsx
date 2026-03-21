@@ -9,9 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Link } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { Vehicle } from '@/data/vehicles';
+import { useAuth } from '@/contexts/AuthContext';
 
 const VehicleCatalog = () => {
   const { vehicles, deleteVehicle, updateVehicle } = useData();
+  const { lojaSlug } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'year'>('name');
   const [viewVehicle, setViewVehicle] = useState<Vehicle | null>(null);
@@ -142,7 +144,7 @@ const VehicleCatalog = () => {
             <span className="hidden sm:inline">Exportar URL</span>
             <span className="sm:hidden">URL</span>
           </Button>
-          <Link to="/sistema/adicionar" className="flex-1 sm:flex-none">
+          <Link to={`/${lojaSlug}/adicionar`} className="flex-1 sm:flex-none">
             <Button className="w-full">
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Novo Veículo</span>
@@ -259,7 +261,7 @@ const VehicleCatalog = () => {
           <p className="text-muted-foreground mb-6 text-sm md:text-base">
             Adicione seu primeiro veículo ao catálogo
           </p>
-          <Link to="/sistema/adicionar">
+          <Link to={`/${lojaSlug}/adicionar`}>
             <Button>
               <Plus className="w-4 h-4" />
               Adicionar Veículo

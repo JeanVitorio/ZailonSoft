@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Car, FileText, Image, Check, ArrowLeft, ArrowRight, Upload, X } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 const AddVehicle = () => {
   const navigate = useNavigate();
   const { addVehicle, store } = useData();
+  const { lojaSlug } = useAuth();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
@@ -67,7 +69,7 @@ const AddVehicle = () => {
       title: 'Veículo cadastrado!',
       description: `${formData.name} foi adicionado ao catálogo`
     });
-    navigate('/sistema/catalogo');
+    navigate(`/${lojaSlug}/catalogo`);
   };
 
   const canProceed = () => {
@@ -367,7 +369,7 @@ const AddVehicle = () => {
       <div className="flex items-center justify-between">
         <Button
           variant="secondary"
-          onClick={() => currentStep > 0 ? setCurrentStep(currentStep - 1) : navigate('/sistema/catalogo')}
+          onClick={() => currentStep > 0 ? setCurrentStep(currentStep - 1) : navigate(`/${lojaSlug}/catalogo`)}
         >
           <ArrowLeft className="w-4 h-4" />
           {currentStep > 0 ? 'Voltar' : 'Cancelar'}
