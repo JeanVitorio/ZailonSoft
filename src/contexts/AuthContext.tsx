@@ -207,7 +207,7 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   const isLoggedIn = !!user;
   const isActive = loading 
     ? false 
-    : (subscription?.status === 'active' ?? false);
+    : subscription?.status === 'active' || false;
 
   const value = {
     user,
