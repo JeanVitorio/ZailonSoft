@@ -70,6 +70,7 @@ const AddVehicle = () => {
       description: `${formData.name} foi adicionado ao catálogo`
     });
     navigate(`/${lojaSlug}/catalogo`);
+  };
 
   const canProceed = () => {
     switch (currentStep) {
