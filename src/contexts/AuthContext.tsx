@@ -28,55 +28,68 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [subLoading, setSubLoading] = useState(true);
-  const [lojaId, setLojaId] = useState<string | null>(null);
   const [lojaLoading, setLojaLoading] = useState(true);
 
+  const [lojaId, setLojaId] = useState<string | null>(null);
+
   const loadSubscription = async (currentUserId: string | undefined) => {
-    if (currentUserId) {
-      setSubLoading(true);
-      const { data: subData, error: subError } = await supabase
+    if (!currentUserId) {
+      setSubscription(null);
+      setSubLoading(false);
+      return;
+    }
+
+    setSubLoading(true);
+    try {
+      const { data, error } = await supabase
         .from('subscriptions')
         .select('status')
         .eq('user_id', currentUserId)
         .maybeSingle();
 
-      if (subError) {
-        console.error('Erro ao carregar assinatura:', subError.message);
-        setSubscription(null);
-      } else {
-        setSubscription(subData as Subscription | null);
+      if (error) throw error;
+
+      setSubscription(data as Subscription | null);
+
+      if (!data) {
+        console.warn(`Nenhuma assinatura encontrada para user_id: ${currentUserId}`);
       }
-      setSubLoading(false);
-    } else {
+    } catch (err: any) {
+      console.error('Erro ao carregar assinatura:', err.message);
       setSubscription(null);
+    } finally {
       setSubLoading(false);
     }
   };
 
   const loadLojaId = async (currentUserId: string | undefined) => {
-    if (currentUserId) {
-      setLojaLoading(true);
-      const { data: lojaData, error: lojaError } = await supabase
+    if (!currentUserId) {
+      setLojaId(null);
+      setLojaLoading(false);
+      return;
+    }
+
+    setLojaLoading(true);
+    try {
+      const { data, error } = await supabase
         .from('lojas')
         .select('id')
         .eq('user_id', currentUserId)
         .maybeSingle();
 
-      if (lojaError) {
-        console.error('Erro ao carregar loja:', lojaError.message);
-        setLojaId(null);
-      } else {
-        setLojaId(lojaData?.id ?? null);
-      }
-      setLojaLoading(false);
-    } else {
+      if (error) throw error;
+
+      setLojaId(data?.id ?? null);
+    } catch (err: any) {
+      console.error('Erro ao carregar loja:', err.message);
       setLojaId(null);
+    } finally {
       setLojaLoading(false);
     }
   };
 
   useEffect(() => {
-    // Check for existing session from localStorage first for faster restore
+    // Tenta restaurar sessão do localStorage para carregamento mais rápido
     const storedSession = localStorage.getItem('autoconnect_session');
     if (storedSession) {
       try {
@@ -85,7 +98,7 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
           setUser(parsed.user);
         }
       } catch (e) {
-        console.error('Error parsing stored session:', e);
+        console.error('Erro ao parsear sessão armazenada:', e);
       }
     }
 
@@ -95,16 +108,18 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       setUser(currentUser);
       setAuthLoading(false);
 
-      // Persist session to localStorage
       if (currentUser) {
         localStorage.setItem('autoconnect_session', JSON.stringify({ user: currentUser }));
+        await Promise.all([
+          loadSubscription(currentUser.id),
+          loadLojaId(currentUser.id),
+        ]);
+      } else {
+        setSubscription(null);
+        setLojaId(null);
+        setSubLoading(false);
+        setLojaLoading(false);
       }
-
-      const loadPromises = [
-        loadSubscription(currentUser?.id),
-        loadLojaId(currentUser?.id),
-      ];
-      await Promise.all(loadPromises);
     };
 
     checkSession();
@@ -113,16 +128,18 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       setAuthLoading(false);
-      
-      // Persist session to localStorage
+
       if (currentUser) {
         localStorage.setItem('autoconnect_session', JSON.stringify({ user: currentUser }));
+        loadSubscription(currentUser.id);
+        loadLojaId(currentUser.id);
       } else {
         localStorage.removeItem('autoconnect_session');
+        setSubscription(null);
+        setLojaId(null);
+        setSubLoading(false);
+        setLojaLoading(false);
       }
-      
-      loadSubscription(currentUser?.id);
-      loadLojaId(currentUser?.id);
     });
 
     return () => {
@@ -131,15 +148,23 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   }, []);
 
   const refreshSubscription = async () => {
-    await loadSubscription(user?.id);
+    if (user?.id) {
+      await loadSubscription(user.id);
+    }
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      console.error('Login error:', error.message);
+      console.error('Erro no login:', error.message);
       return false;
     }
+
+    // Pequeno delay para dar tempo ao webhook criar/atualizar a assinatura (opcional)
+    // Comente as linhas abaixo se não precisar
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    await refreshSubscription();
+
     return true;
   };
 
@@ -149,11 +174,20 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       password,
       options: { data: meta }
     });
+
     if (error) {
-      console.error('Signup error:', error.message);
+      console.error('Erro no signup:', error.message);
       return false;
     }
-    return !!data;
+
+    // Mesmo delay opcional para webhook
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    if (data.user?.id) {
+      await loadSubscription(data.user.id);
+      await loadLojaId(data.user.id);
+    }
+
+    return !!data.user;
   };
 
   const logout = async () => {
@@ -166,13 +200,30 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
     window.location.href = '/login';
   };
 
+  // loading global: só termina quando auth + subscription + loja carregaram
   const loading = authLoading || subLoading || lojaLoading;
 
   const isLoggedIn = !!user;
-  // User must have an active subscription to access the admin
-  const isActive = subscription ? subscription.status === 'active' : false;
 
-  const value = { user, subscription, loading, logout, refreshSubscription, lojaId, lojaLoading, login, signup, isLoggedIn, isActive };
+  // Correção principal: só considera active DEPOIS que o loading terminou
+  // Isso evita redirecionar prematuramente para mensalidades
+  const isActive = loading 
+    ? false 
+    : (subscription?.status === 'active' ?? false);
+
+  const value = {
+    user,
+    subscription,
+    loading,
+    logout,
+    refreshSubscription,
+    lojaId,
+    lojaLoading,
+    login,
+    signup,
+    isLoggedIn,
+    isActive,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
