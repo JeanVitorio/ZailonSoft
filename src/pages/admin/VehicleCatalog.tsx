@@ -261,7 +261,7 @@ const VehicleCatalog = () => {
           <p className="text-muted-foreground mb-6 text-sm md:text-base">
             Adicione seu primeiro veículo ao catálogo
           </p>
-          <Link to="/sistema/adicionar">
+          <Link to={`/${lojaSlug}/adicionar`}>
             <Button>
               <Plus className="w-4 h-4" />
               Adicionar Veículo
