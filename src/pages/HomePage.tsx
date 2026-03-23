@@ -215,10 +215,14 @@ const HomePage = () => {
             >
               <div className="text-center">
                 <p className="text-muted-foreground mb-2">Investimento único</p>
-                <div className="flex items-baseline justify-center gap-2 mb-4">
-                  <span className="text-5xl font-bold text-gradient">R$ 2.997</span>
+                <div className="flex items-baseline justify-center gap-2 mb-2">
+                  <span className="text-lg text-muted-foreground line-through">R$ 250/mês</span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-6">Pagamento único, sem mensalidades</p>
+                <div className="flex items-baseline justify-center gap-2 mb-4">
+                  <span className="text-5xl font-bold text-gradient">R$ 99</span>
+                  <span className="text-lg text-muted-foreground">/mês</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-6">Plano mensal com todas as funcionalidades</p>
                 
                 <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="block">
                   <Button variant="premium" size="xl" className="w-full mb-4">
