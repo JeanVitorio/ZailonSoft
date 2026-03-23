@@ -46,7 +46,6 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       setSubLoading(false);
       return;
     }
-
     setSubLoading(true);
     try {
       const { data, error } = await supabase
@@ -54,13 +53,8 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
         .select('status')
         .eq('user_id', currentUserId)
         .maybeSingle();
-
       if (error) throw error;
       setSubscription(data as Subscription | null);
-
-      if (!data) {
-        console.warn(`Nenhuma assinatura encontrada para user_id: ${currentUserId}`);
-      }
     } catch (err: any) {
       console.error('Erro ao carregar assinatura:', err.message);
       setSubscription(null);
@@ -75,7 +69,6 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       setLojaLoading(false);
       return;
     }
-
     setLojaLoading(true);
     try {
       const { data, error } = await supabase
@@ -83,7 +76,6 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
         .select('id, slug, nome, logo_url')
         .eq('user_id', currentUserId)
         .maybeSingle();
-
       if (error) throw error;
       setLojaInfo(data as LojaInfo | null);
     } catch (err: any) {
@@ -95,18 +87,6 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   };
 
   useEffect(() => {
-    const storedSession = localStorage.getItem('autoconnect_session');
-    if (storedSession) {
-      try {
-        const parsed = JSON.parse(storedSession);
-        if (parsed.user) {
-          setUser(parsed.user);
-        }
-      } catch (e) {
-        console.error('Erro ao parsear sessão armazenada:', e);
-      }
-    }
-
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user ?? null;
@@ -114,7 +94,6 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       setAuthLoading(false);
 
       if (currentUser) {
-        localStorage.setItem('autoconnect_session', JSON.stringify({ user: currentUser }));
         await Promise.all([
           loadSubscription(currentUser.id),
           loadLojaInfo(currentUser.id),
@@ -135,11 +114,9 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       setAuthLoading(false);
 
       if (currentUser) {
-        localStorage.setItem('autoconnect_session', JSON.stringify({ user: currentUser }));
         loadSubscription(currentUser.id);
         loadLojaInfo(currentUser.id);
       } else {
-        localStorage.removeItem('autoconnect_session');
         setSubscription(null);
         setLojaInfo(null);
         setSubLoading(false);
@@ -153,9 +130,7 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   }, []);
 
   const refreshSubscription = async () => {
-    if (user?.id) {
-      await loadSubscription(user.id);
-    }
+    if (user?.id) await loadSubscription(user.id);
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -164,38 +139,28 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       console.error('Erro no login:', error.message);
       return false;
     }
-
     await new Promise(resolve => setTimeout(resolve, 1500));
     await refreshSubscription();
-
     return true;
   };
 
   const signup = async (email: string, password: string, meta: Record<string, any> = {}): Promise<boolean> => {
-    const { data, error } = await supabase.auth.signUp({ 
-      email, 
-      password,
-      options: { data: meta }
-    });
-
+    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: meta } });
     if (error) {
       console.error('Erro no signup:', error.message);
       return false;
     }
-
     await new Promise(resolve => setTimeout(resolve, 1500));
     if (data.user?.id) {
       await loadSubscription(data.user.id);
       await loadLojaInfo(data.user.id);
     }
-
     return !!data.user;
   };
 
   const logout = async () => {
     await supabase.auth.signOut();
     if (queryClient) queryClient.clear();
-    localStorage.removeItem('autoconnect_session');
     setUser(null);
     setSubscription(null);
     setLojaInfo(null);
@@ -203,11 +168,11 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   };
 
   const loading = authLoading || subLoading || lojaLoading;
-
   const isLoggedIn = !!user;
-  const isActive = loading 
-    ? false 
-    : subscription?.status === 'active' || false;
+  
+  // active only if subscription status is 'active'
+  // pending_payment, incomplete, canceled, unpaid = NOT active
+  const isActive = loading ? false : subscription?.status === 'active';
 
   const value = {
     user,

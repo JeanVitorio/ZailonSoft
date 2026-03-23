@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   TrendingUp, Users, Car, DollarSign, Eye, Clock,
-  ArrowUp, ArrowDown, Calendar, User
+  ArrowUp, ArrowDown, Calendar, User, Target, BarChart3,
+  MessageCircle, UserPlus, CheckCircle, XCircle, Briefcase,
+  Tag
 } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatPrice } from '@/lib/formatters';
 import { Link } from 'react-router-dom';
+import { statusLabels, statusColors } from '@/data/leads';
 
 const AnimatedCounter = ({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string }) => {
   const [displayValue, setDisplayValue] = useState(0);
@@ -36,7 +39,20 @@ const AnimatedCounter = ({ value, prefix = '', suffix = '' }: { value: number; p
 
 const Dashboard = () => {
   const { vehicles, leads } = useData();
-  const { lojaSlug } = useAuth();
+  const { lojaSlug, lojaInfo, user } = useAuth();
+
+  // --- Stats calculations ---
+  const totalVehicles = vehicles.length;
+  const availableVehicles = vehicles.filter(v => v.status === 'available').length;
+  const reservedVehicles = vehicles.filter(v => v.status === 'reserved').length;
+  const soldVehicles = vehicles.filter(v => v.status === 'sold').length;
+
+  const totalLeads = leads.length;
+  const newLeads = leads.filter(l => l.status === 'new').length;
+  const activeLeads = leads.filter(l => !['closed', 'lost'].includes(l.status)).length;
+  const closedLeads = leads.filter(l => l.status === 'closed').length;
+  const lostLeads = leads.filter(l => l.status === 'lost').length;
+  const conversionRate = totalLeads > 0 ? Math.round((closedLeads / totalLeads) * 100) : 0;
 
   const pipelineTotal = leads
     .filter(l => l.status === 'negotiating' || l.status === 'proposal')
@@ -45,148 +61,217 @@ const Dashboard = () => {
       return acc + val;
     }, 0);
 
-  const closedLeads = leads.filter(l => l.status === 'closed').length;
-  const totalLeads = leads.length;
-  const conversionRate = totalLeads > 0 ? Math.round((closedLeads / totalLeads) * 100) : 0;
+  const closedTotal = leads
+    .filter(l => l.status === 'closed')
+    .reduce((acc, l) => {
+      const val = typeof l.value === 'number' && !isNaN(l.value) ? l.value : 0;
+      return acc + val;
+    }, 0);
 
-  const recentLeads = leads.slice(0, 5);
+  const totalStockValue = vehicles
+    .filter(v => v.status === 'available')
+    .reduce((acc, v) => acc + (v.price * v.stock), 0);
 
+  const avgTicket = closedLeads > 0 ? Math.round(closedTotal / closedLeads) : 0;
+
+  // Leads by source
+  const leadsBySource = leads.reduce((acc, l) => {
+    const src = l.source || 'catalog';
+    acc[src] = (acc[src] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Leads by deal type
+  const leadsByDealType = leads.reduce((acc, l) => {
+    const dt = l.dealType || 'não informado';
+    acc[dt] = (acc[dt] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Leads by priority
+  const highPriorityLeads = leads.filter(l => l.priority === 'high' && !['closed', 'lost'].includes(l.status)).length;
+
+  // Recent leads
+  const recentLeads = [...leads]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 8);
+
+  // Scheduled visits
   const scheduledVisits = leads
-    .filter(l => l.followUpDate)
-    .sort((a, b) => new Date(a.followUpDate!).getTime() - new Date(b.followUpDate!).getTime())
+    .filter(l => l.followUpDate || l.appointmentAt)
+    .map(l => ({ ...l, visitDate: l.appointmentAt || l.followUpDate! }))
+    .sort((a, b) => new Date(a.visitDate).getTime() - new Date(b.visitDate).getTime())
     .slice(0, 5);
 
-  const statusColors: Record<string, string> = {
-    new: 'bg-blue-500', contacted: 'bg-amber-500', negotiating: 'bg-orange-500',
-    proposal: 'bg-purple-500', closed: 'bg-emerald-500', lost: 'bg-red-500'
+  // Leads this month
+  const now = new Date();
+  const thisMonthLeads = leads.filter(l => {
+    const d = new Date(l.createdAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+
+  // Leads last 7 days
+  const last7Days = leads.filter(l => {
+    const d = new Date(l.createdAt);
+    return (now.getTime() - d.getTime()) <= 7 * 24 * 60 * 60 * 1000;
+  }).length;
+
+  const sourceLabels: Record<string, string> = {
+    catalog: 'Catálogo', whatsapp: 'WhatsApp', instagram: 'Instagram', referral: 'Indicação'
   };
 
-  const statusLabels: Record<string, string> = {
-    new: 'Novo', contacted: 'Contatado', negotiating: 'Negociando',
-    proposal: 'Proposta', closed: 'Fechado', lost: 'Perdido'
-  };
+  const welcomeName = lojaInfo?.nome || user?.email?.split('@')[0] || 'Lojista';
+  const hour = now.getHours();
+  const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
 
-  const stats = [
-    { icon: Car, label: 'Veículos em Estoque', value: vehicles.filter(v => v.status === 'available').length, total: vehicles.length, change: '+2 este mês', positive: true, color: 'amber' },
-    { icon: Users, label: 'Leads Ativos', value: leads.filter(l => l.status !== 'closed' && l.status !== 'lost').length, total: leads.length, change: '+5 esta semana', positive: true, color: 'blue' },
-    { icon: DollarSign, label: 'Pipeline Total', value: pipelineTotal, isPrice: true, change: '+12% vs mês anterior', positive: true, color: 'emerald' },
-    { icon: TrendingUp, label: 'Taxa de Conversão', value: conversionRate, isSuffix: '%', change: '+3% vs mês anterior', positive: true, color: 'purple' }
+  const kpis = [
+    { icon: Car, label: 'Veículos Disponíveis', value: availableVehicles, subtitle: `${totalVehicles} total · ${reservedVehicles} reservados · ${soldVehicles} vendidos`, color: 'amber' },
+    { icon: Users, label: 'Leads Ativos', value: activeLeads, subtitle: `${newLeads} novos · ${totalLeads} total`, color: 'blue' },
+    { icon: DollarSign, label: 'Pipeline em Negociação', value: pipelineTotal, isPrice: true, subtitle: `${leads.filter(l => l.status === 'negotiating' || l.status === 'proposal').length} leads em negociação`, color: 'emerald' },
+    { icon: TrendingUp, label: 'Taxa de Conversão', value: conversionRate, isSuffix: '%', subtitle: `${closedLeads} fechados de ${totalLeads}`, color: 'purple' },
+    { icon: CheckCircle, label: 'Faturamento (Fechados)', value: closedTotal, isPrice: true, subtitle: `Ticket médio: ${formatPrice(avgTicket)}`, color: 'emerald' },
+    { icon: Briefcase, label: 'Valor do Estoque', value: totalStockValue, isPrice: true, subtitle: `${availableVehicles} veículos disponíveis`, color: 'amber' },
   ];
 
   return (
     <div className="space-y-6 md:space-y-8">
+      {/* Welcome */}
       <div>
-        <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-2xl md:text-3xl font-bold text-white mb-2">
-          Dashboard
-        </motion.h1>
-        <p className="text-muted-foreground text-sm md:text-base">Visão geral da sua loja</p>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
+            {greeting}, <span className="text-gradient">{welcomeName}</span>! 👋
+          </h1>
+          <p className="text-muted-foreground text-sm md:text-base">
+            Aqui está o resumo da sua loja · {last7Days} novo{last7Days !== 1 ? 's' : ''} lead{last7Days !== 1 ? 's' : ''} nos últimos 7 dias
+          </p>
+        </motion.div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-        {stats.map((stat, index) => (
-          <motion.div key={index} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} className="kpi-card">
-            <div className="flex items-start justify-between mb-3 md:mb-4">
-              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center ${
+      {/* KPIs Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+        {kpis.map((stat, index) => (
+          <motion.div key={index} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.08 }} className="kpi-card">
+            <div className="flex items-start justify-between mb-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                 stat.color === 'amber' ? 'bg-amber-500/10' : stat.color === 'blue' ? 'bg-blue-500/10' : stat.color === 'emerald' ? 'bg-emerald-500/10' : 'bg-purple-500/10'
               }`}>
-                <stat.icon className={`w-5 h-5 md:w-6 md:h-6 ${
+                <stat.icon className={`w-5 h-5 ${
                   stat.color === 'amber' ? 'text-amber-400' : stat.color === 'blue' ? 'text-blue-400' : stat.color === 'emerald' ? 'text-emerald-400' : 'text-purple-400'
                 }`} />
               </div>
-              <div className={`hidden md:flex items-center gap-1 text-xs font-medium ${stat.positive ? 'text-emerald-400' : 'text-red-400'}`}>
-                {stat.positive ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
-                <span className="hidden lg:inline">{stat.change}</span>
-              </div>
             </div>
-            <p className="text-xs md:text-sm text-muted-foreground mb-1">{stat.label}</p>
+            <p className="text-xs text-muted-foreground mb-1">{stat.label}</p>
             <p className="text-lg md:text-2xl font-bold text-white">
               {stat.isPrice ? formatPrice(stat.value as number) : stat.isSuffix ? <><AnimatedCounter value={stat.value as number} />{stat.isSuffix}</> : <AnimatedCounter value={stat.value as number} />}
             </p>
-            {stat.total && <p className="text-xs text-muted-foreground mt-1">de {stat.total} total</p>}
+            <p className="text-[10px] md:text-xs text-muted-foreground mt-1">{stat.subtitle}</p>
           </motion.div>
         ))}
       </div>
 
+      {/* Main Content Grid */}
       <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
+        {/* Recent Leads */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-2 glass-card rounded-2xl p-4 md:p-6">
-          <div className="flex items-center justify-between mb-4 md:mb-6">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-base md:text-lg font-semibold text-white">Leads Recentes</h2>
             <Link to={`/${lojaSlug}/crm`} className="text-sm text-amber-400 hover:text-amber-300 transition-colors">Ver todos →</Link>
           </div>
-          <div className="space-y-3 md:space-y-4">
-            {recentLeads.map((lead, index) => (
-              <motion.div key={lead.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 + index * 0.1 }}
-                className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-amber-400/20 to-orange-400/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-amber-400 font-semibold text-sm md:text-base">{lead.name.charAt(0)}</span>
+          <div className="space-y-2">
+            {recentLeads.length > 0 ? recentLeads.map((lead, index) => (
+              <motion.div key={lead.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 + index * 0.05 }}
+                className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400/20 to-orange-400/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-amber-400 font-semibold text-sm">{lead.name.charAt(0)}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-white truncate text-sm md:text-base">{lead.name}</p>
-                  <p className="text-xs md:text-sm text-muted-foreground truncate">{lead.vehicleName}</p>
+                  <p className="font-medium text-white truncate text-sm">{lead.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{lead.vehicleName} · {lead.phone}</p>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-xs md:text-sm font-medium text-amber-400">{formatPrice(lead.value)}</p>
-                  <div className="flex items-center gap-1 md:gap-2 mt-1 justify-end">
-                    <span className={`w-2 h-2 rounded-full ${statusColors[lead.status]}`} />
-                    <span className="text-xs text-muted-foreground hidden sm:inline">{statusLabels[lead.status]}</span>
+                  <div className="flex items-center gap-1 justify-end">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${statusColors[lead.status]}`}>
+                      {statusLabels[lead.status]}
+                    </span>
                   </div>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
+                  </p>
                 </div>
               </motion.div>
-            ))}
+            )) : (
+              <div className="text-center py-8">
+                <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhum lead cadastrado ainda</p>
+              </div>
+            )}
           </div>
         </motion.div>
 
-        <div className="space-y-4 md:space-y-6">
+        {/* Right Column */}
+        <div className="space-y-4">
+          {/* Funnel Status */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="glass-card rounded-2xl p-4 md:p-6">
-            <h2 className="text-base md:text-lg font-semibold text-white mb-4 md:mb-6">Status do Funil</h2>
-            <div className="space-y-3 md:space-y-4">
-              {Object.entries(statusLabels).map(([status, label], index) => {
+            <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+              <Target className="w-4 h-4 text-amber-400" /> Funil de Vendas
+            </h2>
+            <div className="space-y-3">
+              {Object.entries(statusLabels).map(([status, label]) => {
                 const count = leads.filter(l => l.status === status).length;
                 const percentage = totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0;
                 return (
                   <div key={status}>
-                    <div className="flex items-center justify-between mb-1 md:mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${statusColors[status]}`} />
-                        <span className="text-xs md:text-sm text-muted-foreground">{label}</span>
-                      </div>
-                      <span className="text-xs md:text-sm font-medium text-white">{count}</span>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-muted-foreground">{label}</span>
+                      <span className="text-xs font-medium text-white">{count} ({percentage}%)</span>
                     </div>
-                    <div className="h-1.5 md:h-2 bg-white/5 rounded-full overflow-hidden">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ delay: 0.6 + index * 0.1, duration: 0.5 }} className={`h-full rounded-full ${statusColors[status]}`} />
+                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ delay: 0.6, duration: 0.5 }}
+                        className={`h-full rounded-full ${
+                          status === 'new' ? 'bg-blue-500' : status === 'contacted' ? 'bg-amber-500' : status === 'negotiating' ? 'bg-orange-500' : status === 'proposal' ? 'bg-purple-500' : status === 'closed' ? 'bg-emerald-500' : 'bg-red-500'
+                        }`} />
                     </div>
                   </div>
                 );
               })}
             </div>
-            <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-white/5">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                  <Eye className="w-5 h-5 text-amber-400" />
-                </div>
-                <div>
-                  <p className="text-xl md:text-2xl font-bold text-white"><AnimatedCounter value={vehicles.reduce((acc, v) => acc + v.views, 0)} /></p>
-                  <p className="text-xs md:text-sm text-muted-foreground">Visualizações totais</p>
-                </div>
-              </div>
-            </div>
           </motion.div>
 
+          {/* Lead Sources */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="glass-card rounded-2xl p-4 md:p-6">
-            <h2 className="text-base md:text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-amber-400" /> Próximas Visitas
+            <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-amber-400" /> Origem dos Leads
+            </h2>
+            {Object.keys(leadsBySource).length > 0 ? (
+              <div className="space-y-2">
+                {Object.entries(leadsBySource).sort((a, b) => b[1] - a[1]).map(([source, count]) => (
+                  <div key={source} className="flex items-center justify-between p-2 rounded-lg bg-white/[0.02]">
+                    <span className="text-sm text-white">{sourceLabels[source] || source}</span>
+                    <span className="text-sm font-medium text-amber-400">{count}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-2">Sem dados</p>
+            )}
+          </motion.div>
+
+          {/* Scheduled Visits / Agenda */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="glass-card rounded-2xl p-4 md:p-6">
+            <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-amber-400" /> Agenda de Visitas
             </h2>
             {scheduledVisits.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {scheduledVisits.map((lead) => (
                   <div key={lead.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                    <div className="flex items-center gap-2 mb-2">
-                      <User className="w-4 h-4 text-amber-400" />
-                      <span className="text-sm font-medium text-white">{lead.name}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <User className="w-3.5 h-3.5 text-amber-400" />
+                      <span className="text-sm font-medium text-white truncate">{lead.name}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="w-3 h-3" />
-                      <span>{new Date(lead.followUpDate!).toLocaleDateString('pt-BR')}</span>
+                      <span>{new Date(lead.visitDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1 truncate">{lead.vehicleName}</p>
                   </div>
@@ -196,7 +281,67 @@ const Dashboard = () => {
               <p className="text-sm text-muted-foreground text-center py-4">Nenhuma visita agendada</p>
             )}
           </motion.div>
+
+          {/* Priority Alerts */}
+          {highPriorityLeads > 0 && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="glass-card rounded-2xl p-4 border border-red-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                  <Target className="w-4 h-4 text-red-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">{highPriorityLeads} lead{highPriorityLeads !== 1 ? 's' : ''} alta prioridade</p>
+                  <p className="text-xs text-muted-foreground">Requerem atenção imediata</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
+      </div>
+
+      {/* Bottom Row - Deal Types & Monthly Stats */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="glass-card rounded-2xl p-4 md:p-6">
+          <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+            <Tag className="w-4 h-4 text-amber-400" /> Tipos de Negociação
+          </h2>
+          {Object.keys(leadsByDealType).length > 0 ? (
+            <div className="grid grid-cols-2 gap-2">
+              {Object.entries(leadsByDealType).map(([type, count]) => (
+                <div key={type} className="p-3 rounded-xl bg-white/[0.02] text-center">
+                  <p className="text-lg font-bold text-white">{count}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{type}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">Sem dados</p>
+          )}
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }} className="glass-card rounded-2xl p-4 md:p-6">
+          <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+            <UserPlus className="w-4 h-4 text-amber-400" /> Resumo do Mês
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 rounded-xl bg-white/[0.02] text-center">
+              <p className="text-2xl font-bold text-amber-400"><AnimatedCounter value={thisMonthLeads} /></p>
+              <p className="text-xs text-muted-foreground">Novos leads</p>
+            </div>
+            <div className="p-3 rounded-xl bg-white/[0.02] text-center">
+              <p className="text-2xl font-bold text-emerald-400"><AnimatedCounter value={closedLeads} /></p>
+              <p className="text-xs text-muted-foreground">Vendas fechadas</p>
+            </div>
+            <div className="p-3 rounded-xl bg-white/[0.02] text-center">
+              <p className="text-2xl font-bold text-red-400"><AnimatedCounter value={lostLeads} /></p>
+              <p className="text-xs text-muted-foreground">Leads perdidos</p>
+            </div>
+            <div className="p-3 rounded-xl bg-white/[0.02] text-center">
+              <p className="text-2xl font-bold text-blue-400"><AnimatedCounter value={conversionRate} suffix="%" /></p>
+              <p className="text-xs text-muted-foreground">Conversão</p>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
