@@ -39,9 +39,6 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   const [subLoading, setSubLoading] = useState(true);
   const [lojaId, setLojaId] = useState<string | null>(null);
   const [lojaLoading, setLojaLoading] = useState(true);
-
-  const [lojaId, setLojaId] = useState<string | null>(null);
-
   const loadSubscription = async (currentUserId: string | undefined) => {
     if (!currentUserId) {
       setSubscription(null);
