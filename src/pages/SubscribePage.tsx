@@ -28,10 +28,13 @@ const SubscribePage = () => {
         <h1 className="text-2xl font-bold text-white mb-3">
           Sua assinatura não está ativa
         </h1>
-        <p className="text-muted-foreground mb-8">
+        <p className="text-muted-foreground mb-4">
           Para continuar usando o sistema, é necessário regularizar sua assinatura. 
           Entre em contato conosco pelo WhatsApp para resolver.
         </p>
+        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-6">
+          <p className="text-sm text-amber-400 font-medium">Plano mensal: <strong>R$ 99,00/mês</strong></p>
+        </div>
 
         {/* User info */}
         {user?.email && (
