@@ -7,9 +7,10 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 
 // Public Pages
-import Index from "./pages/Index";
-import VehicleDetail from "./pages/VehicleDetail";
 import HomePage from "./pages/HomePage";
+import DemoPage from "./pages/DemoPage";
+import PublicCatalog from "./pages/PublicCatalog";
+import PublicVehicleDetail from "./pages/PublicVehicleDetail";
 import LoginPage from "./pages/LoginPage";
 import SubscribePage from "./pages/SubscribePage";
 import NotFound from "./pages/NotFound";
@@ -52,10 +53,13 @@ const App = () => (
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<HomePage />} />
-              <Route path="/demo" element={<Index />} />
-              <Route path="/veiculo/:id" element={<VehicleDetail />} />
+              <Route path="/demo" element={<DemoPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/assinar" element={<SubscribePage />} />
+
+              {/* Public Store Catalog */}
+              <Route path="/loja/:lojaSlug" element={<PublicCatalog />} />
+              <Route path="/loja/:lojaSlug/veiculo/:id" element={<PublicVehicleDetail />} />
 
               {/* Legacy /sistema redirect */}
               <Route path="/sistema" element={<SistemaRedirect />} />
