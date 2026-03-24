@@ -11,7 +11,7 @@ interface VehiclePostCardProps {
   linkPrefix?: string;
 }
 
-export const VehiclePostCard: React.FC<VehiclePostCardProps> = ({ vehicle, index = 0 }) => {
+export const VehiclePostCard: React.FC<VehiclePostCardProps> = ({ vehicle, index = 0, linkPrefix }) => {
   const hasVideo = !!vehicle.videoUrl;
 
   return (
