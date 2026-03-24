@@ -8,6 +8,7 @@ import { formatPrice } from '@/lib/formatters';
 interface VehiclePostCardProps {
   vehicle: Vehicle;
   index?: number;
+  linkPrefix?: string;
 }
 
 export const VehiclePostCard: React.FC<VehiclePostCardProps> = ({ vehicle, index = 0 }) => {
