@@ -148,6 +148,14 @@
   }
 }
 
+/* Fix select dropdowns for dark theme - options need dark bg */
+@layer base {
+  select option {
+    background-color: #1a1a2e;
+    color: #fafafa;
+  }
+}
+
 @layer components {
   /* Glass Card Effect */
   .glass-card {
