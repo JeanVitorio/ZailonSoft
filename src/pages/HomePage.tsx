@@ -327,7 +327,6 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-
       {/* Testimonials */}
       <section className="py-20 relative">
         <div className="container mx-auto px-4">
