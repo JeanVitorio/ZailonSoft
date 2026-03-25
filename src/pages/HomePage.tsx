@@ -217,17 +217,6 @@ const HomePage = () => {
       </section>
 
       {/* Social proof stats */}
-      <section id="stats" className="py-16 relative">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <SpeedCounter value="500+" label="Veículos cadastrados" />
-            <SpeedCounter value="50+" label="Lojas ativas" />
-            <SpeedCounter value="2k+" label="Leads gerados" />
-            <SpeedCounter value="99%" label="Satisfação" />
-          </div>
-        </div>
-      </section>
-
       {/* Problems we solve */}
       <section className="py-20 relative">
         <div className="container mx-auto px-4">
