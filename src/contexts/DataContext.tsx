@@ -50,7 +50,7 @@ const normalizeStateToStatus = (raw: any): Lead['status'] => {
   if (s.includes('negoc') || s.includes('negoti')) return 'negotiating';
   if (s.includes('contat') || s.includes('contact') || s.includes('tentativa')) return 'contacted';
   if (s.includes('visita') || s.includes('visit')) return 'contacted';
-  if (s.includes('novo') || s.includes('new')) return 'new';
+  if (s.includes('novo') || s.includes('new') || s.includes('inicial')) return 'new';
   return 'new';
 };
 
@@ -125,10 +125,12 @@ const mapClientToLead = (client: apiService.Client): Lead => {
   };
 
   return {
-    id: client.chat_id,
+    id: client.id,
+    chatId: client.chat_id,
     name: client.name || 'Sem nome',
     email: '',
     phone: client.phone || '',
+    cpf: client.cpf || '',
     vehicleId,
     vehicleName,
     value,
@@ -138,7 +140,14 @@ const mapClientToLead = (client: apiService.Client): Lead => {
     notes: client.notes || '',
     createdAt: client.created_at || new Date().toISOString(),
     updatedAt: client.updated_at || new Date().toISOString(),
-    followUpDate
+    followUpDate,
+    dealType: client.deal_type || '',
+    appointmentAt: client.appointment_at || undefined,
+    owner: client.owner || '',
+    tags: client.tags || [],
+    outcome: client.outcome || '',
+    lastContactAt: client.last_contact_at || undefined,
+    followUpCount: client.follow_up_count || 0,
   };
 };
 
@@ -187,12 +196,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       setError(null);
 
-      // Fetch cars (public - no auth needed for display)
-      const carsData = await apiService.fetchAllCars();
-      setVehicles(carsData.map(mapCarToVehicle));
+      if (user && lojaId) {
+        // Fetch cars for this store only
+        const carsData = await apiService.fetchAvailableCars(lojaId);
+        setVehicles(carsData.map(mapCarToVehicle));
 
-      // Only fetch admin data if user is logged in
-      if (user) {
+        // Fetch clients
         try {
           const clientsData = await apiService.fetchClients();
           setLeads(clientsData.map(mapClientToLead));
@@ -201,11 +210,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setLeads([]);
         }
 
+        // Fetch store details
         try {
-          const storeData = await apiService.fetchStoreDetails();
+          const storeData = await apiService.fetchLojaDetails(lojaId);
           if (storeData) {
             setStore(mapLojaToStore(storeData));
-            // Fetch sellers for this store
             try {
               const vendedoresData = await apiService.fetchVendedores(storeData.id);
               setSellers((vendedoresData || []).map((v: any) => ({
@@ -223,6 +232,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (err) {
           console.warn('Não foi possível carregar loja:', err);
         }
+      } else if (!user) {
+        // Public: no data loaded by default, pages fetch their own
+        setVehicles([]);
+        setLeads([]);
+        setStore(emptyStore);
+        setSellers([]);
       }
     } catch (err: any) {
       console.error('Erro ao carregar dados:', err);
@@ -234,12 +249,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     refreshData();
-  }, [user]);
+  }, [user, lojaId]);
 
   const addVehicle = async (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'views' | 'likes'>, images: File[] = []) => {
     try {
-      const storeData = await apiService.fetchStoreDetails();
-      if (!storeData?.id) throw new Error('Loja não identificada.');
+      if (!lojaId) throw new Error('Loja não identificada.');
 
       const result = await apiService.addVehicle({
         name: vehicle.name,
@@ -254,7 +268,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         color: vehicle.color,
         stock: vehicle.stock,
         status: vehicle.status,
-      }, images, storeData.id);
+      }, images, lojaId);
 
       const newVehicle = mapCarToVehicle(result);
       setVehicles(prev => [newVehicle, ...prev]);
@@ -299,9 +313,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addLead = async (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => {
-    // Save to Supabase via createClient
     try {
-      const storeData = await apiService.fetchStoreDetails();
+      if (!lojaId) throw new Error('Loja não identificada.');
       const result = await apiService.createClient({
         clientPayload: {
           name: lead.name,
@@ -310,31 +323,40 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           job: '',
           state: 'novo',
           interested_vehicles: JSON.stringify([{ id: lead.vehicleId, nome: lead.vehicleName }]),
-          deal_type: lead.source || 'catalog',
+          deal_type: lead.dealType || lead.source || 'catalog',
           bot_data: {},
         },
         files: { documents: [], trade_in_photos: [] },
-        lojaId: storeData.id,
+        lojaId,
       });
       const newLead = mapClientToLead(result);
       setLeads(prev => [newLead, ...prev]);
     } catch (err) {
       console.error('Erro ao criar lead:', err);
-      // Fallback: add locally with temp id
-      const now = new Date().toISOString();
-      const newLead: Lead = { ...lead, id: `lead-${Date.now()}`, createdAt: now, updatedAt: now };
-      setLeads(prev => [newLead, ...prev]);
+      throw err;
     }
   };
 
   const updateLead = async (id: string, updates: Partial<Lead>) => {
     try {
+      const lead = leads.find(l => l.id === id);
+      const chatId = lead?.chatId || id;
+      
       if (updates.status) {
-        await apiService.updateClientStatus({ chatId: id, newState: updates.status });
+        await apiService.updateClientStatus({ chatId, newState: updates.status });
       }
-      if (updates.notes !== undefined) {
-        await apiService.updateClientDetails({ chatId: id, updatedData: { notes: updates.notes } });
+
+      // Build a single update payload for all other fields
+      const detailUpdates: Record<string, any> = {};
+      if (updates.notes !== undefined) detailUpdates.notes = updates.notes;
+      if (updates.priority !== undefined) detailUpdates.priority = updates.priority;
+      if (updates.dealType !== undefined) detailUpdates.deal_type = updates.dealType;
+      if (updates.owner !== undefined) detailUpdates.owner = updates.owner;
+
+      if (Object.keys(detailUpdates).length > 0) {
+        await apiService.updateClientDetails({ chatId, updatedData: detailUpdates });
       }
+
       setLeads(prev => prev.map(l =>
         l.id === id ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l
       ));
@@ -345,7 +367,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const deleteLead = async (id: string) => {
     try {
-      await apiService.deleteClient(id);
+      const lead = leads.find(l => l.id === id);
+      await apiService.deleteClient(lead?.chatId || id);
       setLeads(prev => prev.filter(l => l.id !== id));
     } catch (err) {
       console.error('Erro ao deletar lead:', err);
@@ -385,13 +408,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addSeller = async (seller: Omit<Seller, 'id' | 'salesCount'>) => {
     try {
-      const storeData = await apiService.fetchStoreDetails();
+      if (!lojaId) throw new Error('Loja não identificada.');
       const result = await apiService.createVendedor({
         nome: seller.name,
         telefone: seller.phone,
         email: seller.email,
         whatsapp: seller.phone,
-        loja_id: storeData.id
+        loja_id: lojaId
       });
       setSellers(prev => [...prev, { ...seller, id: result.id, salesCount: 0 }]);
     } catch (err) {

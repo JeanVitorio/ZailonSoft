@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, MessageCircle, AlertTriangle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,9 +12,16 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login, subscription } = useAuth();
+  const { login, isLoggedIn, lojaSlug, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // If already logged in with slug, redirect
+  React.useEffect(() => {
+    if (!authLoading && isLoggedIn && lojaSlug) {
+      navigate(`/${lojaSlug}/dashboard`, { replace: true });
+    }
+  }, [authLoading, isLoggedIn, lojaSlug, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,9 +45,11 @@ const LoginPage = () => {
           title: 'Bem-vindo!',
           description: 'Login realizado com sucesso',
         });
-        // Subscription check happens in MainLayout via AuthContext
-        // Will redirect to slug-based route via /sistema redirect
-        navigate('/sistema');
+        // The useEffect above will handle redirect once lojaSlug loads
+        // Fallback: navigate to /sistema which redirects to slug
+        setTimeout(() => {
+          navigate('/sistema', { replace: true });
+        }, 500);
       } else {
         toast({
           title: 'Credenciais inválidas',
@@ -68,19 +77,16 @@ const LoginPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md"
         >
-          {/* Logo */}
           <Link to="/" className="inline-flex items-center gap-3 mb-8">
             <img src="/favicon.ico" alt="Logo" className="w-12 h-12 rounded-2xl shadow-glow-md" />
             <span className="text-xl font-bold text-white">AutoConnect</span>
           </Link>
 
-          {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">Bem-vindo de volta</h1>
             <p className="text-muted-foreground">Acesse sua conta para gerenciar sua loja</p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">Email</label>
@@ -144,7 +150,6 @@ const LoginPage = () => {
             </Button>
           </form>
 
-          {/* WhatsApp */}
           <div className="mt-8 text-center">
             <a 
               href="https://wa.me/5546991163405" 
@@ -159,7 +164,7 @@ const LoginPage = () => {
         </motion.div>
       </div>
 
-      {/* Right Panel - Visual */}
+      {/* Right Panel */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent" />
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200')] bg-cover bg-center opacity-30" />

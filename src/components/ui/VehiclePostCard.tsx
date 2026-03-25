@@ -8,9 +8,10 @@ import { formatPrice } from '@/lib/formatters';
 interface VehiclePostCardProps {
   vehicle: Vehicle;
   index?: number;
+  linkPrefix?: string;
 }
 
-export const VehiclePostCard: React.FC<VehiclePostCardProps> = ({ vehicle, index = 0 }) => {
+export const VehiclePostCard: React.FC<VehiclePostCardProps> = ({ vehicle, index = 0, linkPrefix }) => {
   const hasVideo = !!vehicle.videoUrl;
 
   return (
@@ -25,7 +26,7 @@ export const VehiclePostCard: React.FC<VehiclePostCardProps> = ({ vehicle, index
       whileHover={{ y: -8, scale: 1.02 }}
       className="group"
     >
-      <Link to={`/veiculo/${vehicle.id}`}>
+      <Link to={linkPrefix ? `${linkPrefix}/veiculo/${vehicle.id}` : `/veiculo/${vehicle.id}`}>
         <div className="post-card cursor-pointer">
           {/* Image/Video Container */}
           <div className="relative aspect-[4/3] overflow-hidden">
