@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Phone, Car, DollarSign, Calendar, MessageCircle, Download, X, ChevronDown, Search, Plus, UserPlus, Tag } from 'lucide-react';
+import { Users, Phone, Car, DollarSign, Calendar, MessageCircle, Download, X, ChevronDown, Search, Plus, UserPlus, Tag, Edit, Save } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatPrice } from '@/lib/formatters';
@@ -10,13 +10,30 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 
+const dealTypeLabels: Record<string, string> = {
+  'financiamento': 'Financiamento',
+  'a_vista': 'À Vista',
+  'consorcio': 'Consórcio',
+  'troca': 'Troca',
+  'leasing': 'Leasing',
+  '': 'Não informado',
+};
+
 const CRMKanban = () => {
   const { leads, updateLead, vehicles, addLead } = useData();
   const { lojaSlug } = useAuth();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [editNotes, setEditNotes] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddLead, setShowAddLead] = useState(false);
+
+  // Edit fields
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [editPriority, setEditPriority] = useState<Lead['priority']>('medium');
+  const [editDealType, setEditDealType] = useState('');
+  const [editStatus, setEditStatus] = useState<Lead['status']>('new');
 
   // New lead form
   const [newName, setNewName] = useState('');
@@ -32,7 +49,6 @@ const CRMKanban = () => {
     { id: 'closed', label: 'Fechados', color: 'emerald' },
   ];
 
-  // Search filter
   const filteredLeads = useMemo(() => {
     if (!searchQuery) return leads;
     const q = searchQuery.toLowerCase();
@@ -61,13 +77,26 @@ const CRMKanban = () => {
 
   const openLeadDetail = (lead: Lead) => {
     setSelectedLead(lead);
+    setIsEditing(false);
+    setEditName(lead.name);
+    setEditPhone(lead.phone);
     setEditNotes(lead.notes || '');
+    setEditPriority(lead.priority);
+    setEditDealType(lead.dealType || '');
+    setEditStatus(lead.status);
   };
 
-  const handleSaveNotes = () => {
+  const handleSaveEdit = () => {
     if (selectedLead) {
-      updateLead(selectedLead.id, { notes: editNotes });
-      toast({ title: "Notas salvas", description: "As observações foram atualizadas." });
+      updateLead(selectedLead.id, {
+        notes: editNotes,
+        priority: editPriority,
+        dealType: editDealType,
+        status: editStatus,
+      });
+      setSelectedLead(prev => prev ? { ...prev, notes: editNotes, priority: editPriority, dealType: editDealType, status: editStatus } : null);
+      setIsEditing(false);
+      toast({ title: "Lead atualizado", description: "As alterações foram salvas." });
     }
   };
 
@@ -79,23 +108,13 @@ const CRMKanban = () => {
     try {
       const selectedVehicle = vehicles.find(v => v.id === newVehicle);
       await addLead({
-        name: newName,
-        phone: newPhone,
-        email: '',
-        vehicleId: newVehicle || '',
-        vehicleName: selectedVehicle?.name || 'Não especificado',
-        value: selectedVehicle?.price || 0,
-        priority: newPriority,
-        source: 'catalog',
-        status: 'new',
-        notes: '',
-        dealType: '',
+        name: newName, phone: newPhone, email: '',
+        vehicleId: newVehicle || '', vehicleName: selectedVehicle?.name || 'Não especificado',
+        value: selectedVehicle?.price || 0, priority: newPriority,
+        source: 'catalog', status: 'new', notes: '', dealType: '',
       });
       toast({ title: "Lead adicionado!", description: `${newName} foi adicionado ao funil.` });
-      setNewName('');
-      setNewPhone('');
-      setNewVehicle('');
-      setNewPriority('medium');
+      setNewName(''); setNewPhone(''); setNewVehicle(''); setNewPriority('medium');
       setShowAddLead(false);
     } catch (err) {
       toast({ title: "Erro", description: "Não foi possível adicionar o lead", variant: 'destructive' });
@@ -113,10 +132,10 @@ const CRMKanban = () => {
         <h1>Relatório do Lead</h1>
         <div class="section"><div class="label">Nome</div><div class="value">${lead.name}</div></div>
         <div class="section"><div class="label">Contato</div><div class="value">📞 ${lead.phone}</div></div>
-        <div class="section"><div class="label">Veículo</div><div class="value">${lead.vehicleName}</div><div class="price">${formatPrice(vehicleValue)}</div></div>
+        <div class="section"><div class="label">Veículo de Interesse</div><div class="value">${lead.vehicleName}</div><div class="price">${formatPrice(vehicleValue)}</div></div>
         <div class="section"><div class="label">Status</div><div class="value">${statusLabels[lead.status]}</div></div>
-        <div class="section"><div class="label">Prioridade</div><div class="value">${priorityLabels[lead.priority]}</div></div>
-        <div class="section"><div class="label">Tipo de Negociação</div><div class="value">${lead.dealType || 'Não informado'}</div></div>
+        <div class="section"><div class="label">Chance de Venda</div><div class="value">${priorityLabels[lead.priority]}</div></div>
+        <div class="section"><div class="label">Tipo de Negociação</div><div class="value">${dealTypeLabels[lead.dealType || ''] || lead.dealType || 'Não informado'}</div></div>
         ${lead.followUpDate ? `<div class="section"><div class="label">Follow-up</div><div class="value">${new Date(lead.followUpDate).toLocaleDateString('pt-BR')}</div></div>` : ''}
         <div class="section"><div class="label">Observações</div><div class="value">${lead.notes || 'Nenhuma'}</div></div>
         <div class="section"><div class="label">Cadastrado em</div><div class="value">${new Date(lead.createdAt).toLocaleDateString('pt-BR', { dateStyle: 'full' })}</div></div>
@@ -150,12 +169,8 @@ const CRMKanban = () => {
       {/* Search */}
       <div className="relative max-w-md">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Buscar por nome, telefone ou veículo..."
-          className="pl-11 h-11"
-        />
+        <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar por nome, telefone ou veículo..." className="pl-11 h-11" />
         {searchQuery && (
           <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white">
             <X className="w-4 h-4" />
@@ -205,13 +220,20 @@ const CRMKanban = () => {
                           </div>
                           <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium flex-shrink-0 ${
                             lead.priority === 'high' ? 'bg-red-500/20 text-red-400' : lead.priority === 'medium' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'
-                          }`}>{priorityLabels[lead.priority]}</span>
+                          }`} title="Chance de venda">{priorityLabels[lead.priority]}</span>
                         </div>
 
                         <div className="flex items-center gap-2 mb-2 p-1.5 rounded-lg bg-white/[0.02]">
                           <Car className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                           <p className="text-xs text-white truncate">{lead.vehicleName}</p>
                         </div>
+
+                        {lead.dealType && (
+                          <div className="mb-2">
+                            <span className="text-[10px] text-muted-foreground">Negociação: </span>
+                            <span className="text-[10px] text-white font-medium">{dealTypeLabels[lead.dealType] || lead.dealType}</span>
+                          </div>
+                        )}
 
                         <div className="flex items-center justify-between mb-2">
                           <span className={`font-semibold text-xs ${isHighValue ? 'text-amber-400' : 'text-white'}`}>{formatPrice(leadValue)}</span>
@@ -226,7 +248,8 @@ const CRMKanban = () => {
                           </a>
                           <div className="relative flex-1" onClick={(e) => e.stopPropagation()}>
                             <select value={lead.status} onChange={(e) => handleStatusChange(lead.id, e.target.value)}
-                              className="w-full h-7 px-2 rounded-lg bg-white/5 border border-white/10 text-white text-[10px] focus:outline-none appearance-none cursor-pointer">
+                              className="w-full h-7 px-2 rounded-lg bg-[#1a1a2e] border border-white/10 text-white text-[10px] focus:outline-none appearance-none cursor-pointer"
+                              style={{ colorScheme: 'dark' }}>
                               {columns.map(col => (<option key={col.id} value={col.id}>{col.label}</option>))}
                               <option value="lost">Perdido</option>
                             </select>
@@ -273,13 +296,13 @@ const CRMKanban = () => {
                 <div>
                   <label className="block text-sm text-muted-foreground mb-1">Veículo de interesse</label>
                   <select value={newVehicle} onChange={e => setNewVehicle(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500/50">
+                    className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500/50" style={{ colorScheme: 'dark' }}>
                     <option value="">Selecionar veículo</option>
                     {vehicles.map(v => (<option key={v.id} value={v.id}>{v.name} - {formatPrice(v.price)}</option>))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-muted-foreground mb-1">Prioridade</label>
+                  <label className="block text-sm text-muted-foreground mb-1">Chance de Venda</label>
                   <div className="flex gap-2">
                     {(['low', 'medium', 'high'] as const).map(p => (
                       <button key={p} onClick={() => setNewPriority(p)}
@@ -288,7 +311,7 @@ const CRMKanban = () => {
                             ? p === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : p === 'medium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                             : 'bg-white/5 text-muted-foreground border border-white/10'
                         }`}>
-                        {priorityLabels[p]}
+                        {p === 'high' ? 'Alta' : p === 'medium' ? 'Média' : 'Baixa'}
                       </button>
                     ))}
                   </div>
@@ -296,16 +319,14 @@ const CRMKanban = () => {
               </div>
               <div className="flex gap-2 p-4 border-t border-white/5">
                 <Button variant="outline" onClick={() => setShowAddLead(false)} className="flex-1">Cancelar</Button>
-                <Button onClick={handleAddLead} className="flex-1">
-                  <Plus className="w-4 h-4" /> Adicionar
-                </Button>
+                <Button onClick={handleAddLead} className="flex-1"><Plus className="w-4 h-4" /> Adicionar</Button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Lead Detail Modal */}
+      {/* Lead Detail / Edit Modal */}
       <AnimatePresence>
         {selectedLead && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -313,13 +334,21 @@ const CRMKanban = () => {
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-lg glass-card rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
               <div className="flex items-center justify-between p-4 border-b border-white/5">
-                <h3 className="text-lg font-semibold text-white">Detalhes do Lead</h3>
-                <button onClick={() => setSelectedLead(null)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-white">
-                  <X className="w-4 h-4" />
-                </button>
+                <h3 className="text-lg font-semibold text-white">{isEditing ? 'Editar Lead' : 'Detalhes do Lead'}</h3>
+                <div className="flex items-center gap-2">
+                  {!isEditing && (
+                    <button onClick={() => setIsEditing(true)} className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400 hover:bg-amber-500/20">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button onClick={() => setSelectedLead(null)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-white">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {/* Lead header */}
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400/20 to-orange-400/20 flex items-center justify-center">
                     <span className="text-amber-400 text-xl font-semibold">{selectedLead.name.charAt(0)}</span>
@@ -331,11 +360,12 @@ const CRMKanban = () => {
                   </div>
                 </div>
 
+                {/* Info cards */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 rounded-xl bg-white/[0.02]">
                     <div className="flex items-center gap-2 mb-1">
                       <Car className="w-4 h-4 text-amber-400" />
-                      <span className="text-xs text-muted-foreground">Veículo</span>
+                      <span className="text-xs text-muted-foreground">Veículo de Interesse</span>
                     </div>
                     <p className="text-sm font-medium text-white truncate">{selectedLead.vehicleName}</p>
                   </div>
@@ -348,66 +378,134 @@ const CRMKanban = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`px-3 py-1 rounded-lg text-sm font-medium border ${statusColors[selectedLead.status]}`}>
-                    {statusLabels[selectedLead.status]}
-                  </span>
-                  <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                    selectedLead.priority === 'high' ? 'bg-red-500/20 text-red-400' : selectedLead.priority === 'medium' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'
-                  }`}>{priorityLabels[selectedLead.priority]}</span>
-                  {selectedLead.dealType && (
-                    <span className="px-3 py-1 rounded-lg text-sm font-medium bg-white/5 text-white border border-white/10">{selectedLead.dealType}</span>
-                  )}
-                </div>
+                {isEditing ? (
+                  /* Edit mode */
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">Status do Lead</label>
+                      <select value={editStatus} onChange={(e) => setEditStatus(e.target.value as Lead['status'])}
+                        className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500/50" style={{ colorScheme: 'dark' }}>
+                        {Object.entries(statusLabels).map(([key, label]) => (
+                          <option key={key} value={key}>{label}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                {selectedLead.tags && selectedLead.tags.length > 0 && (
-                  <div className="flex gap-1 flex-wrap">
-                    {selectedLead.tags.map((tag, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">{tag}</span>
-                    ))}
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">Chance de Venda</label>
+                      <div className="flex gap-2">
+                        {(['low', 'medium', 'high'] as const).map(p => (
+                          <button key={p} onClick={() => setEditPriority(p)}
+                            className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                              editPriority === p
+                                ? p === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : p === 'medium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                : 'bg-white/5 text-muted-foreground border border-white/10'
+                            }`}>
+                            {p === 'high' ? '🔥 Alta' : p === 'medium' ? '⚡ Média' : '❄️ Baixa'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">Tipo de Negociação</label>
+                      <select value={editDealType} onChange={(e) => setEditDealType(e.target.value)}
+                        className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500/50" style={{ colorScheme: 'dark' }}>
+                        <option value="">Não informado</option>
+                        <option value="financiamento">Financiamento</option>
+                        <option value="a_vista">À Vista</option>
+                        <option value="consorcio">Consórcio</option>
+                        <option value="troca">Troca</option>
+                        <option value="leasing">Leasing</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">Observações</label>
+                      <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} placeholder="Adicione observações..." rows={3} className="resize-none" />
+                    </div>
                   </div>
+                ) : (
+                  /* View mode */
+                  <>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`px-3 py-1 rounded-lg text-sm font-medium border ${statusColors[selectedLead.status]}`}>
+                        {statusLabels[selectedLead.status]}
+                      </span>
+                      <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                        selectedLead.priority === 'high' ? 'bg-red-500/20 text-red-400' : selectedLead.priority === 'medium' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'
+                      }`}>
+                        Chance: {priorityLabels[selectedLead.priority]}
+                      </span>
+                    </div>
+
+                    {selectedLead.dealType && (
+                      <div className="p-3 rounded-xl bg-white/[0.02]">
+                        <p className="text-xs text-muted-foreground mb-1">Tipo de Negociação</p>
+                        <p className="text-sm text-white font-medium">{dealTypeLabels[selectedLead.dealType] || selectedLead.dealType}</p>
+                      </div>
+                    )}
+
+                    {selectedLead.tags && selectedLead.tags.length > 0 && (
+                      <div className="flex gap-1 flex-wrap">
+                        {selectedLead.tags.map((tag, i) => (
+                          <span key={i} className="px-2 py-0.5 rounded text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">{tag}</span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded-xl bg-white/[0.02]">
+                        <p className="text-xs text-muted-foreground mb-1">Cadastrado em</p>
+                        <p className="text-sm text-white">{new Date(selectedLead.createdAt).toLocaleDateString('pt-BR')}</p>
+                      </div>
+                      {selectedLead.lastContactAt && (
+                        <div className="p-3 rounded-xl bg-white/[0.02]">
+                          <p className="text-xs text-muted-foreground mb-1">Último contato</p>
+                          <p className="text-sm text-white">{new Date(selectedLead.lastContactAt).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                      )}
+                      {selectedLead.followUpDate && (
+                        <div className="p-3 rounded-xl bg-white/[0.02]">
+                          <p className="text-xs text-muted-foreground mb-1">Follow-up</p>
+                          <p className="text-sm text-white">{new Date(selectedLead.followUpDate).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                      )}
+                      {selectedLead.owner && (
+                        <div className="p-3 rounded-xl bg-white/[0.02]">
+                          <p className="text-xs text-muted-foreground mb-1">Responsável</p>
+                          <p className="text-sm text-white">{selectedLead.owner}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {selectedLead.notes && (
+                      <div className="p-3 rounded-xl bg-white/[0.02]">
+                        <p className="text-xs text-muted-foreground mb-1">Observações</p>
+                        <p className="text-sm text-white whitespace-pre-wrap">{selectedLead.notes}</p>
+                      </div>
+                    )}
+                  </>
                 )}
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 rounded-xl bg-white/[0.02]">
-                    <p className="text-xs text-muted-foreground mb-1">Cadastrado em</p>
-                    <p className="text-sm text-white">{new Date(selectedLead.createdAt).toLocaleDateString('pt-BR')}</p>
-                  </div>
-                  {selectedLead.lastContactAt && (
-                    <div className="p-3 rounded-xl bg-white/[0.02]">
-                      <p className="text-xs text-muted-foreground mb-1">Último contato</p>
-                      <p className="text-sm text-white">{new Date(selectedLead.lastContactAt).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                  )}
-                  {selectedLead.followUpDate && (
-                    <div className="p-3 rounded-xl bg-white/[0.02]">
-                      <p className="text-xs text-muted-foreground mb-1">Follow-up</p>
-                      <p className="text-sm text-white">{new Date(selectedLead.followUpDate).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                  )}
-                  {selectedLead.owner && (
-                    <div className="p-3 rounded-xl bg-white/[0.02]">
-                      <p className="text-xs text-muted-foreground mb-1">Responsável</p>
-                      <p className="text-sm text-white">{selectedLead.owner}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">Observações</label>
-                  <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} placeholder="Adicione observações..." rows={3} className="resize-none" />
-                  <Button variant="outline" size="sm" onClick={handleSaveNotes} className="mt-2">Salvar Notas</Button>
-                </div>
               </div>
 
               <div className="flex flex-wrap gap-2 p-4 border-t border-white/5">
-                <a href={`https://wa.me/55${selectedLead.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[100px]">
-                  <Button variant="outline" className="w-full"><MessageCircle className="w-4 h-4" /> WhatsApp</Button>
-                </a>
-                <Button variant="outline" onClick={() => handleDownloadPDF(selectedLead)} className="flex-1 min-w-[100px]">
-                  <Download className="w-4 h-4" /> PDF
-                </Button>
-                <Button onClick={() => setSelectedLead(null)} className="flex-1 min-w-[100px]">Fechar</Button>
+                {isEditing ? (
+                  <>
+                    <Button variant="outline" onClick={() => setIsEditing(false)} className="flex-1">Cancelar</Button>
+                    <Button onClick={handleSaveEdit} className="flex-1"><Save className="w-4 h-4" /> Salvar</Button>
+                  </>
+                ) : (
+                  <>
+                    <a href={`https://wa.me/55${selectedLead.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-[100px]">
+                      <Button variant="outline" className="w-full"><MessageCircle className="w-4 h-4" /> WhatsApp</Button>
+                    </a>
+                    <Button variant="outline" onClick={() => handleDownloadPDF(selectedLead)} className="flex-1 min-w-[100px]">
+                      <Download className="w-4 h-4" /> PDF
+                    </Button>
+                    <Button onClick={() => setSelectedLead(null)} className="flex-1 min-w-[100px]">Fechar</Button>
+                  </>
+                )}
               </div>
             </motion.div>
           </motion.div>
