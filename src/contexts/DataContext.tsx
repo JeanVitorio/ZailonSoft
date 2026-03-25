@@ -345,12 +345,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (updates.status) {
         await apiService.updateClientStatus({ chatId, newState: updates.status });
       }
-      if (updates.notes !== undefined) {
-        await apiService.updateClientDetails({ chatId, updatedData: { notes: updates.notes } });
+
+      // Build a single update payload for all other fields
+      const detailUpdates: Record<string, any> = {};
+      if (updates.notes !== undefined) detailUpdates.notes = updates.notes;
+      if (updates.priority !== undefined) detailUpdates.priority = updates.priority;
+      if (updates.dealType !== undefined) detailUpdates.deal_type = updates.dealType;
+      if (updates.owner !== undefined) detailUpdates.owner = updates.owner;
+
+      if (Object.keys(detailUpdates).length > 0) {
+        await apiService.updateClientDetails({ chatId, updatedData: detailUpdates });
       }
-      if (updates.priority !== undefined) {
-        await apiService.updateClientDetails({ chatId, updatedData: { priority: updates.priority } });
-      }
+
       setLeads(prev => prev.map(l =>
         l.id === id ? { ...l, ...updates, updatedAt: new Date().toISOString() } : l
       ));
