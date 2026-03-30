@@ -1,13 +1,13 @@
 import { useXylonStore } from '@/store/useXylonStore';
 import BottomNav from '@/components/BottomNav';
-import FeedPage from '@/pages/FeedPage';
+import ProfilePage from '@/pages/ProfilePage';
 
-export default function Index() {
-  const { achievements, stats } = useXylonStore();
+export default function ProfileRoute() {
+  const { stats } = useXylonStore();
 
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto relative">
-      <FeedPage achievements={achievements} stats={stats} />
+      <ProfilePage stats={stats} />
       <BottomNav />
     </div>
   );
