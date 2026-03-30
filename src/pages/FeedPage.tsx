@@ -2,27 +2,22 @@ import { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AchievementCard from '@/components/AchievementCard';
-import { Achievement } from '@/types/xylon';
+import { CommunityPost } from '@/types/zailon';
 import crownBadge from '@/assets/crown-badge.png';
 
 interface FeedPageProps {
-  achievements: Achievement[];
+  posts: CommunityPost[];
   stats: { xpTotal: number; streak: number; level: number };
+  onRefresh: () => void;
+  isRefreshing: boolean;
 }
 
-export default function FeedPage({ achievements, stats }: FeedPageProps) {
-  const [filter, setFilter] = useState<'all' | 'clan' | 'public'>('all');
-  const [refreshing, setRefreshing] = useState(false);
+export default function FeedPage({ posts, stats, onRefresh, isRefreshing }: FeedPageProps) {
+  const [filter, setFilter] = useState<'all' | 'mine' | 'public'>('all');
 
-  const filtered = achievements.filter(a => {
-    if (filter === 'all') return true;
-    return a.privacy === filter;
-  });
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
-  };
+  const filtered = filter === 'all' ? posts : filter === 'mine'
+    ? posts.filter(p => p.tipo === 'achievement')
+    : posts;
 
   return (
     <div className="pb-24">
@@ -30,8 +25,8 @@ export default function FeedPage({ achievements, stats }: FeedPageProps) {
       <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-4 pt-[env(safe-area-inset-top)] pb-3">
         <div className="flex items-center justify-between pt-3">
           <div className="flex items-center gap-2">
-            <img src={crownBadge} alt="Xylon" className="w-8 h-8" width={32} height={32} />
-            <h1 className="text-xl font-extrabold text-foreground">Xylon Soft</h1>
+            <img src={crownBadge} alt="Zailon" className="w-8 h-8" width={32} height={32} />
+            <h1 className="text-xl font-extrabold text-foreground">Zailon</h1>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1 bg-xp/20 rounded-full px-3 py-1">
@@ -46,7 +41,7 @@ export default function FeedPage({ achievements, stats }: FeedPageProps) {
 
         {/* Filters */}
         <div className="flex items-center gap-2 mt-3">
-          {(['all', 'clan', 'public'] as const).map((f) => (
+          {(['all', 'mine', 'public'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -56,15 +51,15 @@ export default function FeedPage({ achievements, stats }: FeedPageProps) {
                   : 'bg-secondary text-muted-foreground'
               }`}
             >
-              {f === 'all' ? 'Todos' : f === 'clan' ? '❤️ Clã' : '🌍 Público'}
+              {f === 'all' ? 'Todos' : f === 'mine' ? '🏆 Minhas' : '🌍 Público'}
             </button>
           ))}
 
           <button
-            onClick={handleRefresh}
+            onClick={onRefresh}
             className="ml-auto p-2 rounded-full bg-secondary"
           >
-            <RefreshCw className={`w-4 h-4 text-muted-foreground ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-muted-foreground ${isRefreshing ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
@@ -72,8 +67,8 @@ export default function FeedPage({ achievements, stats }: FeedPageProps) {
       {/* Feed */}
       <div className="px-4 pt-4 space-y-5 max-w-lg mx-auto">
         <AnimatePresence>
-          {filtered.map((achievement, i) => (
-            <AchievementCard key={achievement.id} achievement={achievement} index={i} />
+          {filtered.map((post, i) => (
+            <AchievementCard key={post.id} post={post} index={i} />
           ))}
         </AnimatePresence>
 

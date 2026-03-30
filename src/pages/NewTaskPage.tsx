@@ -2,44 +2,60 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import { TaskDifficulty, TaskType, TaskPrivacy, DIFFICULTY_LABELS, TYPE_LABELS, PRIVACY_LABELS, XP_MAP } from '@/types/xylon';
-
-interface NewTaskPageProps {
-  onAdd: (task: {
-    name: string;
-    description: string;
-    type: TaskType;
-    difficulty: TaskDifficulty;
-    privacy: TaskPrivacy;
-    days?: number[];
-    hour?: string;
-  }) => void;
-}
+import { TaskDifficulty, TaskFrequency, Visibility, DIFFICULTY_LABELS, FREQUENCY_LABELS, VISIBILITY_LABELS, XP_MAP } from '@/types/zailon';
+import { useCreateTask } from '@/hooks/useTasks';
+import { useGoals, useDefaultGoal } from '@/hooks/useGoals';
+import { toast } from 'sonner';
 
 const DAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-export default function NewTaskPage({ onAdd }: NewTaskPageProps) {
+export default function NewTaskPage() {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [type, setType] = useState<TaskType>('daily');
-  const [difficulty, setDifficulty] = useState<TaskDifficulty>('medium');
-  const [privacy, setPrivacy] = useState<TaskPrivacy>('public');
-  const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
-  const [hour, setHour] = useState('08:00');
+  const createTask = useCreateTask();
+  const { data: goals } = useGoals();
+  const defaultGoal = useDefaultGoal();
 
-  const handleSubmit = () => {
-    if (!name.trim()) return;
-    onAdd({
-      name: name.trim(),
-      description: description.trim(),
-      type,
-      difficulty,
-      privacy,
-      days: type === 'daily' ? selectedDays : undefined,
-      hour,
-    });
-    navigate('/tasks');
+  const [titulo, setTitulo] = useState('');
+  const [descricao, setDescricao] = useState('');
+  const [frequencia, setFrequencia] = useState<TaskFrequency>('daily');
+  const [dificuldade, setDificuldade] = useState<TaskDifficulty>('medium');
+  const [visibilidade, setVisibilidade] = useState<Visibility>('public');
+  const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [horario, setHorario] = useState('08:00');
+  const [goalId, setGoalId] = useState<string>('');
+
+  const handleSubmit = async () => {
+    if (!titulo.trim()) return;
+
+    let finalGoalId = goalId || goals?.[0]?.id;
+
+    // If no goal exists, create a default one
+    if (!finalGoalId) {
+      try {
+        const goal = await defaultGoal.mutateAsync();
+        finalGoalId = goal.id;
+      } catch {
+        toast.error('Erro ao criar objetivo padrão');
+        return;
+      }
+    }
+
+    try {
+      await createTask.mutateAsync({
+        titulo: titulo.trim(),
+        descricao: descricao.trim(),
+        dificuldade,
+        frequencia,
+        visibilidade,
+        dias_semana: frequencia === 'daily' ? selectedDays : [],
+        horario,
+        goal_id: finalGoalId,
+      });
+      toast.success('Tarefa criada! 🚀');
+      navigate('/tasks');
+    } catch {
+      toast.error('Erro ao criar tarefa');
+    }
   };
 
   const toggleDay = (day: number) => {
@@ -64,8 +80,8 @@ export default function NewTaskPage({ onAdd }: NewTaskPageProps) {
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Nome</label>
           <input
-            value={name}
-            onChange={e => setName(e.target.value)}
+            value={titulo}
+            onChange={e => setTitulo(e.target.value)}
             placeholder="Ex: 50 abdominais"
             className="w-full mt-1.5 px-4 py-3 rounded-xl bg-card border border-border text-foreground text-sm font-semibold placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-cta/30"
           />
@@ -75,34 +91,51 @@ export default function NewTaskPage({ onAdd }: NewTaskPageProps) {
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Descrição</label>
           <textarea
-            value={description}
-            onChange={e => setDescription(e.target.value)}
+            value={descricao}
+            onChange={e => setDescricao(e.target.value)}
             placeholder="Detalhes da tarefa..."
             rows={2}
             className="w-full mt-1.5 px-4 py-3 rounded-xl bg-card border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-cta/30 resize-none"
           />
         </div>
 
-        {/* Type */}
+        {/* Goal selection */}
+        {goals && goals.length > 1 && (
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Objetivo</label>
+            <select
+              value={goalId}
+              onChange={e => setGoalId(e.target.value)}
+              className="w-full mt-1.5 px-4 py-3 rounded-xl bg-card border border-border text-foreground text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-cta/30"
+            >
+              <option value="">Selecionar...</option>
+              {goals.map(g => (
+                <option key={g.id} value={g.id}>{g.emoji} {g.titulo}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Frequency */}
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tipo</label>
           <div className="flex gap-2 mt-1.5">
             {(['daily', 'once', 'weekly'] as const).map(t => (
               <button
                 key={t}
-                onClick={() => setType(t)}
+                onClick={() => setFrequencia(t)}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  type === t ? 'gradient-cta text-accent-foreground' : 'bg-secondary text-muted-foreground'
+                  frequencia === t ? 'gradient-cta text-accent-foreground' : 'bg-secondary text-muted-foreground'
                 }`}
               >
-                {TYPE_LABELS[t]}
+                {FREQUENCY_LABELS[t]}
               </button>
             ))}
           </div>
         </div>
 
         {/* Days (if daily) */}
-        {type === 'daily' && (
+        {frequencia === 'daily' && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Dias</label>
             <div className="flex gap-1.5 mt-1.5">
@@ -128,8 +161,8 @@ export default function NewTaskPage({ onAdd }: NewTaskPageProps) {
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Horário</label>
           <input
             type="time"
-            value={hour}
-            onChange={e => setHour(e.target.value)}
+            value={horario}
+            onChange={e => setHorario(e.target.value)}
             className="w-full mt-1.5 px-4 py-3 rounded-xl bg-card border border-border text-foreground text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-cta/30"
           />
         </div>
@@ -141,9 +174,9 @@ export default function NewTaskPage({ onAdd }: NewTaskPageProps) {
             {(['easy', 'medium', 'hard'] as const).map(d => (
               <button
                 key={d}
-                onClick={() => setDifficulty(d)}
+                onClick={() => setDificuldade(d)}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  difficulty === d
+                  dificuldade === d
                     ? d === 'easy' ? 'bg-xp text-navy' : d === 'medium' ? 'bg-streak/20 text-streak' : 'bg-destructive/20 text-destructive'
                     : 'bg-secondary text-muted-foreground'
                 }`}
@@ -154,19 +187,19 @@ export default function NewTaskPage({ onAdd }: NewTaskPageProps) {
           </div>
         </div>
 
-        {/* Privacy */}
+        {/* Visibility */}
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Privacidade</label>
           <div className="flex gap-2 mt-1.5">
-            {(['public', 'clan', 'secret'] as const).map(p => (
+            {(['public', 'private'] as const).map(p => (
               <button
                 key={p}
-                onClick={() => setPrivacy(p)}
+                onClick={() => setVisibilidade(p)}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  privacy === p ? 'gradient-cta text-accent-foreground' : 'bg-secondary text-muted-foreground'
+                  visibilidade === p ? 'gradient-cta text-accent-foreground' : 'bg-secondary text-muted-foreground'
                 }`}
               >
-                {p === 'public' ? '🌍 ' : p === 'clan' ? '❤️ ' : '🔒 '}{PRIVACY_LABELS[p]}
+                {p === 'public' ? '🌍 ' : '🔒 '}{VISIBILITY_LABELS[p]}
               </button>
             ))}
           </div>
@@ -176,10 +209,10 @@ export default function NewTaskPage({ onAdd }: NewTaskPageProps) {
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={handleSubmit}
-          disabled={!name.trim()}
+          disabled={!titulo.trim() || createTask.isPending}
           className="w-full py-4 rounded-xl gradient-cta text-accent-foreground font-extrabold text-base disabled:opacity-40 transition-opacity"
         >
-          Criar Tarefa 🚀
+          {createTask.isPending ? 'Criando...' : 'Criar Tarefa 🚀'}
         </motion.button>
       </div>
     </div>
