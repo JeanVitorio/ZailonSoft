@@ -2,20 +2,22 @@ import { useRef, useCallback } from 'react';
 import { Download, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toPng } from 'html-to-image';
-import { Achievement } from '@/types/xylon';
+import { CommunityPost } from '@/types/zailon';
 import heroWarrior from '@/assets/hero-warrior.jpg';
 import crownBadge from '@/assets/crown-badge.png';
 import medalBadge from '@/assets/medal-badge.png';
 
 interface AchievementCardProps {
-  achievement: Achievement;
+  post: CommunityPost;
   index: number;
 }
 
-export default function AchievementCard({ achievement, index }: AchievementCardProps) {
+export default function AchievementCard({ post, index }: AchievementCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const profile = post.profiles;
+  const meta = post.metadata ?? {};
 
-  const badgeImage = achievement.badge?.includes('Rei') ? crownBadge : medalBadge;
+  const badgeImage = meta.badge?.includes('Rei') ? crownBadge : medalBadge;
 
   const handleDownload = useCallback(async () => {
     if (!cardRef.current) return;
@@ -26,25 +28,25 @@ export default function AchievementCard({ achievement, index }: AchievementCardP
         backgroundColor: '#ffffff',
       });
       const link = document.createElement('a');
-      link.download = `xylon-${achievement.userName}-${Date.now()}.png`;
+      link.download = `zailon-${profile?.nome ?? 'card'}-${Date.now()}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
       console.error('Erro ao baixar card:', err);
     }
-  }, [achievement.userName]);
+  }, [profile?.nome]);
 
   const handleShare = useCallback(async () => {
     if (!cardRef.current) return;
     try {
       const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 3 });
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], 'xylon-achievement.png', { type: 'image/png' });
+      const file = new File([blob], 'zailon-achievement.png', { type: 'image/png' });
 
       if (navigator.share && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: `${achievement.userName} no Xylon Soft`,
-          text: achievement.message,
+          title: `${profile?.nome ?? 'Guerreiro'} no Zailon`,
+          text: post.conteudo,
           files: [file],
         });
       } else {
@@ -54,9 +56,9 @@ export default function AchievementCard({ achievement, index }: AchievementCardP
       console.error('Erro ao compartilhar:', err);
       handleDownload();
     }
-  }, [achievement, handleDownload]);
+  }, [post, profile, handleDownload]);
 
-  const timeAgo = getTimeAgo(achievement.createdAt);
+  const timeAgo = getTimeAgo(post.created_at);
 
   return (
     <motion.div
@@ -80,23 +82,25 @@ export default function AchievementCard({ achievement, index }: AchievementCardP
           <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
 
           {/* XP badge */}
-          <div className="absolute top-3 right-3 bg-xp/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
-            <span className="text-xs font-extrabold text-navy">+{achievement.xpEarned} XP</span>
-          </div>
+          {meta.xp_earned && (
+            <div className="absolute top-3 right-3 bg-xp/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
+              <span className="text-xs font-extrabold text-navy">+{meta.xp_earned} XP</span>
+            </div>
+          )}
 
           {/* Badge icon */}
-          {achievement.badge && (
+          {meta.badge && (
             <div className="absolute bottom-3 left-3 flex items-center gap-2">
               <img src={badgeImage} alt="badge" className="w-8 h-8" loading="lazy" width={32} height={32} />
               <span className="text-sm font-bold text-navy bg-card/80 backdrop-blur-sm rounded-full px-2 py-0.5">
-                {achievement.badge}
+                {meta.badge}
               </span>
             </div>
           )}
 
-          {/* Xylon watermark */}
+          {/* Zailon watermark */}
           <div className="absolute bottom-3 right-3">
-            <span className="text-[10px] font-bold text-navy/50">XYLON SOFT</span>
+            <span className="text-[10px] font-bold text-navy/50">ZAILON</span>
           </div>
         </div>
 
@@ -104,18 +108,20 @@ export default function AchievementCard({ achievement, index }: AchievementCardP
         <div className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-9 h-9 rounded-full bg-primary/30 flex items-center justify-center text-lg">
-              {achievement.userAvatar}
+              {profile?.avatar_url && profile.avatar_url.length <= 4 ? profile.avatar_url : '🦁'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-sm text-foreground truncate">{achievement.userName}</p>
+              <p className="font-bold text-sm text-foreground truncate">{profile?.nome ?? 'Guerreiro'}</p>
               <p className="text-[11px] text-muted-foreground">{timeAgo}</p>
             </div>
           </div>
 
-          <p className="text-sm font-semibold text-foreground mb-1">
-            Concluiu: {achievement.taskName}
-          </p>
-          <p className="text-xs text-muted-foreground">{achievement.message}</p>
+          {meta.task_titulo && (
+            <p className="text-sm font-semibold text-foreground mb-1">
+              Concluiu: {meta.task_titulo}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground">{post.conteudo}</p>
         </div>
       </div>
 

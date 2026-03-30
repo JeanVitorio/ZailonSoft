@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { UserStats } from '@/types/xylon';
+import { UserStats } from '@/types/zailon';
 import crownBadge from '@/assets/crown-badge.png';
 import streakFire from '@/assets/streak-fire.png';
 import medalBadge from '@/assets/medal-badge.png';
@@ -22,7 +22,6 @@ export default function DashboardPage({ stats }: DashboardPageProps) {
 
   return (
     <div className="pb-24">
-      {/* Header */}
       <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-4 pt-[env(safe-area-inset-top)] pb-3">
         <div className="pt-3">
           <h1 className="text-xl font-extrabold text-foreground">Meu Status</h1>
@@ -30,7 +29,6 @@ export default function DashboardPage({ stats }: DashboardPageProps) {
       </div>
 
       <div className="px-4 pt-4 space-y-4 max-w-lg mx-auto">
-        {/* Stats grid */}
         <div className="grid grid-cols-2 gap-3">
           <StatCard
             icon={<img src={crownBadge} alt="XP" className="w-10 h-10" width={40} height={40} />}
@@ -48,8 +46,8 @@ export default function DashboardPage({ stats }: DashboardPageProps) {
           />
           <StatCard
             icon={<img src={medalBadge} alt="Tarefas" className="w-10 h-10" width={40} height={40} />}
-            label="Tarefas"
-            value={stats.tasksCompleted.toString()}
+            label="Pontos"
+            value={stats.pontos.toString()}
             color="bg-level/15"
             delay={0.2}
           />
@@ -62,7 +60,6 @@ export default function DashboardPage({ stats }: DashboardPageProps) {
           />
         </div>
 
-        {/* Level progress */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -83,7 +80,6 @@ export default function DashboardPage({ stats }: DashboardPageProps) {
           </div>
         </motion.div>
 
-        {/* Ranking */}
         <div>
           <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 px-1">
             🏆 Ranking Global — Top 5 Semanal
@@ -115,7 +111,6 @@ export default function DashboardPage({ stats }: DashboardPageProps) {
           </div>
         </div>
 
-        {/* Premium CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -123,7 +118,7 @@ export default function DashboardPage({ stats }: DashboardPageProps) {
           className="bg-card rounded-xl p-5 card-shadow border border-border text-center"
         >
           <span className="text-3xl">👑</span>
-          <h3 className="font-extrabold text-foreground mt-2">Xylon Premium</h3>
+          <h3 className="font-extrabold text-foreground mt-2">Zailon Premium</h3>
           <p className="text-xs text-muted-foreground mt-1">Clãs ilimitados, badges exclusivos e mais!</p>
           <button className="mt-3 px-6 py-2.5 rounded-xl gradient-cta text-accent-foreground font-bold text-sm">
             Desbloquear — R$9,90/mês
