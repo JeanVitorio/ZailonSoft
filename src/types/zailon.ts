@@ -56,6 +56,8 @@ export interface Task {
   visibilidade: Visibility;
   repeticoes: number | null;
   double_up_enabled: boolean;
+  card_color: string;
+  card_image_url: string | null;
 }
 
 export interface TaskExecution {
