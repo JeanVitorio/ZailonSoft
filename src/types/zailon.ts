@@ -83,6 +83,8 @@ export interface CommunityPost {
     pontos_earned?: number;
     badge?: string;
     task_id?: string;
+    card_color?: string;
+    card_image_url?: string | null;
   };
   profiles?: Pick<Profile, 'nome' | 'avatar_url' | 'username' | 'level'>;
 }
