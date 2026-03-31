@@ -2,66 +2,37 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Task, TaskExecution, XP_MAP } from '@/types/zailon';
-import { useState } from 'react';
 
 const MOCK_TASKS: Task[] = [
   {
-    id: 'sys-1',
-    goal_id: 'mock-goal-id',
-    user_id: 'mock-user-id',
-    titulo: 'Beber água',
-    descricao: 'Beba pelo menos 1 copo de água',
-    dificuldade: 'easy',
-    pontos: 15,
-    ativa: true,
-    frequencia: 'daily',
-    dias_semana: [0, 1, 2, 3, 4, 5, 6],
-    horario: '08:00',
-    topico: '',
-    visibilidade: 'private',
-    repeticoes: null,
-    double_up_enabled: false,
+    id: 'sys-1', goal_id: 'mock-goal-id', user_id: 'mock-user-id',
+    titulo: 'Beber água', descricao: 'Beba pelo menos 1 copo de água',
+    dificuldade: 'easy', pontos: 15, ativa: true, frequencia: 'daily',
+    dias_semana: [0, 1, 2, 3, 4, 5, 6], horario: '08:00', topico: '',
+    visibilidade: 'private', repeticoes: null, double_up_enabled: false,
+    card_color: '#1a1a2e', card_image_url: null,
     created_at: new Date().toISOString(),
   },
   {
-    id: 'sys-2',
-    goal_id: 'mock-goal-id',
-    user_id: 'mock-user-id',
-    titulo: 'Levantar e alongar',
-    descricao: 'Pare, levante e faça um alongamento',
-    dificuldade: 'easy',
-    pontos: 15,
-    ativa: true,
-    frequencia: 'daily',
-    dias_semana: [0, 1, 2, 3, 4, 5, 6],
-    horario: '09:00',
-    topico: '',
-    visibilidade: 'private',
-    repeticoes: null,
-    double_up_enabled: false,
+    id: 'sys-2', goal_id: 'mock-goal-id', user_id: 'mock-user-id',
+    titulo: 'Levantar e alongar', descricao: 'Pare, levante e faça um alongamento',
+    dificuldade: 'easy', pontos: 15, ativa: true, frequencia: 'daily',
+    dias_semana: [0, 1, 2, 3, 4, 5, 6], horario: '09:00', topico: '',
+    visibilidade: 'private', repeticoes: null, double_up_enabled: false,
+    card_color: '#0d7377', card_image_url: null,
     created_at: new Date().toISOString(),
   },
   {
-    id: 'sys-3',
-    goal_id: 'mock-goal-id',
-    user_id: 'mock-user-id',
-    titulo: '10 flexões',
-    descricao: 'Faça pelo menos 10 flexões',
-    dificuldade: 'medium',
-    pontos: 25,
-    ativa: true,
-    frequencia: 'daily',
-    dias_semana: [1, 2, 3, 4, 5],
-    horario: '10:00',
-    topico: '',
-    visibilidade: 'public',
-    repeticoes: null,
-    double_up_enabled: false,
+    id: 'sys-3', goal_id: 'mock-goal-id', user_id: 'mock-user-id',
+    titulo: '10 flexões', descricao: 'Faça pelo menos 10 flexões',
+    dificuldade: 'medium', pontos: 25, ativa: true, frequencia: 'daily',
+    dias_semana: [1, 2, 3, 4, 5], horario: '10:00', topico: '',
+    visibilidade: 'public', repeticoes: null, double_up_enabled: false,
+    card_color: '#e63946', card_image_url: null,
     created_at: new Date().toISOString(),
   },
 ];
 
-// Track mock completions in memory for preview mode
 let mockCompletedIds = new Set<string>();
 
 export function useTasks() {
@@ -86,19 +57,15 @@ export function useTasks() {
 
 export function useTodayExecutions() {
   const { user } = useAuth();
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
 
   return useQuery({
     queryKey: ['executions', user?.id, today],
     queryFn: async (): Promise<TaskExecution[]> => {
       if (!isSupabaseConfigured || !supabase || !user) {
-        // Return mock executions for completed tasks
         return Array.from(mockCompletedIds).map(id => ({
-          id: `exec-${id}`,
-          task_id: id,
-          user_id: 'mock-user-id',
-          data: today,
-          concluido: true,
+          id: `exec-${id}`, task_id: id, user_id: 'mock-user-id',
+          data: today, concluido: true,
           concluido_em: new Date().toISOString(),
           created_at: new Date().toISOString(),
         }));
@@ -121,40 +88,30 @@ export function useCompleteTask() {
 
   return useMutation({
     mutationFn: async (task: Task) => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
       const xpEarned = XP_MAP[task.dificuldade];
       const pontosEarned = task.pontos;
 
       if (!isSupabaseConfigured || !supabase || !user) {
-        // Mock mode
         mockCompletedIds.add(task.id);
         return { xpEarned, pontosEarned };
       }
 
-      // 1. Create execution record
       await supabase.from('daily_task_executions').insert({
-        task_id: task.id,
-        user_id: user.id,
-        data: today,
-        concluido: true,
-        concluido_em: new Date().toISOString(),
+        task_id: task.id, user_id: user.id, data: today,
+        concluido: true, concluido_em: new Date().toISOString(),
       });
 
-      // 2. Create community post (achievement in feed)
       await supabase.from('community_posts').insert({
-        user_id: user.id,
-        tipo: 'achievement',
-        conteudo: `Concluiu: ${task.titulo}! 💪`,
-        emoji: '🏆',
+        user_id: user.id, tipo: 'achievement',
+        conteudo: `Concluiu: ${task.titulo}! 💪`, emoji: '🏆',
         metadata: {
-          task_titulo: task.titulo,
-          xp_earned: xpEarned,
-          pontos_earned: pontosEarned,
-          task_id: task.id,
+          task_titulo: task.titulo, xp_earned: xpEarned,
+          pontos_earned: pontosEarned, task_id: task.id,
+          card_color: task.card_color, card_image_url: task.card_image_url,
         },
       });
 
-      // 3. Update profile XP/points/essence
       const { data: profile } = await supabase
         .from('profiles')
         .select('xp, pontos, essencia, level')
@@ -166,21 +123,14 @@ export function useCompleteTask() {
         const newPontos = (profile.pontos || 0) + pontosEarned;
         const newEssencia = (profile.essencia || 0) + Math.round(xpEarned * 0.4);
         const newLevel = Math.floor(newXp / 100) + 1;
-
         await supabase.from('profiles').update({
-          xp: newXp,
-          pontos: newPontos,
-          essencia: newEssencia,
-          level: newLevel,
-          last_activity_date: today,
+          xp: newXp, pontos: newPontos, essencia: newEssencia,
+          level: newLevel, last_activity_date: today,
         }).eq('id', user.id);
       }
 
-      // 4. Log activity
       await supabase.from('activity_log').insert({
-        user_id: user.id,
-        task_id: task.id,
-        data: today,
+        user_id: user.id, task_id: task.id, data: today,
         tipo: 'task_complete',
         descricao: `Concluiu ${task.titulo} (+${xpEarned} XP)`,
       });
@@ -210,21 +160,16 @@ export function useCreateTask() {
       dias_semana: number[];
       horario: string;
       goal_id: string;
+      card_color: string;
+      card_image_url: string | null;
     }) => {
       const pontos = XP_MAP[task.dificuldade];
 
       if (!isSupabaseConfigured || !supabase || !user) {
-        // Mock mode
         const newTask: Task = {
-          ...task,
-          id: `task-${Date.now()}`,
-          user_id: 'mock-user-id',
-          pontos,
-          ativa: true,
-          topico: '',
-          repeticoes: null,
-          double_up_enabled: false,
-          created_at: new Date().toISOString(),
+          ...task, id: `task-${Date.now()}`, user_id: 'mock-user-id',
+          pontos, ativa: true, topico: '', repeticoes: null,
+          double_up_enabled: false, created_at: new Date().toISOString(),
         };
         MOCK_TASKS.unshift(newTask);
         return newTask;
@@ -232,12 +177,7 @@ export function useCreateTask() {
 
       const { data, error } = await supabase
         .from('tasks')
-        .insert({
-          ...task,
-          user_id: user.id,
-          pontos,
-          ativa: true,
-        })
+        .insert({ ...task, user_id: user.id, pontos, ativa: true })
         .select()
         .single();
       if (error) throw error;

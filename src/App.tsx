@@ -11,6 +11,7 @@ import DashboardRoute from "./pages/DashboardRoute";
 import ProfileRoute from "./pages/ProfileRoute";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
+import PublicProfilePage from "./pages/PublicProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -25,9 +26,13 @@ function AppRoutes() {
     );
   }
 
-  // Show auth page only when Supabase is configured but user is not logged in
   if (isConfigured && !user) {
-    return <AuthPage />;
+    return (
+      <Routes>
+        <Route path="/u/:username" element={<PublicProfilePage />} />
+        <Route path="*" element={<AuthPage />} />
+      </Routes>
+    );
   }
 
   return (
@@ -37,6 +42,7 @@ function AppRoutes() {
       <Route path="/new-task" element={<NewTaskRoute />} />
       <Route path="/dashboard" element={<DashboardRoute />} />
       <Route path="/profile" element={<ProfileRoute />} />
+      <Route path="/u/:username" element={<PublicProfilePage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
