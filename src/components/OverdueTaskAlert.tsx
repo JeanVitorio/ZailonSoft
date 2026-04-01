@@ -15,19 +15,39 @@ export default function OverdueTaskAlert({ task, minutesLate, onComplete, onDism
     if (minutesLate > 30) return 'Você esqueceu de mim? Ainda dá tempo!';
     return 'Está um pouquinho atrasada, mas nada que a gente não resolva!';
   };
+  
+  const formatDelay = (minutes: number) => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  if (hours === 0) return `${mins}min atrasada`;
+  if (mins === 0) return `${hours}h atrasada`;
+
+  return `${hours}h ${mins}min atrasada`;
+};
 
   return (
     <motion.div
       initial={{ opacity: 0, y: -20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
-      className="mx-4 mb-4 p-4 rounded-2xl bg-card border border-streak/30 card-shadow"
+      className="
+        w-full
+        max-w-md
+        mx-auto
+        mb-4
+        p-4
+        rounded-2xl
+        bg-card
+        border border-streak/30
+        card-shadow
+      "
     >
       <div className="flex items-start gap-3">
         <span className="text-3xl">😢</span>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-streak uppercase tracking-wider">
-            {minutesLate}min atrasada
+            {formatDelay(minutesLate)}
           </p>
           <p className="text-sm font-extrabold text-foreground mt-1">{task.titulo}</p>
           <p className="text-xs text-muted-foreground mt-0.5">{getMessage()}</p>
