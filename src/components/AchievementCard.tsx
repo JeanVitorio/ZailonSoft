@@ -3,7 +3,7 @@ import { Download, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toPng } from 'html-to-image';
 import { CommunityPost } from '@/types/zailon';
-import crownBadge from '@/assets/crown-badge.png';
+import PostInteractions from '@/components/PostInteractions';
 
 interface AchievementCardProps {
   post: CommunityPost;
@@ -39,7 +39,7 @@ export default function AchievementCard({ post, index }: AchievementCardProps) {
       if (navigator.share && navigator.canShare({ files: [file] })) {
         const shareUrl = `${window.location.origin}/u/${profile?.username || post.user_id}`;
         await navigator.share({
-          title: `${profile?.nome ?? 'Guerreiro'} no Zailon`,
+          title: `${profile?.nome ?? 'Usuário'} no Zailon`,
           text: post.conteudo,
           url: shareUrl,
           files: [file],
@@ -51,6 +51,7 @@ export default function AchievementCard({ post, index }: AchievementCardProps) {
   }, [post, profile, handleDownload]);
 
   const timeAgo = getTimeAgo(post.created_at);
+  const isEmoji = (s: string) => s.length <= 4 && /\p{Emoji}/u.test(s);
 
   return (
     <motion.div
@@ -60,11 +61,7 @@ export default function AchievementCard({ post, index }: AchievementCardProps) {
       className="w-full"
     >
       {/* Downloadable card */}
-      <div
-        ref={cardRef}
-        className="rounded-3xl overflow-hidden shadow-2xl"
-        style={{ backgroundColor: cardColor }}
-      >
+      <div ref={cardRef} className="rounded-3xl overflow-hidden shadow-2xl" style={{ backgroundColor: cardColor }}>
         {/* Hero area */}
         <div className="relative h-44 overflow-hidden">
           {cardImage ? (
@@ -74,24 +71,12 @@ export default function AchievementCard({ post, index }: AchievementCardProps) {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-          {/* XP pill */}
           {meta.xp_earned && (
             <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md rounded-full px-4 py-1.5 border border-white/30">
               <span className="text-sm font-extrabold text-white">+{meta.xp_earned} XP</span>
             </div>
           )}
 
-          {/* Badge */}
-          {meta.badge && (
-            <div className="absolute top-4 left-4 flex items-center gap-2">
-              <img src={crownBadge} alt="badge" className="w-7 h-7 drop-shadow-lg" loading="lazy" width={28} height={28} />
-              <span className="text-xs font-bold text-white bg-white/20 backdrop-blur-md rounded-full px-3 py-1 border border-white/20">
-                {meta.badge}
-              </span>
-            </div>
-          )}
-
-          {/* Task title overlay */}
           <div className="absolute bottom-4 left-5 right-5">
             {meta.task_titulo && (
               <p className="text-white font-extrabold text-xl leading-tight drop-shadow-lg">
@@ -105,25 +90,22 @@ export default function AchievementCard({ post, index }: AchievementCardProps) {
         <div className="px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center text-xl border-2 border-white/30 overflow-hidden shrink-0">
-              {profile?.avatar_url && profile.avatar_url.length <= 4 ? (
+              {profile?.avatar_url && isEmoji(profile.avatar_url) ? (
                 profile.avatar_url
               ) : profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : '🦁'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-extrabold text-sm text-white truncate">{profile?.nome ?? 'Guerreiro'}</p>
+              <p className="font-extrabold text-sm text-white truncate">{profile?.nome ?? 'Usuário'}</p>
               <p className="text-[11px] text-white/60">Nível {profile?.level ?? 1} · {timeAgo}</p>
             </div>
           </div>
           <p className="text-sm text-white/80 mt-3 leading-relaxed">{post.conteudo}</p>
 
-          {/* Zailon watermark */}
+          {/* Watermark */}
           <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/10">
-            <div className="flex items-center gap-1.5">
-              <img src={crownBadge} alt="" className="w-4 h-4 opacity-60" width={16} height={16} />
-              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Zailon</span>
-            </div>
+            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Zailon</span>
             {meta.pontos_earned && (
               <span className="text-[10px] font-bold text-white/40">+{meta.pontos_earned} pts</span>
             )}
@@ -131,7 +113,7 @@ export default function AchievementCard({ post, index }: AchievementCardProps) {
         </div>
       </div>
 
-      {/* Action buttons */}
+      {/* Actions + interactions */}
       <div className="flex items-center justify-end gap-2 mt-3 px-1">
         <motion.button whileTap={{ scale: 0.9 }} onClick={handleDownload}
           className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold">
@@ -142,6 +124,9 @@ export default function AchievementCard({ post, index }: AchievementCardProps) {
           <Share2 className="w-3.5 h-3.5" /> Compartilhar
         </motion.button>
       </div>
+
+      {/* Reactions & Comments */}
+      <PostInteractions postId={post.id} />
     </motion.div>
   );
 }
