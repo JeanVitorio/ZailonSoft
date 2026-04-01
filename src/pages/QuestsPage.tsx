@@ -1,15 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus,
-  Target,
-  Search,
-  ChevronRight,
   Sparkles,
   Pencil,
   Trash,
   Check,
-  X
+  ChevronRight,
 } from 'lucide-react';
 
 import { useGoals } from '@/hooks/useGoals';
@@ -47,7 +43,7 @@ export default function QuestsPage({ onNavigateTemplates }: any) {
     setForm({
       titulo: task.titulo,
       descricao: task.descricao,
-      horario: task.horario || '08:00'
+      horario: task.horario || '08:00',
     });
   };
 
@@ -55,7 +51,7 @@ export default function QuestsPage({ onNavigateTemplates }: any) {
     setEditingGoal(goal);
     setForm({
       titulo: goal.titulo,
-      descricao: goal.descricao
+      descricao: goal.descricao,
     });
   };
 
@@ -74,7 +70,7 @@ export default function QuestsPage({ onNavigateTemplates }: any) {
   const completeGoal = async (goal: any) => {
     await updateGoal.mutateAsync({
       id: goal.id,
-      status: 'achieved'
+      status: 'achieved',
     });
     toast.success('Objetivo concluído!');
   };
@@ -126,7 +122,6 @@ export default function QuestsPage({ onNavigateTemplates }: any) {
               onClick={() => toggleGoal(goal.id)}
               className="bg-card p-4 rounded-xl border"
             >
-              {/* HEADER GOAL */}
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-bold">{goal.titulo}</p>
@@ -164,7 +159,6 @@ export default function QuestsPage({ onNavigateTemplates }: any) {
                 </div>
               </div>
 
-              {/* TASKS */}
               {isOpen && (
                 <div className="mt-3 space-y-2">
                   {goalTasks.map(task => (
@@ -179,12 +173,18 @@ export default function QuestsPage({ onNavigateTemplates }: any) {
 
                       <div className="flex gap-2">
                         <Pencil
-                          onClick={() => openEditTask(task)}
+                          onClick={e => {
+                            e.stopPropagation();
+                            openEditTask(task);
+                          }}
                           className="w-4 cursor-pointer"
                         />
 
                         <Trash
-                          onClick={() => handleDeleteTask(task.id)}
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleDeleteTask(task.id);
+                          }}
                           className="w-4 cursor-pointer text-red-500"
                         />
                       </div>
@@ -200,24 +200,45 @@ export default function QuestsPage({ onNavigateTemplates }: any) {
       {/* MODAL TASK */}
       <AnimatePresence>
         {editingTask && (
-          <div className="fixed inset-0 bg-black/50 flex items-end">
-            <div className="bg-white w-full p-4 rounded-t-xl">
+          <div
+            className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center"
+            onClick={() => setEditingTask(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white w-full max-w-lg p-5 rounded-xl"
+            >
+              <h2 className="font-bold mb-3">Editar Tarefa</h2>
+
               <input
                 value={form.titulo}
                 onChange={e => setForm({ ...form, titulo: e.target.value })}
+                className="w-full mb-2 p-2 border rounded"
               />
+
               <textarea
                 value={form.descricao}
                 onChange={e => setForm({ ...form, descricao: e.target.value })}
+                className="w-full mb-2 p-2 border rounded"
               />
+
               <input
                 type="time"
                 value={form.horario}
                 onChange={e => setForm({ ...form, horario: e.target.value })}
+                className="w-full mb-3 p-2 border rounded"
               />
 
-              <button onClick={saveTask}>Salvar</button>
-            </div>
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setEditingTask(null)}>Cancelar</button>
+                <button onClick={saveTask} className="text-green-500">
+                  Salvar
+                </button>
+              </div>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -225,19 +246,38 @@ export default function QuestsPage({ onNavigateTemplates }: any) {
       {/* MODAL GOAL */}
       <AnimatePresence>
         {editingGoal && (
-          <div className="fixed inset-0 bg-black/50 flex items-end">
-            <div className="bg-white w-full p-4 rounded-t-xl">
+          <div
+            className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center"
+            onClick={() => setEditingGoal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white w-full max-w-lg p-5 rounded-xl"
+            >
+              <h2 className="font-bold mb-3">Editar Objetivo</h2>
+
               <input
                 value={form.titulo}
                 onChange={e => setForm({ ...form, titulo: e.target.value })}
+                className="w-full mb-2 p-2 border rounded"
               />
+
               <textarea
                 value={form.descricao}
                 onChange={e => setForm({ ...form, descricao: e.target.value })}
+                className="w-full mb-3 p-2 border rounded"
               />
 
-              <button onClick={saveGoal}>Salvar</button>
-            </div>
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setEditingGoal(null)}>Cancelar</button>
+                <button onClick={saveGoal} className="text-green-500">
+                  Salvar
+                </button>
+              </div>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>
