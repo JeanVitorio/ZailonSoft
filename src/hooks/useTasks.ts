@@ -6,27 +6,27 @@ import { Task, TaskExecution, XP_MAP } from '@/types/zailon';
 const MOCK_TASKS: Task[] = [
   {
     id: 'sys-1', goal_id: 'mock-goal-id', user_id: 'mock-user-id',
-    titulo: 'Beber água', descricao: 'Beba pelo menos 1 copo de água',
+    titulo: 'Levantar da cama', descricao: 'Saia da cama sem apertar soneca',
     dificuldade: 'easy', pontos: 15, ativa: true, frequencia: 'daily',
-    dias_semana: [0, 1, 2, 3, 4, 5, 6], horario: '08:00', topico: '',
+    dias_semana: [0, 1, 2, 3, 4, 5, 6], horario: '06:30', topico: '',
     visibilidade: 'private', repeticoes: null, double_up_enabled: false,
     card_color: '#1a1a2e', card_image_url: null,
     created_at: new Date().toISOString(),
   },
   {
     id: 'sys-2', goal_id: 'mock-goal-id', user_id: 'mock-user-id',
-    titulo: 'Levantar e alongar', descricao: 'Pare, levante e faça um alongamento',
+    titulo: 'Tomar água', descricao: 'Beba um copo de água ao acordar',
     dificuldade: 'easy', pontos: 15, ativa: true, frequencia: 'daily',
-    dias_semana: [0, 1, 2, 3, 4, 5, 6], horario: '09:00', topico: '',
+    dias_semana: [0, 1, 2, 3, 4, 5, 6], horario: '06:35', topico: '',
     visibilidade: 'private', repeticoes: null, double_up_enabled: false,
     card_color: '#0d7377', card_image_url: null,
     created_at: new Date().toISOString(),
   },
   {
     id: 'sys-3', goal_id: 'mock-goal-id', user_id: 'mock-user-id',
-    titulo: '10 flexões', descricao: 'Faça pelo menos 10 flexões',
-    dificuldade: 'medium', pontos: 25, ativa: true, frequencia: 'daily',
-    dias_semana: [1, 2, 3, 4, 5], horario: '10:00', topico: '',
+    titulo: 'Respirar fundo 5 vezes', descricao: 'Pare, feche os olhos e respire',
+    dificuldade: 'easy', pontos: 15, ativa: true, frequencia: 'daily',
+    dias_semana: [0, 1, 2, 3, 4, 5, 6], horario: '08:00', topico: '',
     visibilidade: 'public', repeticoes: null, double_up_enabled: false,
     card_color: '#e63946', card_image_url: null,
     created_at: new Date().toISOString(),
@@ -34,6 +34,51 @@ const MOCK_TASKS: Task[] = [
 ];
 
 let mockCompletedIds = new Set<string>();
+
+// Get current date/time in Brasilia timezone
+function getBrasiliaDate(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+}
+
+function getBrasiliaHourMinute(): { hour: number; minute: number } {
+  const now = new Date();
+  const brasilia = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+  return { hour: brasilia.getHours(), minute: brasilia.getMinutes() };
+}
+
+function getBrasiliaWeekday(): number {
+  const now = new Date();
+  const brasilia = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+  return brasilia.getDay();
+}
+
+// Filter tasks that should appear today
+export function filterTodayTasks(tasks: Task[]): Task[] {
+  const weekday = getBrasiliaWeekday();
+  return tasks.filter(task => {
+    if (task.frequencia === 'once') return true;
+    if (task.frequencia === 'daily') {
+      return task.dias_semana.length === 0 || task.dias_semana.includes(weekday);
+    }
+    if (task.frequencia === 'weekly') {
+      return task.dias_semana.includes(weekday);
+    }
+    return true;
+  });
+}
+
+// Get time status for a task
+export function getTaskTimeStatus(task: Task): { status: 'overdue' | 'upcoming' | 'past' | 'now'; minutesDiff: number } {
+  const { hour, minute } = getBrasiliaHourMinute();
+  const [taskHour, taskMinute] = task.horario.split(':').map(Number);
+  const nowMins = hour * 60 + minute;
+  const taskMins = taskHour * 60 + taskMinute;
+  const diff = taskMins - nowMins;
+
+  if (diff < -5) return { status: 'overdue', minutesDiff: Math.abs(diff) };
+  if (diff <= 5) return { status: 'now', minutesDiff: 0 };
+  return { status: 'upcoming', minutesDiff: diff };
+}
 
 export function useTasks() {
   const { user } = useAuth();
@@ -57,7 +102,7 @@ export function useTasks() {
 
 export function useTodayExecutions() {
   const { user } = useAuth();
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  const today = getBrasiliaDate();
 
   return useQuery({
     queryKey: ['executions', user?.id, today],
@@ -88,7 +133,7 @@ export function useCompleteTask() {
 
   return useMutation({
     mutationFn: async (task: Task) => {
-      const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+      const today = getBrasiliaDate();
       const xpEarned = XP_MAP[task.dificuldade];
       const pontosEarned = task.pontos;
 
@@ -186,5 +231,65 @@ export function useCreateTask() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
+  });
+}
+
+export function useDeleteTask() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (taskId: string) => {
+      if (!isSupabaseConfigured || !supabase || !user) return;
+      await supabase.from('tasks').update({ ativa: false }).eq('id', taskId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+  });
+}
+
+export function useWeekExecutions() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['week-executions', user?.id],
+    queryFn: async (): Promise<{ data: string; count: number }[]> => {
+      if (!isSupabaseConfigured || !supabase || !user) {
+        // Mock: return last 7 days
+        const results = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          results.push({ data: d.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }), count: Math.floor(Math.random() * 5) });
+        }
+        return results;
+      }
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+      const startDate = sevenDaysAgo.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+
+      const { data } = await supabase
+        .from('daily_task_executions')
+        .select('data')
+        .eq('user_id', user.id)
+        .eq('concluido', true)
+        .gte('data', startDate);
+
+      const counts: Record<string, number> = {};
+      (data ?? []).forEach(row => {
+        counts[row.data] = (counts[row.data] || 0) + 1;
+      });
+
+      const results = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+        results.push({ data: dateStr, count: counts[dateStr] || 0 });
+      }
+      return results;
+    },
+    enabled: !!user,
   });
 }

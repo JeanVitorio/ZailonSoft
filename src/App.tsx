@@ -9,9 +9,11 @@ import TasksRoute from "./pages/TasksRoute";
 import NewTaskRoute from "./pages/NewTaskRoute";
 import DashboardRoute from "./pages/DashboardRoute";
 import ProfileRoute from "./pages/ProfileRoute";
+import QuestsRoute from "./pages/QuestsRoute";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import PublicProfilePage from "./pages/PublicProfilePage";
+import NotificationsPage from "./pages/NotificationsPage";
 
 const queryClient = new QueryClient();
 
@@ -40,8 +42,10 @@ function AppRoutes() {
       <Route path="/" element={<Index />} />
       <Route path="/tasks" element={<TasksRoute />} />
       <Route path="/new-task" element={<NewTaskRoute />} />
+      <Route path="/quests" element={<QuestsRoute />} />
       <Route path="/dashboard" element={<DashboardRoute />} />
       <Route path="/profile" element={<ProfileRoute />} />
+      <Route path="/notifications" element={<NotificationsPage />} />
       <Route path="/u/:username" element={<PublicProfilePage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
