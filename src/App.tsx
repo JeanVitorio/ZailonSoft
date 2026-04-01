@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import TasksRoute from "./pages/TasksRoute";
 import NewTaskRoute from "./pages/NewTaskRoute";
 import DashboardRoute from "./pages/DashboardRoute";
+import EditTaskPage from "./pages/EditTaskPage";
 import ProfileRoute from "./pages/ProfileRoute";
 import QuestsRoute from "./pages/QuestsRoute";
 import AuthPage from "./pages/AuthPage";
@@ -44,6 +45,7 @@ function AppRoutes() {
       <Route path="/new-task" element={<NewTaskRoute />} />
       <Route path="/quests" element={<QuestsRoute />} />
       <Route path="/dashboard" element={<DashboardRoute />} />
+      <Route path="/tasks/edit/:id" element={<EditTaskPage />} />
       <Route path="/profile" element={<ProfileRoute />} />
       <Route path="/notifications" element={<NotificationsPage />} />
       <Route path="/u/:username" element={<PublicProfilePage />} />
