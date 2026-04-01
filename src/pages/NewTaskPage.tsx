@@ -46,13 +46,20 @@ export default function NewTaskPage() {
 
   const handleSubmit = async () => {
     if (!titulo.trim()) return;
-    let finalGoalId = goalId || goals?.[0]?.id;
+    let finalGoalId = goalId || '';
+
+    // If no goal selected and "avulsa" not chosen, use default
     if (!finalGoalId) {
-      try {
-        const goal = await defaultGoal.mutateAsync();
-        finalGoalId = goal.id;
-      } catch { toast.error('Erro ao criar objetivo padrão'); return; }
+      if (goals && goals.length > 0) {
+        finalGoalId = goals[0].id;
+      } else {
+        try {
+          const goal = await defaultGoal.mutateAsync();
+          finalGoalId = goal.id;
+        } catch { toast.error('Erro ao criar objetivo padrão'); return; }
+      }
     }
+
     try {
       await createTask.mutateAsync({
         titulo: titulo.trim(), descricao: descricao.trim(),
@@ -93,7 +100,7 @@ export default function NewTaskPage() {
             <p className="text-white font-extrabold text-lg drop-shadow-lg truncate">
               {titulo || 'Preview do card'}
             </p>
-            <p className="text-white/70 text-xs">{dificuldade === 'easy' ? '15' : dificuldade === 'medium' ? '25' : '50'} XP</p>
+            <p className="text-white/70 text-xs">{XP_MAP[dificuldade]} XP</p>
           </div>
         </div>
 
@@ -101,20 +108,16 @@ export default function NewTaskPage() {
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Aparência do Card</label>
           <div className="flex gap-2 mt-1.5">
-            <button
-              onClick={() => setCardMode('color')}
+            <button onClick={() => setCardMode('color')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 cardMode === 'color' ? 'gradient-cta text-accent-foreground' : 'bg-secondary text-muted-foreground'
-              }`}
-            >
+              }`}>
               <Palette className="w-3.5 h-3.5" /> Cor
             </button>
-            <button
-              onClick={() => { setCardMode('image'); fileInputRef.current?.click(); }}
+            <button onClick={() => { setCardMode('image'); fileInputRef.current?.click(); }}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 cardMode === 'image' ? 'gradient-cta text-accent-foreground' : 'bg-secondary text-muted-foreground'
-              }`}
-            >
+              }`}>
               <ImagePlus className="w-3.5 h-3.5" /> Imagem
             </button>
           </div>
@@ -123,12 +126,9 @@ export default function NewTaskPage() {
           {cardMode === 'color' && (
             <div className="flex gap-2 mt-3 flex-wrap">
               {COLOR_OPTIONS.map(c => (
-                <button
-                  key={c}
-                  onClick={() => setCardColor(c)}
+                <button key={c} onClick={() => setCardColor(c)}
                   className={`w-9 h-9 rounded-xl border-2 transition-all ${cardColor === c ? 'border-cta scale-110' : 'border-transparent'}`}
-                  style={{ backgroundColor: c }}
-                />
+                  style={{ backgroundColor: c }} />
               ))}
             </div>
           )}
@@ -155,16 +155,14 @@ export default function NewTaskPage() {
         </div>
 
         {/* Goal selection */}
-        {goals && goals.length > 1 && (
-          <div>
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Objetivo</label>
-            <select value={goalId} onChange={e => setGoalId(e.target.value)}
-              className="w-full mt-1.5 px-4 py-3 rounded-xl bg-card border border-border text-foreground text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-cta/30">
-              <option value="">Selecionar...</option>
-              {goals.map(g => <option key={g.id} value={g.id}>{g.emoji} {g.titulo}</option>)}
-            </select>
-          </div>
-        )}
+        <div>
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Objetivo</label>
+          <select value={goalId} onChange={e => setGoalId(e.target.value)}
+            className="w-full mt-1.5 px-4 py-3 rounded-xl bg-card border border-border text-foreground text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-cta/30">
+            <option value="">Tarefa avulsa (objetivo padrão)</option>
+            {goals?.map(g => <option key={g.id} value={g.id}>{g.emoji} {g.titulo}</option>)}
+          </select>
+        </div>
 
         {/* Frequency */}
         <div>

@@ -127,11 +127,11 @@ export const AVATAR_OPTIONS = [
 ];
 
 export const BADGE_MAP: Record<string, string> = {
-  streak_3: '🔥 Streak 3!',
-  streak_7: '🔥 Streak 7!',
-  streak_30: '🔥 Streak 30!',
-  rei_do_dia: '👑 Rei do Dia',
-  madrugador: '🌅 Madrugador',
-  noturno: '🌙 Noturno',
-  primeiro_cla: '❤️ Primeiro Clã',
+  streak_3: '🔥 Streak 3',
+  streak_7: '🔥 Streak 7',
+  streak_30: '🔥 Streak 30',
+  consistencia: '⚡ Consistência',
+  foco_total: '🎯 Foco Total',
+  disciplina: '💎 Disciplina',
+  primeiro_objetivo: '🏔️ Primeiro Objetivo',
 };

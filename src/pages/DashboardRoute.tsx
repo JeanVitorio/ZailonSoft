@@ -1,14 +1,20 @@
 import BottomNav from '@/components/BottomNav';
 import DashboardPage from '@/pages/DashboardPage';
 import { useProfile } from '@/hooks/useProfile';
+import { useTasks, useTodayExecutions, filterTodayTasks } from '@/hooks/useTasks';
 
 export default function DashboardRoute() {
   const { data: profile } = useProfile();
+  const { data: tasks = [] } = useTasks();
+  const { data: executions = [] } = useTodayExecutions();
+
+  const todayTasks = filterTodayTasks(tasks);
+  const completedToday = executions.filter(e => e.concluido).length;
 
   const stats = profile ? {
     xpTotal: profile.xp,
     streak: profile.streak,
-    tasksCompleted: 0,
+    tasksCompleted: completedToday,
     essence: profile.essencia,
     level: profile.level,
     pontos: profile.pontos,
