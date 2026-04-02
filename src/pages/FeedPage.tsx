@@ -6,6 +6,10 @@ import UserSearch from '@/components/UserSearch';
 import { CommunityPost } from '@/types/zailon';
 import { useUnreadCount } from '@/hooks/useNotifications';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface FeedPageProps {
   posts: CommunityPost[];
@@ -17,19 +21,28 @@ interface FeedPageProps {
 export default function FeedPage({ posts, stats, onRefresh, isRefreshing }: FeedPageProps) {
   const [filter, setFilter] = useState<'all' | 'mine' | 'public'>('all');
   const { data: unreadCount = 0 } = useUnreadCount();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const filtered = filter === 'all' ? posts : filter === 'mine'
-    ? posts.filter(p => p.tipo === 'achievement')
+    ? posts.filter(p => p.user_id === user?.id)
     : posts;
+
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm('Apagar este post?')) return;
+    if (isSupabaseConfigured && supabase) {
+      await supabase.from('community_posts').delete().eq('id', postId);
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+      toast.success('Post apagado');
+    }
+  };
 
   return (
     <div className="pb-24">
       <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-4 pt-[env(safe-area-inset-top)] pb-3">
         <div className="flex items-center justify-between pt-3">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-extrabold text-foreground">Zailon</h1>
-          </div>
+          <h1 className="text-xl font-extrabold text-foreground">Zailon</h1>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1 bg-xp/20 rounded-full px-3 py-1">
               <span className="text-xs font-bold text-navy">Lv.{stats.level}</span>
@@ -49,12 +62,8 @@ export default function FeedPage({ posts, stats, onRefresh, isRefreshing }: Feed
           </div>
         </div>
 
-        {/* Search */}
-        <div className="mt-3">
-          <UserSearch />
-        </div>
+        <div className="mt-3"><UserSearch /></div>
 
-        {/* Filters */}
         <div className="flex items-center gap-2 mt-3">
           {(['all', 'mine', 'public'] as const).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
@@ -70,10 +79,10 @@ export default function FeedPage({ posts, stats, onRefresh, isRefreshing }: Feed
         </div>
       </div>
 
-      <div className="px-4 pt-4 space-y-5 max-w-lg mx-auto">
+      <div className="px-4 pt-4 space-y-6 max-w-lg mx-auto">
         <AnimatePresence>
           {filtered.map((post, i) => (
-            <AchievementCard key={post.id} post={post} index={i} />
+            <AchievementCard key={post.id} post={post} index={i} onDelete={handleDeletePost} />
           ))}
         </AnimatePresence>
 

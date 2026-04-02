@@ -7,16 +7,18 @@ export function useUpdateGoal() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (goal: any) => {
+    mutationFn: async (goal: { id: string; titulo?: string; descricao?: string; status?: string; emoji?: string }) => {
       if (!isSupabaseConfigured || !supabase || !user) return;
+
+      const updates: Record<string, unknown> = {};
+      if (goal.titulo !== undefined) updates.titulo = goal.titulo;
+      if (goal.descricao !== undefined) updates.descricao = goal.descricao;
+      if (goal.status !== undefined) updates.status = goal.status;
+      if (goal.emoji !== undefined) updates.emoji = goal.emoji;
 
       const { error } = await supabase
         .from('goals')
-        .update({
-          titulo: goal.titulo,
-          descricao: goal.descricao,
-          status: goal.status,
-        })
+        .update(updates)
         .eq('id', goal.id);
 
       if (error) throw error;

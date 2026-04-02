@@ -234,6 +234,32 @@ export function useCreateTask() {
   });
 }
 
+export function useUncompleteTask() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (taskId: string) => {
+      const today = getBrasiliaDate();
+      if (!isSupabaseConfigured || !supabase || !user) {
+        mockCompletedIds.delete(taskId);
+        return;
+      }
+      await supabase
+        .from('daily_task_executions')
+        .delete()
+        .eq('task_id', taskId)
+        .eq('user_id', user.id)
+        .eq('data', today);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['executions'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+  });
+}
+
 export function useDeleteTask() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
