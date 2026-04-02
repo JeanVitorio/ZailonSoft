@@ -15,6 +15,8 @@ import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import PublicProfilePage from "./pages/PublicProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
+import CreateGoalPage from "./pages/CreateGoalPage";
+import QuestTemplatesPage from "./pages/QuestTemplatesPage";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +46,8 @@ function AppRoutes() {
       <Route path="/tasks" element={<TasksRoute />} />
       <Route path="/new-task" element={<NewTaskRoute />} />
       <Route path="/quests" element={<QuestsRoute />} />
+      <Route path="/quests/new" element={<CreateGoalPage />} />
+      <Route path="/quests/templates" element={<QuestTemplatesPage />} />
       <Route path="/dashboard" element={<DashboardRoute />} />
       <Route path="/tasks/edit/:id" element={<EditTaskPage />} />
       <Route path="/profile" element={<ProfileRoute />} />

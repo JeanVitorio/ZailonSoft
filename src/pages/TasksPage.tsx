@@ -13,26 +13,15 @@ interface TasksPageProps {
   tasks: Task[];
   executions: TaskExecution[];
   onComplete: (task: Task) => void;
+  onUncomplete?: (task: Task) => void;
 }
 
-export default function TasksPage({ tasks, executions, onComplete }: TasksPageProps) {
+export default function TasksPage({ tasks, executions, onComplete, onUncomplete }: TasksPageProps) {
   const [search, setSearch] = useState('');
   const [dismissedOverdue, setDismissedOverdue] = useState<Set<string>>(new Set());
 
   const [params] = useSearchParams();
   const taskId = params.get('task');
-
-  // ✅ FORMATADOR GLOBAL (PADRÃO DO APP)
-  function formatMinutes(minutes: number) {
-    const abs = Math.abs(minutes);
-    const hours = Math.floor(abs / 60);
-    const mins = abs % 60;
-
-    if (hours === 0) return `${mins}min`;
-    if (mins === 0) return `${hours}h`;
-
-    return `${hours}h ${mins}min`;
-  }
 
   const completedIds = new Set(executions.filter(e => e.concluido).map(e => e.task_id));
   const todayTasks = filterTodayTasks(tasks);
@@ -44,35 +33,35 @@ export default function TasksPage({ tasks, executions, onComplete }: TasksPagePr
   const pending = filtered.filter(t => !completedIds.has(t.id));
   const done = filtered.filter(t => completedIds.has(t.id));
 
+  // Sort pending: overdue (longest first), then upcoming by time
   const sortedPending = [...pending].sort((a, b) => {
+    const sa = getTaskTimeStatus(a);
+    const sb = getTaskTimeStatus(b);
+    // Overdue first, sorted by most overdue
+    if (sa.status === 'overdue' && sb.status !== 'overdue') return -1;
+    if (sa.status !== 'overdue' && sb.status === 'overdue') return 1;
+    if (sa.status === 'overdue' && sb.status === 'overdue') return sb.minutesDiff - sa.minutesDiff;
+    // Then by time
     const [ah, am] = a.horario.split(':').map(Number);
     const [bh, bm] = b.horario.split(':').map(Number);
     return (ah * 60 + am) - (bh * 60 + bm);
   });
 
-  const overdueTask = sortedPending.find(t => {
+  // Get all overdue tasks for alerts (sorted by most overdue first)
+  const overdueTasks = sortedPending.filter(t => {
     const status = getTaskTimeStatus(t);
     return status.status === 'overdue' && !dismissedOverdue.has(t.id);
   });
+  const topOverdue = overdueTasks[0];
+  const topOverdueStatus = topOverdue ? getTaskTimeStatus(topOverdue) : null;
 
-  const overdueStatus = overdueTask ? getTaskTimeStatus(overdueTask) : null;
-
-  // ✅ SCROLL + HIGHLIGHT
   useEffect(() => {
     if (taskId) {
       const el = document.getElementById(`task-${taskId}`);
-
       if (el) {
-        el.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-        });
-
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         el.classList.add('ring-2', 'ring-cta');
-
-        setTimeout(() => {
-          el.classList.remove('ring-2', 'ring-cta');
-        }, 2000);
+        setTimeout(() => el.classList.remove('ring-2', 'ring-cta'), 2000);
       }
     }
   }, [taskId, tasks]);
@@ -87,13 +76,10 @@ export default function TasksPage({ tasks, executions, onComplete }: TasksPagePr
             {pending.length} pendentes · {done.length} concluídas
           </p>
         </div>
-
-        {/* SEARCH */}
         <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-xl bg-card border border-border">
           <Search className="w-4 h-4 text-muted-foreground" />
           <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+            value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Pesquisar tarefas..."
             className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
           />
@@ -101,85 +87,53 @@ export default function TasksPage({ tasks, executions, onComplete }: TasksPagePr
       </div>
 
       <div className="pt-4 max-w-lg mx-auto">
-        {/* ALERTA DE ATRASO */}
+        {/* Overdue alert */}
         <AnimatePresence>
-          {overdueTask && overdueStatus && (
+          {topOverdue && topOverdueStatus && (
             <OverdueTaskAlert
-              task={overdueTask}
-              minutesLate={overdueStatus.minutesDiff} // ✅ FORMATADO
+              task={topOverdue}
+              minutesLate={topOverdueStatus.minutesDiff}
               onComplete={onComplete}
-              onDismiss={() =>
-                setDismissedOverdue(prev => new Set(prev).add(overdueTask.id))
-              }
+              onDismiss={() => setDismissedOverdue(prev => new Set(prev).add(topOverdue.id))}
             />
           )}
         </AnimatePresence>
 
         <div className="px-4 space-y-3">
-          {/* PENDENTES */}
+          {/* Pending */}
           {sortedPending.length > 0 && (
             <div>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-                Pendentes
-              </p>
-
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 px-1">Pendentes</p>
               <div className="space-y-3">
-                {sortedPending.map(task => {
-                  const timeStatus = getTaskTimeStatus(task);
-
-                  return (
-                    <div key={task.id} id={`task-${task.id}`}>
-                      <TaskItem
-                        task={task}
-                        isCompleted={false}
-                        onComplete={onComplete}
-                        timeStatus={{
-                          ...timeStatus,
-                          formattedTime: formatMinutes(timeStatus.minutesDiff), // ✅ PADRÃO GLOBAL
-                        }}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* CONCLUÍDAS */}
-          {done.length > 0 && (
-            <div className="mt-6">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-                ✅ Concluídas
-              </p>
-
-              <div className="space-y-3">
-                {done.map(task => (
+                {sortedPending.map(task => (
                   <div key={task.id} id={`task-${task.id}`}>
-                    <TaskItem
-                      task={task}
-                      isCompleted={true}
-                      onComplete={onComplete}
-                    />
+                    <TaskItem task={task} isCompleted={false} onComplete={onComplete}
+                      timeStatus={getTaskTimeStatus(task)} />
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* EMPTY */}
+          {/* Done */}
+          {done.length > 0 && (
+            <div className="mt-6">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 px-1">✅ Concluídas</p>
+              <div className="space-y-3">
+                {done.map(task => (
+                  <div key={task.id} id={`task-${task.id}`}>
+                    <TaskItem task={task} isCompleted={true} onComplete={onUncomplete || onComplete} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {todayTasks.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-16"
-            >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
               <p className="text-4xl mb-3">📝</p>
-              <p className="font-bold text-foreground">
-                Nenhuma tarefa para hoje
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Crie tarefas ou importe um modelo pronto
-              </p>
+              <p className="font-bold text-foreground">Nenhuma tarefa para hoje</p>
+              <p className="text-sm text-muted-foreground mt-1">Crie tarefas ou importe um modelo pronto</p>
             </motion.div>
           )}
         </div>
