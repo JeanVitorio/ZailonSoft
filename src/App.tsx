@@ -17,6 +17,7 @@ import PublicProfilePage from "./pages/PublicProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import CreateGoalPage from "./pages/CreateGoalPage";
 import QuestTemplatesPage from "./pages/QuestTemplatesPage";
+import EditGoalPage from "./pages/EditGoalPage";
 
 const queryClient = new QueryClient();
 
