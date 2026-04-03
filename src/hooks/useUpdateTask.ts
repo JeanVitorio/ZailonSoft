@@ -7,17 +7,32 @@ export function useUpdateTask() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (task: any) => {
+    mutationFn: async (task: {
+      id: string;
+      titulo?: string;
+      descricao?: string;
+      horario?: string;
+      dificuldade?: string;
+      frequencia?: string;
+      visibilidade?: string;
+      dias_semana?: number[];
+      goal_id?: string;
+      card_color?: string;
+      card_image_url?: string | null;
+    }) => {
       if (!isSupabaseConfigured || !supabase || !user) return;
+
+      const { id, ...updates } = task;
+
+      // Remove undefined values
+      const cleanUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([, v]) => v !== undefined)
+      );
 
       const { error } = await supabase
         .from('tasks')
-        .update({
-          titulo: task.titulo,
-          descricao: task.descricao,
-          horario: task.horario,
-        })
-        .eq('id', task.id);
+        .update(cleanUpdates)
+        .eq('id', id);
 
       if (error) throw error;
     },
