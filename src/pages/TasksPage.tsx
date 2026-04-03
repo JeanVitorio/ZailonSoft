@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search } from 'lucide-react';
+import { Search, Zap } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
 import TaskItem from '@/components/TaskItem';
@@ -33,21 +33,17 @@ export default function TasksPage({ tasks, executions, onComplete, onUncomplete 
   const pending = filtered.filter(t => !completedIds.has(t.id));
   const done = filtered.filter(t => completedIds.has(t.id));
 
-  // Sort pending: overdue (longest first), then upcoming by time
   const sortedPending = [...pending].sort((a, b) => {
     const sa = getTaskTimeStatus(a);
     const sb = getTaskTimeStatus(b);
-    // Overdue first, sorted by most overdue
     if (sa.status === 'overdue' && sb.status !== 'overdue') return -1;
     if (sa.status !== 'overdue' && sb.status === 'overdue') return 1;
     if (sa.status === 'overdue' && sb.status === 'overdue') return sb.minutesDiff - sa.minutesDiff;
-    // Then by time
     const [ah, am] = a.horario.split(':').map(Number);
     const [bh, bm] = b.horario.split(':').map(Number);
     return (ah * 60 + am) - (bh * 60 + bm);
   });
 
-  // Get all overdue tasks for alerts (sorted by most overdue first)
   const overdueTasks = sortedPending.filter(t => {
     const status = getTaskTimeStatus(t);
     return status.status === 'overdue' && !dismissedOverdue.has(t.id);
@@ -60,8 +56,8 @@ export default function TasksPage({ tasks, executions, onComplete, onUncomplete 
       const el = document.getElementById(`task-${taskId}`);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        el.classList.add('ring-2', 'ring-cta');
-        setTimeout(() => el.classList.remove('ring-2', 'ring-cta'), 2000);
+        el.classList.add('ring-2', 'ring-accent');
+        setTimeout(() => el.classList.remove('ring-2', 'ring-accent'), 2000);
       }
     }
   }, [taskId, tasks]);
@@ -69,19 +65,22 @@ export default function TasksPage({ tasks, executions, onComplete, onUncomplete 
   return (
     <div className="pb-24">
       {/* HEADER */}
-      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-4 pt-[env(safe-area-inset-top)] pb-3">
+      <div className="sticky top-0 z-40 glass-card-strong px-4 pt-[env(safe-area-inset-top)] pb-3">
         <div className="pt-3">
-          <h1 className="text-xl font-extrabold text-foreground">Tarefas de Hoje</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {pending.length} pendentes · {done.length} concluídas
+          <div className="flex items-center gap-2">
+            <Zap className="w-5 h-5 text-accent" />
+            <h1 className="text-xl font-black tracking-tight text-foreground">Tarefas de Hoje</h1>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 ml-7">
+            <span className="text-primary font-bold">{pending.length}</span> pendentes · <span className="text-primary font-bold">{done.length}</span> concluídas
           </p>
         </div>
-        <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-xl bg-card border border-border">
+        <div className="flex items-center gap-2 mt-3 px-3.5 py-2.5 rounded-2xl glass-card">
           <Search className="w-4 h-4 text-muted-foreground" />
           <input
             value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Pesquisar tarefas..."
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
+            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
           />
         </div>
       </div>
@@ -103,7 +102,10 @@ export default function TasksPage({ tasks, executions, onComplete, onUncomplete 
           {/* Pending */}
           {sortedPending.length > 0 && (
             <div>
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 px-1">Pendentes</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 px-1 flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                Pendentes
+              </p>
               <div className="space-y-3">
                 {sortedPending.map(task => (
                   <div key={task.id} id={`task-${task.id}`}>
@@ -118,7 +120,10 @@ export default function TasksPage({ tasks, executions, onComplete, onUncomplete 
           {/* Done */}
           {done.length > 0 && (
             <div className="mt-6">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 px-1">✅ Concluídas</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 px-1 flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Concluídas
+              </p>
               <div className="space-y-3">
                 {done.map(task => (
                   <div key={task.id} id={`task-${task.id}`}>
@@ -130,10 +135,10 @@ export default function TasksPage({ tasks, executions, onComplete, onUncomplete 
           )}
 
           {todayTasks.length === 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-              <p className="text-4xl mb-3">📝</p>
-              <p className="font-bold text-foreground">Nenhuma tarefa para hoje</p>
-              <p className="text-sm text-muted-foreground mt-1">Crie tarefas ou importe um modelo pronto</p>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
+              <motion.p animate={{ y: [0, -5, 0] }} transition={{ duration: 2, repeat: Infinity }} className="text-5xl mb-4">📝</motion.p>
+              <p className="font-black text-foreground text-lg">Nenhuma tarefa para hoje</p>
+              <p className="text-sm text-muted-foreground mt-2">Crie tarefas ou importe um modelo pronto</p>
             </motion.div>
           )}
         </div>

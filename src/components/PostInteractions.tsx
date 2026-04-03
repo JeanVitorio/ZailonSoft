@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, Send } from 'lucide-react';
+import { MessageCircle, Send, Heart } from 'lucide-react';
 import { usePostReactions, usePostComments, useToggleReaction, useAddComment } from '@/hooks/useReactions';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -44,23 +44,29 @@ export default function PostInteractions({ postId }: PostInteractionsProps) {
   return (
     <div className="mt-3 space-y-2">
       {/* Reaction bar */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         {reactionCounts.map(r => (
           <motion.button
             key={r.tipo}
-            whileTap={{ scale: 0.85 }}
+            whileTap={{ scale: 0.8 }}
             onClick={() => toggleReaction.mutate({ postId, tipo: r.tipo })}
-            className={`flex items-center gap-0.5 px-2 py-1 rounded-full text-xs transition-all ${
-              r.myReaction ? 'bg-cta/20 ring-1 ring-cta/30' : 'bg-secondary hover:bg-secondary/80'
+            className={`flex items-center gap-0.5 px-2.5 py-1.5 rounded-full text-xs transition-all duration-300 ${
+              r.myReaction ? 'bg-primary/15 ring-1 ring-primary/30' : 'glass-card hover:bg-secondary/80'
             }`}
           >
-            <span className="text-sm">{r.emoji}</span>
+            <motion.span
+              className="text-sm"
+              animate={r.myReaction ? { scale: [1, 1.3, 1] } : {}}
+              transition={{ duration: 0.3 }}
+            >
+              {r.emoji}
+            </motion.span>
             {r.count > 0 && <span className="font-bold text-foreground">{r.count}</span>}
           </motion.button>
         ))}
         <button
           onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-1 px-2 py-1 rounded-full bg-secondary text-xs ml-auto"
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-full glass-card text-xs ml-auto hover:bg-secondary/80 transition-colors"
         >
           <MessageCircle className="w-3.5 h-3.5 text-muted-foreground" />
           {comments.length > 0 && <span className="font-bold text-foreground">{comments.length}</span>}
@@ -80,8 +86,8 @@ export default function PostInteractions({ postId }: PostInteractionsProps) {
             className="space-y-2 overflow-hidden"
           >
             {comments.map(c => (
-              <div key={c.id} className="flex items-start gap-2 bg-secondary/50 rounded-xl px-3 py-2">
-                <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs shrink-0 overflow-hidden">
+              <div key={c.id} className="flex items-start gap-2 glass-card rounded-xl px-3 py-2.5">
+                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs shrink-0 overflow-hidden">
                   {c.profiles?.avatar_url && isEmoji(c.profiles.avatar_url)
                     ? c.profiles.avatar_url
                     : c.profiles?.avatar_url
@@ -100,10 +106,10 @@ export default function PostInteractions({ postId }: PostInteractionsProps) {
                 onChange={e => setCommentText(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSubmitComment()}
                 placeholder="Comentar..."
-                className="flex-1 px-3 py-2 rounded-xl bg-card border border-border text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-cta/30"
+                className="flex-1 px-3.5 py-2.5 rounded-xl glass-card text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
               <motion.button whileTap={{ scale: 0.9 }} onClick={handleSubmitComment}
-                className="p-2 rounded-xl gradient-cta">
+                className="p-2.5 rounded-xl gradient-cta shadow-lg shadow-accent/20">
                 <Send className="w-3.5 h-3.5 text-accent-foreground" />
               </motion.button>
             </div>

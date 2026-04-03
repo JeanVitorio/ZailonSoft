@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RefreshCw, Bell } from 'lucide-react';
+import { RefreshCw, Bell, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AchievementCard from '@/components/AchievementCard';
 import UserSearch from '@/components/UserSearch';
@@ -40,23 +40,34 @@ export default function FeedPage({ posts, stats, onRefresh, isRefreshing }: Feed
 
   return (
     <div className="pb-24">
-      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-4 pt-[env(safe-area-inset-top)] pb-3">
+      {/* Premium Header */}
+      <div className="sticky top-0 z-40 glass-card-strong px-4 pt-[env(safe-area-inset-top)] pb-3">
         <div className="flex items-center justify-between pt-3">
-          <h1 className="text-xl font-extrabold text-foreground">Zailon</h1>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 bg-xp/20 rounded-full px-3 py-1">
-              <span className="text-xs font-bold text-navy">Lv.{stats.level}</span>
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent/60 flex items-center justify-center">
+              <span className="text-lg font-black text-primary-foreground">Z</span>
             </div>
-            <div className="flex items-center gap-1 bg-streak/10 rounded-full px-3 py-1">
+            <h1 className="text-xl font-black tracking-tight text-foreground">Zailon</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <motion.div whileHover={{ scale: 1.05 }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-card">
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs font-bold text-foreground">Lv.{stats.level}</span>
+            </motion.div>
+            <div className="flex items-center gap-1 px-3 py-1.5 rounded-full glass-card">
               <span className="text-xs">🔥</span>
               <span className="text-xs font-bold text-streak">{stats.streak}</span>
             </div>
-            <button onClick={() => navigate('/notifications')} className="relative p-2 rounded-full bg-secondary">
+            <button onClick={() => navigate('/notifications')} className="relative p-2.5 rounded-full glass-card hover:bg-secondary/80 transition-colors">
               <Bell className="w-4 h-4 text-muted-foreground" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-destructive text-[9px] font-bold text-white flex items-center justify-center">
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground flex items-center justify-center shadow-lg shadow-destructive/30"
+                >
                   {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
+                </motion.span>
               )}
             </button>
           </div>
@@ -66,16 +77,26 @@ export default function FeedPage({ posts, stats, onRefresh, isRefreshing }: Feed
 
         <div className="flex items-center gap-2 mt-3">
           {(['all', 'mine', 'public'] as const).map((f) => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-                filter === f ? 'gradient-cta text-accent-foreground' : 'bg-secondary text-muted-foreground'
-              }`}>
+            <motion.button
+              key={f}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setFilter(f)}
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 ${
+                filter === f
+                  ? 'gradient-cta text-accent-foreground shadow-lg shadow-accent/20'
+                  : 'glass-card text-muted-foreground hover:text-foreground'
+              }`}
+            >
               {f === 'all' ? 'Todos' : f === 'mine' ? 'Minhas' : 'Público'}
-            </button>
+            </motion.button>
           ))}
-          <button onClick={onRefresh} className="ml-auto p-2 rounded-full bg-secondary">
+          <motion.button
+            whileTap={{ scale: 0.85, rotate: 180 }}
+            onClick={onRefresh}
+            className="ml-auto p-2.5 rounded-full glass-card hover:bg-secondary/80 transition-colors"
+          >
             <RefreshCw className={`w-4 h-4 text-muted-foreground ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -87,10 +108,10 @@ export default function FeedPage({ posts, stats, onRefresh, isRefreshing }: Feed
         </AnimatePresence>
 
         {filtered.length === 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-            <p className="text-4xl mb-3">💬</p>
-            <p className="font-bold text-foreground">Nenhuma atividade ainda</p>
-            <p className="text-sm text-muted-foreground mt-1">Complete tarefas para aparecer aqui</p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-20">
+            <motion.p animate={{ y: [0, -5, 0] }} transition={{ duration: 2, repeat: Infinity }} className="text-5xl mb-4">💬</motion.p>
+            <p className="font-extrabold text-foreground text-lg">Nenhuma atividade ainda</p>
+            <p className="text-sm text-muted-foreground mt-2">Complete tarefas para aparecer aqui</p>
           </motion.div>
         )}
       </div>

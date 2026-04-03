@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Check, Clock, AlertTriangle, Trash2, RotateCcw } from 'lucide-react';
+import { Check, Clock, AlertTriangle, Trash2, RotateCcw, Zap } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Task, DIFFICULTY_LABELS, XP_MAP } from '@/types/zailon';
 
@@ -12,17 +12,24 @@ interface TaskItemProps {
 }
 
 const difficultyColors: Record<string, string> = {
-  easy: 'bg-xp/30 text-navy',
-  medium: 'bg-streak/20 text-streak',
+  easy: 'bg-primary/15 text-primary',
+  medium: 'bg-streak/15 text-streak',
   hard: 'bg-destructive/15 text-destructive',
+};
+
+const difficultyGlow: Record<string, string> = {
+  easy: 'shadow-primary/10',
+  medium: 'shadow-streak/10',
+  hard: 'shadow-destructive/10',
 };
 
 export default function TaskItem({ task, isCompleted, onComplete, onDelete, timeStatus }: TaskItemProps) {
   const handleComplete = () => {
     if (!isCompleted) {
       confetti({
-        particleCount: 80, spread: 60, origin: { y: 0.7 },
-        colors: ['#A8E6CF', '#FF6B00', '#FFD700', '#003366'],
+        particleCount: 120, spread: 70, origin: { y: 0.7 },
+        colors: ['#00c853', '#ff6d00', '#ffd600', '#7c4dff', '#ff1744'],
+        ticks: 80,
       });
     }
     onComplete(task);
@@ -52,7 +59,13 @@ export default function TaskItem({ task, isCompleted, onComplete, onDelete, time
       </span>
     );
     if (timeStatus.status === 'now') return (
-      <span className="text-[10px] font-bold text-cta animate-pulse">AGORA</span>
+      <motion.span
+        animate={{ opacity: [1, 0.5, 1] }}
+        transition={{ duration: 1.5, repeat: Infinity }}
+        className="flex items-center gap-0.5 text-[10px] font-bold text-accent"
+      >
+        <Zap className="w-3 h-3" /> AGORA
+      </motion.span>
     );
     return null;
   };
@@ -63,34 +76,38 @@ export default function TaskItem({ task, isCompleted, onComplete, onDelete, time
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      className={`flex items-center gap-3 p-4 rounded-xl bg-card card-shadow border transition-all ${
-        isCompleted ? 'opacity-60 border-border'
-          : timeStatus?.status === 'overdue' ? 'border-destructive/30'
-          : timeStatus?.status === 'now' ? 'border-cta/30'
-          : 'border-border'
+      whileHover={{ y: -1 }}
+      className={`flex items-center gap-3 p-4 rounded-2xl glass-card hover-lift transition-all ${
+        isCompleted ? 'opacity-50'
+          : timeStatus?.status === 'overdue' ? 'border-destructive/30 shadow-lg shadow-destructive/5'
+          : timeStatus?.status === 'now' ? 'border-accent/30 shadow-lg shadow-accent/5'
+          : ''
       }`}
     >
       <motion.button
-        whileTap={{ scale: 0.8 }}
+        whileTap={{ scale: 0.7 }}
         onClick={handleComplete}
-        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
-          isCompleted ? 'bg-xp glow-green' : 'border-2 border-border hover:border-cta'
+        className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
+          isCompleted
+            ? 'bg-primary glow-green'
+            : 'border-2 border-border hover:border-primary hover:bg-primary/10'
         }`}
       >
         {isCompleted ? (
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-            <RotateCcw className="w-4 h-4 text-navy" strokeWidth={3} />
+          <motion.div initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 300 }}>
+            <RotateCcw className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
           </motion.div>
         ) : null}
       </motion.button>
 
       <div className="flex-1 min-w-0">
-        <p className={`font-bold text-sm ${isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+        <p className={`font-bold text-sm tracking-tight ${isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
           {task.titulo}
         </p>
         {task.descricao && <p className="text-xs text-muted-foreground mt-0.5 truncate">{task.descricao}</p>}
-        <div className="flex items-center gap-2 mt-1.5">
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${difficultyColors[task.dificuldade]}`}>
+        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${difficultyColors[task.dificuldade]} ${difficultyGlow[task.dificuldade]}`}>
             {DIFFICULTY_LABELS[task.dificuldade]}
           </span>
           <span className="text-[10px] font-semibold text-muted-foreground">{task.horario}</span>
@@ -98,11 +115,16 @@ export default function TaskItem({ task, isCompleted, onComplete, onDelete, time
         </div>
       </div>
 
-      <div className="flex flex-col items-center shrink-0 gap-1">
-        <span className="text-xs font-extrabold text-cta">+{xp} XP</span>
+      <div className="flex flex-col items-center shrink-0 gap-1.5">
+        <motion.span
+          className="text-xs font-extrabold text-gradient-accent"
+          whileHover={{ scale: 1.1 }}
+        >
+          +{xp} XP
+        </motion.span>
         {onDelete && (
-          <button onClick={() => onDelete(task.id)} className="p-1 rounded-md hover:bg-destructive/10">
-            <Trash2 className="w-3 h-3 text-destructive/60" />
+          <button onClick={() => onDelete(task.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors">
+            <Trash2 className="w-3.5 h-3.5 text-destructive/50 hover:text-destructive transition-colors" />
           </button>
         )}
       </div>

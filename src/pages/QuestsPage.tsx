@@ -18,7 +18,7 @@ import { useDeleteGoal } from '@/hooks/useDeleteGoal';
 import { useDeleteTask } from '@/hooks/useDeleteTask';
 import { useUpdateGoal } from '@/hooks/useUpdateGoal';
 
-const DEFAULT_GOAL_COLOR = '#FF6B00';
+const DEFAULT_GOAL_COLOR = '#00c853';
 
 export default function QuestsPage() {
   const navigate = useNavigate();
@@ -58,17 +58,17 @@ export default function QuestsPage() {
   return (
     <div className="w-full min-h-[100dvh] bg-background max-w-lg mx-auto flex flex-col">
       {/* HEADER */}
-      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border px-4 pt-[env(safe-area-inset-top)] pb-4">
+      <div className="sticky top-0 z-40 glass-card-strong px-4 pt-[env(safe-area-inset-top)] pb-4">
         <div className="flex items-center justify-between pt-3">
           <div>
-            <h1 className="text-xl font-extrabold text-foreground">Objetivos</h1>
+            <h1 className="text-xl font-black tracking-tight text-foreground">Objetivos</h1>
             <p className="text-xs text-muted-foreground mt-0.5">{goals.length} objetivo{goals.length !== 1 ? 's' : ''} ativo{goals.length !== 1 ? 's' : ''}</p>
           </div>
           <div className="flex gap-2">
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/quests/templates')}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-level/15 to-level/5 border border-level/20 text-xs font-bold text-foreground"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl glass-card text-xs font-bold text-foreground hover:bg-secondary/80 transition-colors"
             >
               <Sparkles className="w-3.5 h-3.5 text-level" />
               Modelos
@@ -76,7 +76,7 @@ export default function QuestsPage() {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/quests/new')}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl gradient-cta text-accent-foreground text-xs font-bold shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl gradient-cta text-accent-foreground text-xs font-bold shadow-lg shadow-accent/20"
             >
               <Plus className="w-3.5 h-3.5" />
               Criar
@@ -91,7 +91,6 @@ export default function QuestsPage() {
           const goalTasks = tasksByGoal(goal.id);
           const isOpen = openGoalId === goal.id;
           const daysLeft = getDaysRemaining(goal.data_alvo);
-          const completedTasks = goalTasks.filter(t => !t.ativa).length;
           const cardColor = goal.card_color || DEFAULT_GOAL_COLOR;
           const cardImage = goal.card_image_url;
 
@@ -101,11 +100,11 @@ export default function QuestsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className="rounded-2xl overflow-hidden border border-border card-shadow"
+              className="rounded-2xl overflow-hidden border border-border/50 card-shadow-lg hover-lift"
             >
               {/* Card Hero */}
               <div
-                className="relative h-28 overflow-hidden cursor-pointer"
+                className="relative h-32 overflow-hidden cursor-pointer"
                 onClick={() => setOpenGoalId(prev => (prev === goal.id ? null : goal.id))}
                 style={{ backgroundColor: cardColor }}
               >
@@ -113,55 +112,65 @@ export default function QuestsPage() {
                   <img src={cardImage} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full" style={{
-                    background: `linear-gradient(135deg, ${cardColor}, ${adjustBrightness(cardColor, 30)})`
-                  }} />
+                    background: `linear-gradient(145deg, ${cardColor}, ${adjustBrightness(cardColor, 30)})`
+                  }}>
+                    <div className="absolute inset-0 opacity-[0.03]"
+                      style={{ backgroundImage: 'radial-gradient(circle at 30% 40%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                  </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
 
                 <div className="absolute top-3 right-3 flex gap-1.5">
                   {goal.status === 'achieved' && (
-                    <span className="px-2 py-0.5 rounded-full bg-xp/90 text-[10px] font-bold text-navy">Concluído</span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-primary/90 text-[10px] font-bold text-primary-foreground backdrop-blur-sm">✓ Concluído</span>
                   )}
                   {daysLeft !== null && daysLeft > 0 && (
-                    <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm text-[10px] font-bold text-white">
+                    <span className="flex items-center gap-0.5 px-2.5 py-0.5 rounded-full bg-white/10 backdrop-blur-md text-[10px] font-bold text-white border border-white/10">
                       <Calendar className="w-3 h-3" /> {daysLeft}d
                     </span>
                   )}
                 </div>
 
                 <div className="absolute bottom-3 left-4 right-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{goal.emoji}</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-3xl drop-shadow-lg">{goal.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-extrabold text-base truncate drop-shadow-lg">{goal.titulo}</p>
-                      <p className="text-white/70 text-[11px]">{goalTasks.length} tarefas · {goal.progresso}% concluído</p>
+                      <p className="text-white/60 text-[11px] font-medium">{goalTasks.length} tarefas · {goal.progresso}% concluído</p>
                     </div>
-                    <ChevronDown className={`w-5 h-5 text-white/70 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                      <ChevronDown className="w-5 h-5 text-white/60" />
+                    </motion.div>
                   </div>
                 </div>
               </div>
 
               {/* Progress bar */}
               <div className="h-1 bg-secondary">
-                <div className="h-full gradient-hero transition-all" style={{ width: `${goal.progresso}%` }} />
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${goal.progresso}%` }}
+                  transition={{ duration: 0.8, delay: idx * 0.05 }}
+                  className="h-full gradient-hero"
+                />
               </div>
 
               {/* Actions */}
-              <div className="bg-card px-4 py-2 flex items-center justify-between">
+              <div className="bg-card px-4 py-2.5 flex items-center justify-between">
                 <div className="flex items-center gap-3 text-muted-foreground">
-                  <button onClick={() => handleToggleStatus(goal)}>
-                    <CheckCircle2 className={`w-5 h-5 ${goal.status === 'achieved' ? 'text-xp' : ''}`} />
-                  </button>
-                  <button onClick={() => navigate(`/goals/edit/${goal.id}`)}>
+                  <motion.button whileTap={{ scale: 0.85 }} onClick={() => handleToggleStatus(goal)}>
+                    <CheckCircle2 className={`w-5 h-5 transition-colors ${goal.status === 'achieved' ? 'text-primary' : 'hover:text-primary'}`} />
+                  </motion.button>
+                  <button onClick={() => navigate(`/goals/edit/${goal.id}`)} className="hover:text-foreground transition-colors">
                     <Pencil className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDeleteGoal(goal.id)}>
-                    <Trash2 className="w-4 h-4 text-destructive/60" />
+                  <button onClick={() => handleDeleteGoal(goal.id)} className="hover:text-destructive transition-colors">
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
                 <button
                   onClick={() => navigate(`/new-task?goalId=${goal.id}`)}
-                  className="text-[11px] font-bold text-cta flex items-center gap-1"
+                  className="text-[11px] font-bold text-accent flex items-center gap-1 hover:text-accent/80 transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" /> Tarefa
                 </button>
@@ -174,7 +183,7 @@ export default function QuestsPage() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden bg-card border-t border-border"
+                    className="overflow-hidden bg-card/50 border-t border-border/50"
                   >
                     <div className="p-4 space-y-2">
                       {goalTasks.length === 0 && (
@@ -186,19 +195,19 @@ export default function QuestsPage() {
                         <motion.div
                           key={task.id}
                           whileTap={{ scale: 0.98 }}
-                          className="flex items-center justify-between px-3 py-2.5 rounded-xl border border-border bg-secondary/30"
+                          className="flex items-center justify-between px-3.5 py-3 rounded-xl border border-border/50 bg-secondary/20 hover:bg-secondary/40 transition-colors"
                         >
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: task.card_color || DEFAULT_GOAL_COLOR }} />
+                          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: task.card_color || DEFAULT_GOAL_COLOR }} />
                             <p className="text-sm font-semibold text-foreground truncate">{task.titulo}</p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-[10px] text-muted-foreground">{task.horario}</span>
-                            <button onClick={() => navigate(`/tasks/edit/${task.id}`)}>
-                              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                            <span className="text-[10px] text-muted-foreground font-medium">{task.horario}</span>
+                            <button onClick={() => navigate(`/tasks/edit/${task.id}`)} className="text-muted-foreground hover:text-foreground transition-colors">
+                              <Pencil className="w-3.5 h-3.5" />
                             </button>
-                            <button onClick={() => handleDeleteTask(task.id)}>
-                              <Trash2 className="w-3.5 h-3.5 text-destructive/60" />
+                            <button onClick={() => handleDeleteTask(task.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </motion.div>
@@ -213,13 +222,15 @@ export default function QuestsPage() {
 
         {goals.length === 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
-            <Target className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="font-extrabold text-foreground text-lg">Sem objetivos ainda</p>
-            <p className="text-sm text-muted-foreground mt-1 mb-6">Defina metas e conquiste com consistência</p>
+            <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 3, repeat: Infinity }}>
+              <Target className="w-16 h-16 text-muted-foreground/20 mx-auto mb-5" />
+            </motion.div>
+            <p className="font-black text-foreground text-xl">Sem objetivos ainda</p>
+            <p className="text-sm text-muted-foreground mt-2 mb-8">Defina metas e conquiste com consistência</p>
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate('/quests/new')}
-              className="px-6 py-3 rounded-xl gradient-cta text-accent-foreground font-bold text-sm"
+              className="px-8 py-3.5 rounded-2xl gradient-cta text-accent-foreground font-bold text-sm shadow-xl shadow-accent/20"
             >
               Criar Primeiro Objetivo
             </motion.button>
