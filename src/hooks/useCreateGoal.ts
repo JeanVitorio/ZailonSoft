@@ -11,6 +11,10 @@ export function useCreateGoal() {
       titulo: string;
       descricao?: string;
       emoji?: string;
+      visibilidade?: string;
+      card_color?: string;
+      card_image_url?: string | null;
+      data_alvo?: string | null;
     }) => {
       if (!isSupabaseConfigured || !supabase || !user) return;
 
@@ -19,6 +23,10 @@ export function useCreateGoal() {
         descricao: data.descricao || '',
         emoji: data.emoji || '⚔️',
         user_id: user.id,
+        visibilidade: data.visibilidade || 'private',
+        card_color: data.card_color || '#FF6B00',
+        card_image_url: data.card_image_url || null,
+        data_alvo: data.data_alvo || null,
       });
 
       if (error) throw error;
