@@ -37,6 +37,8 @@ export interface Goal {
   data_alvo: string | null;
   status: 'active' | 'achieved';
   visibilidade: Visibility;
+  card_color?: string;
+  card_image_url?: string | null;
 }
 
 export interface Task {

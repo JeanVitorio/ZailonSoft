@@ -35,7 +35,6 @@ const MOCK_TASKS: Task[] = [
 
 let mockCompletedIds = new Set<string>();
 
-// Get current date/time in Brasilia timezone
 function getBrasiliaDate(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
 }
@@ -52,7 +51,6 @@ function getBrasiliaWeekday(): number {
   return brasilia.getDay();
 }
 
-// Filter tasks that should appear today
 export function filterTodayTasks(tasks: Task[]): Task[] {
   const weekday = getBrasiliaWeekday();
   return tasks.filter(task => {
@@ -67,7 +65,6 @@ export function filterTodayTasks(tasks: Task[]): Task[] {
   });
 }
 
-// Get time status for a task
 export function getTaskTimeStatus(task: Task): { status: 'overdue' | 'upcoming' | 'past' | 'now'; minutesDiff: number } {
   const { hour, minute } = getBrasiliaHourMinute();
   const [taskHour, taskMinute] = task.horario.split(':').map(Number);
@@ -222,7 +219,14 @@ export function useCreateTask() {
 
       const { data, error } = await supabase
         .from('tasks')
-        .insert({ ...task, user_id: user.id, pontos, ativa: true })
+        .insert({
+          ...task,
+          user_id: user.id,
+          pontos,
+          ativa: true,
+          card_color: task.card_color || '#FF6B00',
+          card_image_url: task.card_image_url,
+        })
         .select()
         .single();
       if (error) throw error;
@@ -282,7 +286,6 @@ export function useWeekExecutions() {
     queryKey: ['week-executions', user?.id],
     queryFn: async (): Promise<{ data: string; count: number }[]> => {
       if (!isSupabaseConfigured || !supabase || !user) {
-        // Mock: return last 7 days
         const results = [];
         for (let i = 6; i >= 0; i--) {
           const d = new Date();

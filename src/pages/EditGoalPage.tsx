@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ImagePlus, Palette, X } from 'lucide-react';
-import { useCreateGoal } from '@/hooks/useCreateGoal';
+import { useGoals } from '@/hooks/useGoals';
+import { useUpdateGoal } from '@/hooks/useUpdateGoal';
 import { toast } from 'sonner';
 
 const COLOR_OPTIONS = [
@@ -12,10 +13,14 @@ const COLOR_OPTIONS = [
 
 const EMOJI_OPTIONS = ['⚔️', '🎯', '🏋️', '📚', '🧘', '🏃', '💻', '🎨', '🌱', '💰', '🏔️', '🔥'];
 
-export default function CreateGoalPage() {
+export default function EditGoalPage() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const createGoal = useCreateGoal();
+  const { data: goals = [] } = useGoals();
+  const updateGoal = useUpdateGoal();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const goal = goals.find(g => g.id === id);
 
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
@@ -23,9 +28,19 @@ export default function CreateGoalPage() {
   const [cardColor, setCardColor] = useState('#FF6B00');
   const [cardImageUrl, setCardImageUrl] = useState<string | null>(null);
   const [cardMode, setCardMode] = useState<'color' | 'image'>('color');
-  const [duracao, setDuracao] = useState('30');
-  const [duracaoTipo, setDuracaoTipo] = useState<'days' | 'months' | 'years'>('days');
   const [visibilidade, setVisibilidade] = useState<'public' | 'private'>('private');
+
+  useEffect(() => {
+    if (goal) {
+      setTitulo(goal.titulo);
+      setDescricao(goal.descricao);
+      setEmoji(goal.emoji);
+      setCardColor((goal as any).card_color || '#FF6B00');
+      setCardImageUrl((goal as any).card_image_url || null);
+      setCardMode((goal as any).card_image_url ? 'image' : 'color');
+      setVisibilidade(goal.visibilidade);
+    }
+  }, [goal]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -38,33 +53,32 @@ export default function CreateGoalPage() {
     reader.readAsDataURL(file);
   };
 
-  const getDataAlvo = () => {
-    const d = new Date();
-    const num = parseInt(duracao) || 30;
-    if (duracaoTipo === 'days') d.setDate(d.getDate() + num);
-    else if (duracaoTipo === 'months') d.setMonth(d.getMonth() + num);
-    else d.setFullYear(d.getFullYear() + num);
-    return d.toISOString().split('T')[0];
-  };
-
-  const handleCreate = async () => {
-    if (!titulo.trim()) return toast.error('Digite um título');
+  const handleSave = async () => {
+    if (!titulo.trim() || !id) return toast.error('Digite um título');
     try {
-      await createGoal.mutateAsync({
+      await updateGoal.mutateAsync({
+        id,
         titulo: titulo.trim(),
         descricao: descricao.trim(),
         emoji,
         visibilidade,
         card_color: cardColor,
         card_image_url: cardMode === 'image' ? cardImageUrl : null,
-        data_alvo: getDataAlvo(),
       });
-      toast.success('Objetivo criado!');
+      toast.success('Objetivo atualizado!');
       navigate('/quests');
     } catch {
-      toast.error('Erro ao criar objetivo');
+      toast.error('Erro ao atualizar objetivo');
     }
   };
+
+  if (!goal) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Carregando objetivo...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background max-w-lg mx-auto pb-10">
@@ -73,7 +87,7 @@ export default function CreateGoalPage() {
           <button onClick={() => navigate(-1)} className="p-1">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-xl font-extrabold text-foreground">Novo Objetivo</h1>
+          <h1 className="text-xl font-extrabold text-foreground">Editar Objetivo</h1>
         </div>
       </div>
 
@@ -156,23 +170,6 @@ export default function CreateGoalPage() {
             className="w-full mt-1.5 px-4 py-3 rounded-xl bg-card border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-cta/30 resize-none" />
         </div>
 
-        {/* Duration */}
-        <div>
-          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Prazo</label>
-          <div className="flex gap-2 mt-1.5">
-            <input type="number" value={duracao} onChange={e => setDuracao(e.target.value)} min="1"
-              className="w-20 px-3 py-3 rounded-xl bg-card border border-border text-foreground text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-cta/30" />
-            {(['days', 'months', 'years'] as const).map(t => (
-              <button key={t} onClick={() => setDuracaoTipo(t)}
-                className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${
-                  duracaoTipo === t ? 'gradient-cta text-accent-foreground' : 'bg-secondary text-muted-foreground'
-                }`}>
-                {t === 'days' ? 'Dias' : t === 'months' ? 'Meses' : 'Anos'}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Visibility */}
         <div>
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Privacidade</label>
@@ -189,10 +186,10 @@ export default function CreateGoalPage() {
         </div>
 
         {/* Submit */}
-        <motion.button whileTap={{ scale: 0.97 }} onClick={handleCreate}
-          disabled={!titulo.trim() || createGoal.isPending}
+        <motion.button whileTap={{ scale: 0.97 }} onClick={handleSave}
+          disabled={!titulo.trim() || updateGoal.isPending}
           className="w-full py-4 rounded-xl gradient-cta text-accent-foreground font-extrabold text-base disabled:opacity-40 transition-opacity">
-          {createGoal.isPending ? 'Criando...' : 'Criar Objetivo'}
+          {updateGoal.isPending ? 'Salvando...' : 'Salvar Alterações'}
         </motion.button>
       </div>
     </div>

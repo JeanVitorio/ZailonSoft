@@ -92,8 +92,8 @@ export default function QuestsPage() {
           const isOpen = openGoalId === goal.id;
           const daysLeft = getDaysRemaining(goal.data_alvo);
           const completedTasks = goalTasks.filter(t => !t.ativa).length;
-          const cardColor = (goal as any).card_color || DEFAULT_GOAL_COLOR;
-          const cardImage = (goal as any).card_image_url;
+          const cardColor = goal.card_color || DEFAULT_GOAL_COLOR;
+          const cardImage = goal.card_image_url;
 
           return (
             <motion.div

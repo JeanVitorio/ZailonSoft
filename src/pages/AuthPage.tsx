@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User } from 'lucide-react';
+import { Mail, Lock, User, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import crownBadge from '@/assets/crown-badge.png';
 
 export default function AuthPage() {
   const { signIn, signUp, isConfigured } = useAuth();
@@ -12,18 +11,27 @@ export default function AuthPage() {
   const [nome, setNome] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [signupSuccess, setSignupSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    const result = mode === 'login'
-      ? await signIn(email, password)
-      : await signUp(email, password, nome);
-
-    if (result.error) {
-      setError(result.error.message);
+    if (mode === 'signup') {
+      const result = await signUp(email, password, nome);
+      if (result.error) {
+        setError(result.error.message);
+      } else {
+        setSignupSuccess(true);
+        setMode('login');
+        setPassword('');
+      }
+    } else {
+      const result = await signIn(email, password);
+      if (result.error) {
+        setError(result.error.message);
+      }
     }
     setLoading(false);
   };
@@ -32,7 +40,9 @@ export default function AuthPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center max-w-sm">
-          <img src={crownBadge} alt="Zailon" className="w-16 h-16 mx-auto mb-4" />
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cta to-cta/70 flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl font-black text-white">Z</span>
+          </div>
           <h1 className="text-2xl font-extrabold text-foreground mb-2">Zailon</h1>
           <p className="text-sm text-muted-foreground mb-4">
             Configure as variáveis de ambiente do Supabase para ativar a autenticação.
@@ -55,23 +65,38 @@ export default function AuthPage() {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <img src={crownBadge} alt="Zailon" className="w-16 h-16 mx-auto mb-3" />
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cta to-cta/70 flex items-center justify-center mx-auto mb-3">
+            <span className="text-3xl font-black text-white">Z</span>
+          </div>
           <h1 className="text-2xl font-extrabold text-foreground">Zailon</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {mode === 'login' ? 'Entra aí, guerreiro!' : 'Cria tua conta e domina!'}
+            {mode === 'login' ? 'Acesse sua conta' : 'Crie sua conta'}
           </p>
         </div>
+
+        {signupSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-4 rounded-xl bg-xp/10 border border-xp/30 flex items-start gap-3"
+          >
+            <CheckCircle className="w-5 h-5 text-xp shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-foreground">Conta criada com sucesso!</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Verifique seu e-mail para confirmar a conta antes de fazer login.
+              </p>
+            </div>
+          </motion.div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'signup' && (
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
-                type="text"
-                value={nome}
-                onChange={e => setNome(e.target.value)}
-                placeholder="Teu nome"
-                required
+                type="text" value={nome} onChange={e => setNome(e.target.value)}
+                placeholder="Seu nome" required
                 className="w-full pl-11 pr-4 py-3 rounded-xl bg-card border border-border text-foreground text-sm font-semibold placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-cta/30"
               />
             </div>
@@ -80,11 +105,8 @@ export default function AuthPage() {
           <div className="relative">
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="Email"
-              required
+              type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="Email" required
               className="w-full pl-11 pr-4 py-3 rounded-xl bg-card border border-border text-foreground text-sm font-semibold placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-cta/30"
             />
           </div>
@@ -92,12 +114,8 @@ export default function AuthPage() {
           <div className="relative">
             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Senha"
-              required
-              minLength={6}
+              type="password" value={password} onChange={e => setPassword(e.target.value)}
+              placeholder="Senha" required minLength={6}
               className="w-full pl-11 pr-4 py-3 rounded-xl bg-card border border-border text-foreground text-sm font-semibold placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-cta/30"
             />
           </div>
@@ -107,17 +125,15 @@ export default function AuthPage() {
           )}
 
           <motion.button
-            whileTap={{ scale: 0.97 }}
-            type="submit"
-            disabled={loading}
+            whileTap={{ scale: 0.97 }} type="submit" disabled={loading}
             className="w-full py-3.5 rounded-xl gradient-cta text-accent-foreground font-extrabold text-base disabled:opacity-40"
           >
-            {loading ? 'Carregando...' : mode === 'login' ? 'Entrar 🚀' : 'Criar Conta 🎮'}
+            {loading ? 'Carregando...' : mode === 'login' ? 'Entrar' : 'Criar Conta'}
           </motion.button>
         </form>
 
         <button
-          onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); }}
+          onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setSignupSuccess(false); }}
           className="w-full mt-4 text-center text-sm text-muted-foreground"
         >
           {mode === 'login' ? 'Não tem conta? ' : 'Já tem conta? '}

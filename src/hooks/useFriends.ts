@@ -8,12 +8,16 @@ export function useSearchUsers(query: string) {
     queryKey: ['search-users', query],
     queryFn: async (): Promise<Pick<Profile, 'id' | 'nome' | 'username' | 'avatar_url' | 'level' | 'bio'>[]> => {
       if (!isSupabaseConfigured || !supabase || !query.trim()) return [];
+      const searchTerm = query.trim();
       const { data, error } = await supabase
         .from('profiles')
         .select('id, nome, username, avatar_url, level, bio')
-        .or(`nome.ilike.%${query}%,username.ilike.%${query}%`)
+        .or(`nome.ilike.%${searchTerm}%,username.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
         .limit(20);
-      if (error) throw error;
+      if (error) {
+        console.error('Search error:', error);
+        return [];
+      }
       return data ?? [];
     },
     enabled: query.trim().length >= 2,
@@ -42,13 +46,12 @@ export function useFollowUser() {
   return useMutation({
     mutationFn: async (targetId: string) => {
       if (!supabase || !user) return;
-      // Check if already following
       const { data: existing } = await supabase
         .from('follows')
         .select('id')
         .eq('follower_id', user.id)
         .eq('following_id', targetId)
-        .single();
+        .maybeSingle();
       if (existing) {
         await supabase.from('follows').delete().eq('id', existing.id);
       } else {

@@ -63,9 +63,8 @@ export default function AchievementCard({ post, index, onDelete }: AchievementCa
       transition={{ delay: index * 0.06, duration: 0.35, ease: 'easeOut' }}
       className="w-full"
     >
-      {/* Downloadable card — Instagram-like 4:5 ratio */}
+      {/* Downloadable card */}
       <div ref={cardRef} className="rounded-2xl overflow-hidden shadow-xl" style={{ backgroundColor: cardColor }}>
-        {/* Hero — taller for Instagram feel */}
         <div className="relative aspect-[4/5] overflow-hidden">
           {cardImage ? (
             <img src={cardImage} alt="" className="w-full h-full object-cover" />
@@ -80,7 +79,6 @@ export default function AchievementCard({ post, index, onDelete }: AchievementCa
             </div>
           )}
 
-          {/* Bottom content */}
           <div className="absolute bottom-0 left-0 right-0 p-5">
             {meta.task_titulo && (
               <p className="text-white font-extrabold text-xl leading-tight drop-shadow-lg mb-4">
@@ -102,7 +100,6 @@ export default function AchievementCard({ post, index, onDelete }: AchievementCa
 
             <p className="text-sm text-white/80 mt-3 leading-relaxed">{post.conteudo}</p>
 
-            {/* Watermark */}
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/10">
               <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Zailon</span>
               {meta.pontos_earned && (
