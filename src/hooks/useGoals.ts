@@ -16,6 +16,8 @@ const MOCK_GOAL: Goal = {
   data_alvo: null,
   status: 'active',
   visibilidade: 'private',
+  card_color: '#FF6B00',
+  card_image_url: null,
 };
 
 export function useGoals() {
@@ -67,7 +69,6 @@ export function useDefaultGoal() {
     mutationFn: async (): Promise<Goal> => {
       if (!isSupabaseConfigured || !supabase || !user) return MOCK_GOAL;
 
-      // Check if default goal exists
       const { data: existing } = await supabase
         .from('goals')
         .select('*')
@@ -77,7 +78,6 @@ export function useDefaultGoal() {
 
       if (existing) return existing as Goal;
 
-      // Create default goal
       const { data, error } = await supabase
         .from('goals')
         .insert({
