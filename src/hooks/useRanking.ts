@@ -27,10 +27,15 @@ export function useRanking() {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, nome, username, avatar_url, xp, level, streak')
+        .gt('xp', 0)
         .order('xp', { ascending: false })
         .limit(50);
-      if (error) throw error;
+      if (error) {
+        console.error('Ranking error:', error);
+        return MOCK_RANKING;
+      }
       return (data as RankingUser[]) ?? [];
     },
+    staleTime: 30000,
   });
 }
