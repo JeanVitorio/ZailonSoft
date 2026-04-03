@@ -22,7 +22,7 @@ export default function Index() {
   } : { xpTotal: 0, streak: 0, level: 1 };
 
   return (
-      <div className="w-full min-h-[100dvh] bg-background max-w-lg mx-auto relative overflow-x-hidden flex flex-col pb-20">
+    <div className="w-full min-h-[100dvh] bg-background gradient-mesh noise-bg max-w-lg mx-auto relative overflow-x-hidden flex flex-col pb-20">
       <FeedPage
         posts={posts}
         stats={stats}

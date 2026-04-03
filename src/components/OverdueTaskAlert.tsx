@@ -28,10 +28,8 @@ export default function OverdueTaskAlert({
     const abs = Math.abs(minutes);
     const hours = Math.floor(abs / 60);
     const mins = abs % 60;
-
     if (hours === 0) return `${mins}min atrasada`;
     if (mins === 0) return `${hours}h atrasada`;
-
     return `${hours}h ${mins}min atrasada`;
   };
 
@@ -40,14 +38,27 @@ export default function OverdueTaskAlert({
       initial={{ opacity: 0, y: -20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
-      className="w-full max-w-md mx-auto mb-4 p-4 rounded-2xl bg-card border border-streak/30 card-shadow"
+      className="w-full max-w-md mx-auto mb-4 p-4 rounded-2xl glass-card border-streak/20 card-shadow-lg relative overflow-hidden"
     >
-      <div className="flex items-start gap-3">
-        <span className="text-3xl">😢</span>
+      {/* Pulse background */}
+      <motion.div
+        animate={{ opacity: [0.05, 0.15, 0.05] }}
+        transition={{ duration: 2, repeat: Infinity }}
+        className="absolute inset-0 bg-streak/10 rounded-2xl"
+      />
+
+      <div className="flex items-start gap-3 relative z-10">
+        <motion.span
+          animate={{ rotate: [0, -10, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="text-3xl"
+        >
+          😢
+        </motion.span>
 
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-streak uppercase tracking-wider">
-            {formatDelay(safeMinutes)} {/* ✅ SEMPRE FORMATADO */}
+            {formatDelay(safeMinutes)}
           </p>
 
           <p className="text-sm font-extrabold text-foreground mt-1">
@@ -60,18 +71,18 @@ export default function OverdueTaskAlert({
         </div>
       </div>
 
-      <div className="flex gap-2 mt-3">
+      <div className="flex gap-2 mt-3 relative z-10">
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => onComplete(task)}
-          className="flex-1 py-2.5 rounded-xl gradient-cta text-accent-foreground text-xs font-bold"
+          className="flex-1 py-2.5 rounded-xl gradient-cta text-accent-foreground text-xs font-bold shadow-lg shadow-accent/20"
         >
           Vamos lá! 💪
         </motion.button>
 
         <button
           onClick={onDismiss}
-          className="px-4 py-2.5 rounded-xl bg-secondary text-muted-foreground text-xs font-bold"
+          className="px-4 py-2.5 rounded-xl glass-card text-muted-foreground text-xs font-bold hover:text-foreground transition-colors"
         >
           Depois
         </button>
