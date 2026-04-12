@@ -109,49 +109,7 @@
   html { scroll-behavior: smooth; }
 }
 
-/* ===== LOADING METEOR ===== */
-.loading-meteor {
-  position: absolute;
-  top: -10%;
-  left: 110%;
-  width: 3px;
-  height: 200px;
-  background: linear-gradient(to bottom, oklch(0.65 0.22 30), oklch(0.8 0.18 40), transparent);
-  border-radius: 100px;
-  transform: rotate(35deg);
-  animation: loading-meteor-fly 1.2s ease-in forwards;
-  box-shadow: 0 0 20px oklch(0.65 0.22 30 / 0.6), 0 0 60px oklch(0.65 0.22 30 / 0.3);
-}
-.loading-meteor::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 8px;
-  height: 8px;
-  background: oklch(0.9 0.15 40);
-  border-radius: 50%;
-  box-shadow: 0 0 30px oklch(0.65 0.22 30 / 0.8);
-}
-.loading-meteor-2 {
-  position: absolute;
-  top: -5%;
-  left: 105%;
-  width: 2px;
-  height: 120px;
-  background: linear-gradient(to bottom, oklch(0.55 0.2 25), transparent);
-  border-radius: 100px;
-  transform: rotate(40deg);
-  animation: loading-meteor-fly 1.4s ease-in 0.3s forwards;
-  box-shadow: 0 0 15px oklch(0.55 0.2 25 / 0.4);
-}
-
-@keyframes loading-meteor-fly {
-  0% { transform: rotate(35deg) translate(0, 0); opacity: 0; }
-  10% { opacity: 1; }
-  100% { transform: rotate(35deg) translate(-160vw, 120vh); opacity: 0; }
-}
+/* (loading meteor removed) */
 
 /* ===== ANIMATIONS ===== */
 @keyframes twinkle {

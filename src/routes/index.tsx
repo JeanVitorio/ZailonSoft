@@ -4,8 +4,13 @@ import { LoadingExperience } from "@/components/LoadingExperience";
 import { EarthJourney } from "@/components/EarthJourney";
 import { HeroSection } from "@/components/HeroSection";
 import { ProblemSection } from "@/components/ProblemSection";
+import { WhySection } from "@/components/WhySection";
 import { RevelationSection } from "@/components/RevelationSection";
+import { ServicesSection } from "@/components/ServicesSection";
+import { ProcessSection } from "@/components/ProcessSection";
 import { ProjectsSection } from "@/components/ProjectsSection";
+import { UrgencySection } from "@/components/UrgencySection";
+import { ExclusivitySection } from "@/components/ExclusivitySection";
 import { ClimaxSection } from "@/components/ClimaxSection";
 
 export const Route = createFileRoute("/")({
@@ -33,8 +38,13 @@ function Index() {
         <div className="relative" style={{ zIndex: 1 }}>
           <HeroSection />
           <ProblemSection />
+          <WhySection />
           <RevelationSection />
+          <ServicesSection />
+          <ProcessSection />
           <ProjectsSection />
+          <UrgencySection />
+          <ExclusivitySection />
           <ClimaxSection />
 
           <footer className="py-10 sm:py-12 px-4 sm:px-6 text-center relative" style={{ background: 'rgba(200, 230, 255, 0.3)' }}>
