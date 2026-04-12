@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback } from "react";
 import { LoadingExperience } from "@/components/LoadingExperience";
-import { StarField } from "@/components/StarField";
-import { SkyGradient } from "@/components/SkyGradient";
+import { EarthJourney } from "@/components/EarthJourney";
 import { HeroSection } from "@/components/HeroSection";
 import { ProblemSection } from "@/components/ProblemSection";
 import { RevelationSection } from "@/components/RevelationSection";
@@ -30,17 +29,16 @@ function Index() {
       {!loaded && <LoadingExperience onComplete={handleComplete} />}
 
       <div className={`transition-opacity duration-1000 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
-        <SkyGradient />
-        <StarField />
-        <div className="relative scan-overlay" style={{ zIndex: 1 }}>
+        <EarthJourney />
+        <div className="relative" style={{ zIndex: 1 }}>
           <HeroSection />
           <ProblemSection />
           <RevelationSection />
           <ProjectsSection />
           <ClimaxSection />
 
-          <footer className="py-10 sm:py-12 px-4 sm:px-6 text-center" style={{ background: 'var(--void-deep)' }}>
-            <p className="text-[10px] sm:text-xs tracking-widest uppercase" style={{ color: 'var(--ash)' }}>
+          <footer className="py-10 sm:py-12 px-4 sm:px-6 text-center relative" style={{ background: 'rgba(200, 230, 255, 0.3)' }}>
+            <p className="text-[10px] sm:text-xs tracking-widest uppercase" style={{ color: 'rgba(30, 60, 90, 0.6)' }}>
               © {new Date().getFullYear()} ZailonSoft · Todos os direitos reservados
             </p>
           </footer>
