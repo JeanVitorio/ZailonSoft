@@ -62,14 +62,10 @@ function DefaultErrorComponent({
   );
 }
 
-export const getRouter = () => {
-  const router = createRouter({
-    routeTree,
-    context: {},
-    scrollRestoration: true,
-    defaultPreloadStaleTime: 0,
-    defaultErrorComponent: DefaultErrorComponent,
-  });
-
-  return router;
-};
+export const router = createRouter({
+  routeTree,
+  context: {},
+  scrollRestoration: true,
+  defaultPreloadStaleTime: 0,
+  defaultErrorComponent: DefaultErrorComponent,
+});
