@@ -8,28 +8,24 @@ const INSTA_ZAILON = 'https://www.instagram.com/zailonsoft';
 export function ClimaxSection() {
   return (
     <section className="relative py-28 sm:py-40 px-4 sm:px-6">
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse at center bottom, oklch(0.65 0.22 30 / 0.1), transparent 70%)',
-      }} />
-
       <div className="max-w-4xl mx-auto text-center relative">
         <ScrollReveal>
           <p className="text-xs sm:text-sm tracking-[0.3em] sm:tracking-[0.4em] uppercase mb-4 sm:mb-6 font-semibold" style={{ color: 'var(--ember)' }}>
-            Decisão
+            Aterrissagem
           </p>
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
           <h2 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black leading-[0.85] mb-6 sm:mb-8">
-            PARE DE<br />
-            <span className="text-gradient-ember">PERDER TEMPO.</span>
+            CHEGOU A<br />
+            <span className="text-gradient-ember">SUA VEZ.</span>
           </h2>
         </ScrollReveal>
 
         <ScrollReveal delay={400}>
           <p className="text-base sm:text-lg md:text-xl max-w-xl mx-auto mb-8 sm:mb-12 px-2" style={{ color: 'var(--ash-light)' }}>
-            Cada dia sem uma presença digital estratégica é um dia que você perde clientes
-            para quem já entendeu o jogo.
+            Você viajou do espaço até aqui. Agora é hora de transformar
+            sua presença digital em uma máquina de resultados.
           </p>
         </ScrollReveal>
 
@@ -64,9 +60,6 @@ export function ClimaxSection() {
           </p>
         </ScrollReveal>
       </div>
-
-      <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-        style={{ background: 'linear-gradient(to bottom, transparent, var(--void-deep))' }} />
     </section>
   );
 }

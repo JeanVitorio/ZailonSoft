@@ -21,23 +21,16 @@ export function ScrollReveal({ children, className = '', delay = 0, direction = 
           observer.unobserve(el);
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0.1 }
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, [delay]);
 
-  const directionStyle = {
-    up: 'translateY(60px)',
-    left: 'translateX(-80px)',
-    right: 'translateX(80px)',
-  }[direction];
-
   return (
     <div
       ref={ref}
       className={`scroll-reveal ${className}`}
-      style={{ transform: directionStyle }}
     >
       {children}
     </div>
