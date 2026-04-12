@@ -56,7 +56,7 @@ function Index() {
           <footer className="py-10 sm:py-14 px-4 sm:px-6 text-center relative">
             <div className="max-w-4xl mx-auto">
               <p className="text-3xl sm:text-4xl font-black text-gradient-ember mb-3">ZAILONSOFT</p>
-              <p className="text-xs sm:text-sm tracking-[0.2em] uppercase text-ash-light font-semibold mb-6">
+              <p className="text-xs sm:text-sm tracking-[0.2em] uppercase text-foreground/70 font-semibold mb-6 drop-shadow-[0_1px_2px_rgba(0,0,0,0.24)]">
                 Engenharia Digital de Alta Performance
               </p>
               <div className="h-px w-24 mx-auto mb-6" style={{ background: 'linear-gradient(90deg, transparent, oklch(0.65 0.22 30 / 0.5), transparent)' }} />

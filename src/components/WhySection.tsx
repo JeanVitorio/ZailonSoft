@@ -6,13 +6,13 @@ const PILLARS = [
     icon: Target,
     title: 'PORQUÊ',
     subtitle: 'A crença',
-    text: 'Acredito que toda empresa merece uma presença digital que trabalhe por ela — 24 horas, 7 dias por semana. Não é sobre ter um site. É sobre ter uma máquina de resultados.',
+    text: 'Acredito que toda empresa merece uma presença digital que trabalhe por ela 24 horas, 7 dias por semana. Não é sobre ter um site. É sobre ter uma máquina de resultados.',
   },
   {
     icon: Zap,
     title: 'COMO',
     subtitle: 'O método',
-    text: 'Combino design de alto impacto, copywriting persuasivo e engenharia de performance para criar experiências que não apenas impressionam — convertem.',
+    text: 'Combino design de alto impacto, copywriting persuasivo e engenharia de performance para criar experiências que não apenas impressionam convertem.',
   },
   {
     icon: Shield,
@@ -39,7 +39,7 @@ export function WhySection() {
         </ScrollReveal>
         <ScrollReveal delay={250}>
           <p className="text-base sm:text-lg md:text-xl max-w-3xl mb-16 sm:mb-24 text-steel leading-relaxed">
-            As marcas mais poderosas do mundo não vendem produtos — vendem propósitos.
+            As marcas mais poderosas do mundo não vendem produtos vendem propósitos.
             A ZailonSoft opera no mesmo princípio.
           </p>
         </ScrollReveal>

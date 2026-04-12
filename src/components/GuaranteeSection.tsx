@@ -27,7 +27,7 @@ export function GuaranteeSection() {
                 <span className="text-gradient-ember">minha prioridade.</span>
               </h2>
               <p className="text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-10 text-steel leading-relaxed">
-                Eu não entrego projetos — eu entrego resultados. Cada etapa é validada
+                Eu não entrego projetos eu entrego resultados. Cada etapa é validada
                 por você, com revisões ilimitadas durante o desenvolvimento. Se não superar
                 suas expectativas, <strong className="text-foreground font-black">eu ajusto até superar</strong>.
               </p>

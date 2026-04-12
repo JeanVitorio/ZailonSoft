@@ -24,7 +24,7 @@ export function HeroSection() {
         </ScrollReveal>
 
         <ScrollReveal delay={400}>
-          <p className="mt-8 sm:mt-10 text-base sm:text-lg md:text-xl max-w-2xl mx-auto px-2 text-steel leading-relaxed">
+          <p className="mt-8 sm:mt-10 text-base sm:text-lg md:text-xl max-w-2xl mx-auto px-4 py-5 text-foreground/95 leading-relaxed rounded-[2rem] bg-black/15 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
             Enquanto você procura alguém pra fazer um site bonito,
             seus concorrentes estão construindo <strong className="text-foreground font-bold">máquinas de conversão</strong>.
           </p>
@@ -56,8 +56,8 @@ export function HeroSection() {
         </ScrollReveal>
       </div>
 
-      <div className="absolute bottom-8 sm:bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
-        <span className="text-[10px] sm:text-xs tracking-[0.3em] uppercase font-medium text-ash-light">Desça</span>
+      <div className="absolute bottom-32 sm:bottom-40 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+        <span className="text-[10px] sm:text-xs tracking-[0.3em] uppercase font-medium text-foreground/80 bg-black/15 px-3 py-1 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.14)]">Desça</span>
         <ChevronDown className="w-5 h-5 text-ember" />
       </div>
     </section>

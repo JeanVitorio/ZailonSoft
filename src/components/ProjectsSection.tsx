@@ -9,15 +9,15 @@ const NICHES = [
     niche: 'Academias',
     title: 'Sua academia está invisível na internet?',
     problem: 'A maioria das academias depende de indicação boca a boca e perde alunos para concorrentes com presença digital forte. Sem uma landing page estratégica, todo investimento em tráfego pago é desperdiçado.',
-    solution: 'Uma Landing Page de alta conversão com copy persuasivo, prova social, e funil de captação de leads que transforma visitantes em alunos matriculados — 24 horas por dia.',
+    solution: 'Uma Landing Page de alta conversão com copy persuasivo, prova social, e funil de captação de leads que transforma visitantes em alunos matriculados 24 horas por dia.',
     cta: 'QUERO LOTAR MINHA ACADEMIA',
   },
   {
     icon: Stethoscope,
     niche: 'Clínicas Veterinárias',
     title: 'Seus clientes estão escolhendo o concorrente.',
-    problem: 'Clínicas veterinárias sem site profissional perdem credibilidade. Tutores pesquisam no Google antes de escolher — e se sua clínica não aparece, outra aparece no seu lugar.',
-    solution: 'Um site institucional completo com agendamento online, depoimentos de clientes, e SEO otimizado para aparecer nas buscas locais — gerando confiança antes mesmo da primeira consulta.',
+    problem: 'Clínicas veterinárias sem site profissional perdem credibilidade. Tutores pesquisam no Google antes de escolher e se sua clínica não aparece, outra aparece no seu lugar.',
+    solution: 'Um site institucional completo com agendamento online, depoimentos de clientes, e SEO otimizado para aparecer nas buscas locais gerando confiança antes mesmo da primeira consulta.',
     cta: 'QUERO MAIS CLIENTES NA MINHA CLÍNICA',
   },
   {
@@ -25,7 +25,7 @@ const NICHES = [
     niche: 'Lojas de Veículos',
     title: 'Estoque parado é prejuízo todo dia.',
     problem: 'Lojas de veículos que não têm uma presença digital estratégica dependem apenas de quem passa na frente. O estoque gira devagar, os custos sobem, e os leads esfriam.',
-    solution: 'Uma plataforma web personalizada com catálogo interativo, filtros inteligentes, integração com WhatsApp e landing pages para cada promoção — transformando visualizações em visitas reais.',
+    solution: 'Uma plataforma web personalizada com catálogo interativo, filtros inteligentes, integração com WhatsApp e landing pages para cada promoção transformando visualizações em visitas reais.',
     cta: 'QUERO VENDER MAIS VEÍCULOS',
   },
 ];
@@ -46,8 +46,8 @@ export function ProjectsSection() {
           </h2>
         </ScrollReveal>
         <ScrollReveal delay={250}>
-          <p className="text-base sm:text-lg md:text-xl max-w-3xl mb-16 sm:mb-24 text-steel leading-relaxed">
-            Não importa o seu nicho — se você precisa de clientes, nós construímos
+          <p className="text-base sm:text-lg md:text-xl max-w-3xl mb-16 sm:mb-24 text-foreground/95 leading-relaxed bg-black/15 backdrop-blur-xl rounded-[2rem] px-6 py-5 inline-block shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+            Não importa o seu nicho se você precisa de clientes, nós construímos
             a máquina que vai trazê-los até você.
           </p>
         </ScrollReveal>

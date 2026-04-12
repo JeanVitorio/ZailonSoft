@@ -47,7 +47,7 @@ export function LoadingExperience({ onComplete }: { onComplete: () => void }) {
               boxShadow: '0 0 50px oklch(0.65 0.22 30 / 0.5), 0 0 100px oklch(0.65 0.22 30 / 0.2)',
             }}
           >
-            <img src={jeanHero} alt="Jean" className="w-full h-full object-cover" width={768} height={768} />
+            <img src={jeanHero} alt="Jean" className="w-full h-full object-cover object-[center_25%]" width={768} height={768} />
           </div>
         </div>
         <h1

@@ -2,7 +2,7 @@ import { ScrollReveal } from './ScrollReveal';
 
 const PROBLEMS = [
   { number: '01', title: 'Sites bonitos não vendem.', description: 'Design sem estratégia é decoração. Seu site pode ser lindo e mesmo assim não converter um único lead.' },
-  { number: '02', title: 'Você está perdendo dinheiro agora.', description: 'Neste exato momento, seu concorrente está recebendo o cliente que deveria ser seu — porque ele investiu em presença digital estratégica.' },
+  { number: '02', title: 'Você está perdendo dinheiro agora.', description: 'Neste exato momento, seu concorrente está recebendo o cliente que deveria ser seu porque ele investiu em presença digital estratégica.' },
   { number: '03', title: 'Presença digital não é ter site.', description: 'É ter uma máquina automatizada que trabalha 24 horas por dia convertendo visitantes em clientes pagantes.' },
 ];
 

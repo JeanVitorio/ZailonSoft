@@ -56,7 +56,7 @@ export function ClimaxSection() {
         </ScrollReveal>
 
         <ScrollReveal delay={800}>
-          <p className="mt-8 sm:mt-10 text-xs sm:text-sm tracking-[0.2em] uppercase text-ash-light font-semibold">
+          <p className="mt-8 sm:mt-10 text-xs sm:text-sm tracking-[0.2em] uppercase text-white font-semibold px-4 py-2 bg-black/15 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
             Atendimento exclusivo · Resposta em até 24h
           </p>
         </ScrollReveal>

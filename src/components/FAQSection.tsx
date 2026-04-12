@@ -13,7 +13,7 @@ const FAQS = [
   },
   {
     q: 'Vocês fazem manutenção depois?',
-    a: 'Sim. Ofereço suporte e acompanhamento pós-entrega. Seu projeto não termina no deploy — ele precisa performar, e eu garanto isso.',
+    a: 'Sim. Ofereço suporte e acompanhamento pós-entrega. Seu projeto não termina no deploy ele precisa performar, e eu garanto isso.',
   },
   {
     q: 'E se eu não gostar do resultado?',

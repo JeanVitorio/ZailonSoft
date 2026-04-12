@@ -36,7 +36,7 @@ export function RevelationSection() {
               <img
                 src={jeanHero}
                 alt="Jean - Desenvolvedor e Fundador da ZailonSoft"
-                className="relative w-full rounded-2xl object-cover aspect-square shadow-2xl"
+                className="relative w-full rounded-2xl object-cover object-[center_25%] aspect-square shadow-2xl"
                 loading="lazy"
                 width={768}
                 height={768}
@@ -62,14 +62,14 @@ export function RevelationSection() {
 
             <ScrollReveal direction="right" delay={150}>
               <p className="text-base sm:text-lg md:text-xl leading-relaxed text-steel">
-                Experiência com empresas de alto nível — de multinacionais a grandes seguradoras —
+                Experiência com empresas de alto nível de multinacionais a grandes seguradoras
                 sempre com foco em <strong className="text-foreground font-black">performance, conversão e excelência</strong>.
               </p>
             </ScrollReveal>
 
             <ScrollReveal direction="right" delay={200}>
               <p className="text-base sm:text-lg md:text-xl leading-relaxed text-steel">
-                Especialista em <strong className="text-foreground font-black">Sites, Landing Pages e Soluções Web Personalizadas</strong> — 
+                Especialista em <strong className="text-foreground font-black">Sites, Landing Pages e Soluções Web Personalizadas </strong>  
                 cada projeto é único, feito sob medida para maximizar seus resultados.
               </p>
             </ScrollReveal>

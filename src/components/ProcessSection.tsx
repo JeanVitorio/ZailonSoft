@@ -19,7 +19,7 @@ const STEPS = [
   {
     num: '04',
     title: 'Resultado',
-    text: 'Entrego, monitoro e otimizo. Seu projeto não termina no deploy — ele começa a performar.',
+    text: 'Entrego, monitoro e otimizo. Seu projeto não termina no deploy ele começa a performar.',
   },
 ];
 
@@ -60,7 +60,7 @@ export function ProcessSection() {
                   </div>
                   <div className="pt-0 sm:pt-1 md:pt-3 min-w-0">
                     <h3 className="text-xl sm:text-2xl md:text-4xl font-black mb-2 sm:mb-3 text-foreground">{s.title}</h3>
-                    <p className="text-sm sm:text-base md:text-lg leading-relaxed text-steel">{s.text}</p>
+                    <p className="text-sm sm:text-base md:text-lg leading-relaxed text-foreground/95 bg-black/15 backdrop-blur-xl rounded-[2rem] px-5 py-4 inline-block drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">{s.text}</p>
                   </div>
                 </div>
               </ScrollReveal>

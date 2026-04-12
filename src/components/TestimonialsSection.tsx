@@ -13,7 +13,7 @@ const TESTIMONIALS = [
     role: 'Médica Veterinária',
   },
   {
-    quote: 'O Jean não entrega um site — ele entrega uma estratégia completa. Meu faturamento online triplicou.',
+    quote: 'O Jean não entrega um site ele entrega uma estratégia completa. Meu faturamento online triplicou.',
     name: 'Gestor de loja de veículos',
     role: 'Diretor Comercial',
   },

@@ -2,7 +2,7 @@ import { ScrollReveal } from './ScrollReveal';
 import { Lock, Users, Star, CheckCircle2 } from 'lucide-react';
 
 const EXCLUSIVITY = [
-  { icon: Lock, text: 'Atendimento limitado — poucos projetos por mês' },
+  { icon: Lock, text: 'Atendimento limitado poucos projetos por mês' },
   { icon: Users, text: 'Comunicação direta comigo, sem intermediários' },
   { icon: Star, text: 'Cada projeto recebe atenção total e exclusiva' },
   { icon: CheckCircle2, text: 'Suporte e acompanhamento pós-entrega' },
@@ -24,7 +24,7 @@ export function ExclusivitySection() {
           </h2>
         </ScrollReveal>
         <ScrollReveal delay={250}>
-          <p className="text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-14 sm:mb-16 text-steel leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-14 sm:mb-16 text-foreground/85 leading-relaxed drop-shadow-[0_1px_3px_rgba(0,0,0,0.24)]">
             Trabalho com um número limitado de clientes por mês para garantir
             que cada projeto receba o nível de atenção que merece.
             <strong className="text-foreground font-black"> Se você está lendo isso, uma vaga pode estar disponível.</strong>

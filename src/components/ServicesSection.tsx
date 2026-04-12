@@ -22,8 +22,7 @@ const SERVICES = [
     points: [
       'Copywriting persuasivo integrado',
       'Funil de conversão estratégico',
-      'A/B testing para máximo resultado',
-      'Integração com CRM e analytics',
+      'A/B testing para máximo resultado'
     ],
   },
   {
@@ -56,7 +55,7 @@ export function ServicesSection() {
         </ScrollReveal>
         <ScrollReveal delay={250}>
           <p className="text-base sm:text-lg md:text-xl max-w-3xl mb-16 sm:mb-24 text-steel leading-relaxed">
-            Cada solução é projetada com um único propósito — gerar retorno real para o seu negócio.
+            Cada solução é projetada com um único propósito gerar retorno real para o seu negócio.
             Sem templates. Sem atalhos. Tudo feito sob medida.
           </p>
         </ScrollReveal>
