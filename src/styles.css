@@ -233,7 +233,7 @@
 .parallax-slow { will-change: transform; }
 .parallax-fast { will-change: transform; }
 
-/* CTA button style */
+/* Legacy CTA button style */
 .cta-button {
   background: linear-gradient(135deg, var(--ember), var(--ember-glow));
   color: var(--ember-foreground);
@@ -252,17 +252,94 @@
   transform: translateY(-2px);
   box-shadow: 0 10px 40px oklch(0.65 0.22 30 / 0.4);
 }
-.cta-button::after {
-  content: '';
+
+/* HERO CTA — Epic Marvel-level button */
+.hero-cta-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 2.5rem;
+  font-weight: 900;
+  font-size: 0.875rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ember-foreground);
+  background: linear-gradient(135deg, var(--ember), var(--ember-glow), oklch(0.55 0.3 15));
+  background-size: 200% 200%;
+  border: 1px solid oklch(1 0 0 / 0.15);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:
+    0 4px 20px oklch(0.65 0.22 30 / 0.3),
+    inset 0 1px 0 oklch(1 0 0 / 0.1);
+  animation: btn-gradient-shift 4s ease infinite;
+}
+.hero-cta-button:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    0 8px 40px oklch(0.65 0.22 30 / 0.5),
+    0 0 60px oklch(0.65 0.22 30 / 0.15),
+    inset 0 1px 0 oklch(1 0 0 / 0.15);
+}
+.hero-cta-button:active {
+  transform: translateY(-1px) scale(0.99);
+}
+.hero-cta-lg {
+  padding: 1.25rem 3rem;
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+}
+.hero-cta-shine {
   position: absolute;
   top: 0; left: -100%;
   width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.15), transparent);
-  transition: left 0.5s ease;
+  background: linear-gradient(90deg, transparent 0%, oklch(1 0 0 / 0.2) 50%, transparent 100%);
+  animation: cta-shine-sweep 3s ease-in-out infinite;
+  pointer-events: none;
 }
-.cta-button:hover::after {
-  left: 100%;
+
+@keyframes btn-gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
+@keyframes cta-shine-sweep {
+  0% { left: -100%; }
+  60%, 100% { left: 100%; }
+}
+
+/* Social icon button */
+.social-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid oklch(1 0 0 / 0.1);
+  background: oklch(0.1 0.008 250 / 0.6);
+  backdrop-filter: blur(12px);
+  color: var(--ash-light);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.social-icon-button:hover {
+  border-color: var(--ember);
+  color: var(--ember);
+  box-shadow: 0 0 20px oklch(0.65 0.22 30 / 0.2);
+  transform: translateY(-2px);
+}
+
+/* Brand photo animation */
+@keyframes brand-photo-enter {
+  0% { opacity: 0; transform: scale(0.5) translateY(30px); filter: blur(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+.animate-brand-photo { animation: brand-photo-enter 1s ease-out forwards; }
 
 /* Scan line overlay effect */
 .scan-overlay::before {
@@ -271,7 +348,7 @@
   top: 0; left: 0;
   width: 100%; height: 2px;
   background: linear-gradient(90deg, transparent, var(--ember), transparent);
-  opacity: 0.1;
+  opacity: 0.08;
   animation: scan-line 8s linear infinite;
   pointer-events: none;
   z-index: 100;
@@ -290,4 +367,16 @@
   background: oklch(0.1 0.008 250 / 0.6);
   backdrop-filter: blur(20px);
   border: 1px solid oklch(1 0 0 / 0.05);
+}
+
+/* Card glass v2 — premium */
+.glass-card-v2 {
+  background: oklch(0.08 0.006 250 / 0.7);
+  backdrop-filter: blur(24px);
+  border: 1px solid oklch(1 0 0 / 0.06);
+  transition: all 0.4s ease;
+}
+.glass-card-v2:hover {
+  border-color: oklch(0.65 0.22 30 / 0.2);
+  box-shadow: 0 8px 40px oklch(0.65 0.22 30 / 0.08);
 }
