@@ -1,5 +1,5 @@
 import { ScrollReveal } from './ScrollReveal';
-import { Instagram, MessageCircle } from 'lucide-react';
+import { Instagram, MessageCircle, Zap } from 'lucide-react';
 
 const WA_LINK = 'https://wa.me/5546991163505?text=Ol%C3%A1%20Jean%2C%20vim%20pelo%20site%20e%20quero%20saber%20mais!';
 const INSTA_JEAN = 'https://www.instagram.com/jeandeveloper';
@@ -7,25 +7,26 @@ const INSTA_ZAILON = 'https://www.instagram.com/zailonsoft';
 
 export function ClimaxSection() {
   return (
-    <section className="relative py-28 sm:py-40 px-4 sm:px-6">
+    <section className="relative py-32 sm:py-44 px-4 sm:px-6">
       <div className="max-w-4xl mx-auto text-center relative">
         <ScrollReveal>
-          <p className="text-xs sm:text-sm tracking-[0.3em] sm:tracking-[0.4em] uppercase mb-4 sm:mb-6 font-semibold" style={{ color: 'var(--ember)' }}>
-            Aterrissagem
-          </p>
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mx-auto mb-8 animate-pulse-glow"
+            style={{ background: 'oklch(0.65 0.22 30 / 0.15)', border: '2px solid oklch(0.65 0.22 30 / 0.3)' }}>
+            <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-ember" />
+          </div>
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
-          <h2 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black leading-[0.85] mb-6 sm:mb-8">
+          <h2 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black leading-[0.82] mb-6 sm:mb-8 tracking-tighter">
             CHEGOU A<br />
             <span className="text-gradient-ember">SUA VEZ.</span>
           </h2>
         </ScrollReveal>
 
         <ScrollReveal delay={400}>
-          <p className="text-base sm:text-lg md:text-xl max-w-xl mx-auto mb-8 sm:mb-12 px-2" style={{ color: 'var(--ash-light)' }}>
-            Você viajou do espaço até aqui. Agora é hora de transformar
-            sua presença digital em uma máquina de resultados.
+          <p className="text-lg sm:text-xl md:text-2xl max-w-xl mx-auto mb-10 sm:mb-14 px-2 text-foreground leading-relaxed font-medium">
+            Você desceu até aqui por um motivo. Agora é hora de transformar
+            sua presença digital em uma <strong className="text-gradient-ember">máquina de resultados</strong>.
           </p>
         </ScrollReveal>
 
@@ -37,12 +38,12 @@ export function ClimaxSection() {
               rel="noopener noreferrer"
               className="hero-cta-button hero-cta-lg animate-pulse-glow w-full sm:w-auto flex items-center justify-center gap-3"
             >
-              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+              <MessageCircle className="w-6 h-6" />
               <span className="hero-cta-shine" />
               FALAR COM JEAN AGORA
             </a>
           </div>
-          <div className="flex items-center justify-center gap-3 mt-6">
+          <div className="flex items-center justify-center gap-4 mt-8">
             <a href={INSTA_JEAN} target="_blank" rel="noopener noreferrer"
               className="social-icon-button" aria-label="Instagram Jean">
               <Instagram className="w-5 h-5" />
@@ -55,7 +56,7 @@ export function ClimaxSection() {
         </ScrollReveal>
 
         <ScrollReveal delay={800}>
-          <p className="mt-6 sm:mt-8 text-[10px] sm:text-xs tracking-widest uppercase" style={{ color: 'var(--ash)' }}>
+          <p className="mt-8 sm:mt-10 text-xs sm:text-sm tracking-[0.2em] uppercase text-ash-light font-semibold">
             Atendimento exclusivo · Resposta em até 24h
           </p>
         </ScrollReveal>
