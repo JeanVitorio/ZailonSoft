@@ -31,14 +31,13 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ZailonSoft — Engenharia Digital de Alta Performance" },
+      { title: "ZailonSoft Engenharia Digital de Alta Performance" },
       { name: "description", content: "Transformamos presença digital em máquinas de conversão. Resultados reais." },
       { name: "author", content: "ZailonSoft" },
-      { property: "og:title", content: "ZailonSoft — Engenharia Digital de Alta Performance" },
+      { property: "og:title", content: "ZailonSoft Engenharia Digital de Alta Performance" },
       { property: "og:description", content: "Transformamos presença digital em máquinas de conversão." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {

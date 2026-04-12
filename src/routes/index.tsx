@@ -20,9 +20,9 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "ZailonSoft — Engenharia Digital de Alta Performance" },
+      { title: "ZailonSoft Engenharia Digital de Alta Performance" },
       { name: "description", content: "Sites, Landing Pages e Soluções Web sob medida que geram resultados reais. Atendimento exclusivo." },
-      { property: "og:title", content: "ZailonSoft — Engenharia Digital de Alta Performance" },
+      { property: "og:title", content: "ZailonSoftSS Engenharia Digital de Alta Performance" },
       { property: "og:description", content: "Sites, Landing Pages e Soluções Web que convertem." },
     ],
   }),
