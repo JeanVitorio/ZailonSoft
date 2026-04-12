@@ -27,18 +27,18 @@ export function WhySection() {
     <section className="relative py-24 sm:py-36 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
         <ScrollReveal>
-          <p className="text-xs sm:text-sm tracking-[0.3em] sm:tracking-[0.4em] uppercase mb-3 sm:mb-4 font-semibold" style={{ color: 'var(--ember)' }}>
+          <p className="text-xs sm:text-sm tracking-[0.3em] sm:tracking-[0.5em] uppercase mb-3 sm:mb-4 font-bold text-ember">
             O círculo dourado
           </p>
         </ScrollReveal>
         <ScrollReveal delay={150}>
-          <h2 className="text-3xl sm:text-4xl md:text-6xl font-black leading-tight mb-6 sm:mb-8">
-            Não começo pelo <em>o quê.</em><br />
+          <h2 className="text-3xl sm:text-5xl md:text-7xl font-black leading-[0.85] mb-6 sm:mb-8">
+            Não começo pelo <em className="not-italic text-steel">o quê.</em><br />
             <span className="text-gradient-ember">Começo pelo porquê.</span>
           </h2>
         </ScrollReveal>
         <ScrollReveal delay={250}>
-          <p className="text-base sm:text-lg md:text-xl max-w-3xl mb-16 sm:mb-24" style={{ color: 'var(--ash-light)' }}>
+          <p className="text-base sm:text-lg md:text-xl max-w-3xl mb-16 sm:mb-24 text-steel leading-relaxed">
             As marcas mais poderosas do mundo não vendem produtos — vendem propósitos.
             A ZailonSoft opera no mesmo princípio.
           </p>
@@ -47,18 +47,18 @@ export function WhySection() {
         <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
           {PILLARS.map((p, i) => (
             <ScrollReveal key={p.title} delay={300 + i * 200}>
-              <div className="glass-card-v2 p-6 sm:p-8 md:p-10 rounded-xl h-full flex flex-col">
-                <div className="mb-4 sm:mb-6">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center mb-4"
-                    style={{ background: 'oklch(0.65 0.22 30 / 0.12)', border: '1px solid oklch(0.65 0.22 30 / 0.2)' }}>
-                    <p.icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: 'var(--ember)' }} />
+              <div className="glass-card-v2 p-6 sm:p-8 md:p-10 rounded-xl h-full flex flex-col group hover:border-ember/25 transition-all duration-500">
+                <div className="mb-5 sm:mb-6">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center mb-4 transition-all duration-500 group-hover:scale-110 group-hover:shadow-[0_0_30px_oklch(0.65_0.22_30/0.3)]"
+                    style={{ background: 'oklch(0.65 0.22 30 / 0.12)', border: '1px solid oklch(0.65 0.22 30 / 0.25)' }}>
+                    <p.icon className="w-6 h-6 sm:w-7 sm:h-7 text-ember" />
                   </div>
-                  <p className="text-[10px] sm:text-xs tracking-[0.3em] uppercase font-medium mb-1" style={{ color: 'var(--ember)' }}>
+                  <p className="text-[10px] sm:text-xs tracking-[0.3em] uppercase font-bold mb-1 text-ember">
                     {p.subtitle}
                   </p>
-                  <h3 className="text-2xl sm:text-3xl font-black">{p.title}</h3>
+                  <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground">{p.title}</h3>
                 </div>
-                <p className="text-sm sm:text-base leading-relaxed flex-1" style={{ color: 'var(--ash-light)' }}>
+                <p className="text-sm sm:text-base leading-relaxed flex-1 text-steel">
                   {p.text}
                 </p>
               </div>

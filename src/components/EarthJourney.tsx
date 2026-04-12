@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import earthImg from '@/assets/earth-space.jpg';
-import skyImg from '@/assets/sky-clouds.jpg';
+import earthImg from '@/assets/earth-space.png';
+import skyImg from '@/assets/sky-clouds.png';
 
 /**
- * Full-screen background that uses real 4K images:
- * - Earth from space (grows as you scroll)
- * - Sky with clouds (fades in during atmosphere phase)
+ * Full-screen background journey:
+ * - Stars in deep space (first screen)
+ * - Earth appears from second screen onward, growing as you scroll
+ * - Sky with clouds fades in during atmosphere phase
  * - Canvas-drawn birds and wind particles
  */
 export function EarthJourney() {
@@ -16,7 +17,6 @@ export function EarthJourney() {
   const [imagesLoaded, setImagesLoaded] = useState(0);
 
   useEffect(() => {
-    // Preload images
     const earthImage = new Image();
     earthImage.src = earthImg;
     earthImage.onload = () => { earthRef.current = earthImage; setImagesLoaded(p => p + 1); };
@@ -36,32 +36,29 @@ export function EarthJourney() {
     canvas.width = w;
     canvas.height = h;
 
-    // Stars
-    const stars = Array.from({ length: 200 }, () => ({
+    const stars = Array.from({ length: 250 }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
-      r: Math.random() * 1.5 + 0.3,
-      opacity: Math.random() * 0.7 + 0.2,
+      r: Math.random() * 1.8 + 0.3,
+      opacity: Math.random() * 0.8 + 0.2,
       twinkle: Math.random() * 0.02 + 0.005,
       phase: Math.random() * Math.PI * 2,
     }));
 
-    // Birds
-    const birds = Array.from({ length: 12 }, () => ({
+    const birds = Array.from({ length: 15 }, () => ({
       x: Math.random(),
-      y: 0.25 + Math.random() * 0.35,
-      speed: 0.0002 + Math.random() * 0.0003,
+      y: 0.2 + Math.random() * 0.4,
+      speed: 0.0002 + Math.random() * 0.0004,
       wingPhase: Math.random() * Math.PI * 2,
-      size: 4 + Math.random() * 6,
+      size: 5 + Math.random() * 8,
     }));
 
-    // Wind particles
-    const windParticles = Array.from({ length: 50 }, () => ({
+    const windParticles = Array.from({ length: 60 }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
-      speed: 2 + Math.random() * 5,
-      length: 20 + Math.random() * 40,
-      opacity: 0.08 + Math.random() * 0.15,
+      speed: 2 + Math.random() * 6,
+      length: 25 + Math.random() * 50,
+      opacity: 0.1 + Math.random() * 0.2,
     }));
 
     const handleScroll = () => {
@@ -74,12 +71,14 @@ export function EarthJourney() {
       ctx.clearRect(0, 0, w, h);
       const sp = scrollRef.current;
 
-      const spacePhase = Math.max(0, 1 - sp * 3); // stars fade 0-0.33
-      const earthScale = 0.15 + sp * 2.5; // Earth grows from small to huge
-      const earthOpacity = Math.max(0, 1 - (sp - 0.55) * 3); // Earth fades out 0.55-0.88
-      const skyPhase = Math.max(0, (sp - 0.4) * 2.5); // sky appears 0.4-0.8
-      const birdPhase = Math.max(0, (sp - 0.65) * 4); // birds 0.65-0.9
-      const windPhase = Math.max(0, (sp - 0.2) * 1.2);
+      // Earth only appears AFTER first screen (sp > ~0.08)
+      const earthAppear = Math.max(0, (sp - 0.08) * 1.2);
+      const spacePhase = Math.max(0, 1 - sp * 3);
+      const earthScale = 0.08 + earthAppear * 2.5;
+      const earthOpacity = Math.min(1, earthAppear * 3) * Math.max(0, 1 - (sp - 0.55) * 3);
+      const skyPhase = Math.max(0, (sp - 0.4) * 2.5);
+      const birdPhase = Math.max(0, (sp - 0.65) * 4);
+      const windPhase = Math.max(0, (sp - 0.15) * 1.5);
 
       // === SPACE BG ===
       if (spacePhase > 0) {
@@ -98,34 +97,34 @@ export function EarthJourney() {
         });
       }
 
-      // === EARTH IMAGE ===
+      // === EARTH IMAGE (only from 2nd screen) ===
       if (earthRef.current && earthOpacity > 0) {
         const earth = earthRef.current;
         const size = Math.min(w, h) * earthScale;
+        const centerY = h * 0.65 - size / 2 + (1 - earthScale) * h * 0.3;
         const cx = w / 2 - size / 2;
-        const cy = h * 0.6 - size / 2 + (1 - earthScale) * h * 0.3;
 
         ctx.save();
         ctx.globalAlpha = Math.min(1, earthOpacity);
 
-        // Glow behind earth
-        const glowSize = size * 1.15;
-        const glowGrad = ctx.createRadialGradient(w / 2, h * 0.6 + (1 - earthScale) * h * 0.3, size * 0.4, w / 2, h * 0.6 + (1 - earthScale) * h * 0.3, glowSize * 0.6);
-        glowGrad.addColorStop(0, `rgba(100, 180, 255, ${0.25 * earthOpacity})`);
-        glowGrad.addColorStop(1, 'rgba(100, 180, 255, 0)');
+        // Atmospheric glow
+        const glowSize = size * 1.2;
+        const glowGrad = ctx.createRadialGradient(
+          w / 2, h * 0.65 + (1 - earthScale) * h * 0.3, size * 0.35,
+          w / 2, h * 0.65 + (1 - earthScale) * h * 0.3, glowSize * 0.6
+        );
+        glowGrad.addColorStop(0, `rgba(80, 160, 255, ${0.3 * earthOpacity})`);
+        glowGrad.addColorStop(0.5, `rgba(60, 120, 220, ${0.1 * earthOpacity})`);
+        glowGrad.addColorStop(1, 'rgba(60, 120, 220, 0)');
         ctx.fillStyle = glowGrad;
         ctx.fillRect(0, 0, w, h);
 
-        // Draw earth as circle
-        ctx.beginPath();
-        ctx.arc(w / 2, h * 0.6 + (1 - earthScale) * h * 0.3, size / 2, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.clip();
-        ctx.drawImage(earth, cx, cy, size, size);
+        // Draw earth (no clipping needed — the PNG has transparent bg)
+        ctx.drawImage(earth, cx, centerY, size, size);
         ctx.restore();
       }
 
-      // === SKY WITH CLOUDS IMAGE ===
+      // === SKY WITH CLOUDS ===
       if (skyRef.current && skyPhase > 0) {
         ctx.save();
         ctx.globalAlpha = Math.min(1, skyPhase);
@@ -142,7 +141,7 @@ export function EarthJourney() {
         ctx.restore();
       }
 
-      // === BIRDS (canvas-drawn) ===
+      // === BIRDS ===
       if (birdPhase > 0) {
         const bAlpha = Math.min(1, birdPhase);
         birds.forEach(b => {
@@ -150,9 +149,9 @@ export function EarthJourney() {
           const by = b.y;
           const wing = Math.sin(time * 0.006 + b.wingPhase) * b.size;
           ctx.save();
-          ctx.globalAlpha = bAlpha * 0.7;
-          ctx.strokeStyle = 'rgba(20, 20, 30, 0.8)';
-          ctx.lineWidth = 2;
+          ctx.globalAlpha = bAlpha * 0.75;
+          ctx.strokeStyle = 'rgba(15, 15, 25, 0.85)';
+          ctx.lineWidth = 2.5;
           ctx.lineCap = 'round';
           ctx.beginPath();
           ctx.moveTo(bx * w - b.size * 1.5, by * h + wing);
@@ -168,16 +167,16 @@ export function EarthJourney() {
 
       // === WIND STREAKS ===
       if (windPhase > 0) {
-        const wAlpha = Math.min(0.2, windPhase * 0.2);
+        const wAlpha = Math.min(0.25, windPhase * 0.25);
         windParticles.forEach(wp => {
           wp.x += wp.speed;
           wp.y += Math.sin(time * 0.001 + wp.x * 0.01) * 0.3;
           if (wp.x > w + 60) { wp.x = -60; wp.y = Math.random() * h; }
           ctx.beginPath();
           ctx.moveTo(wp.x, wp.y);
-          ctx.lineTo(wp.x - wp.length, wp.y + wp.length * 0.05);
+          ctx.lineTo(wp.x - wp.length, wp.y + wp.length * 0.04);
           ctx.strokeStyle = `rgba(255, 255, 255, ${wp.opacity * wAlpha})`;
-          ctx.lineWidth = 0.6;
+          ctx.lineWidth = 0.8;
           ctx.stroke();
         });
       }

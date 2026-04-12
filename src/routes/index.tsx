@@ -9,8 +9,11 @@ import { RevelationSection } from "@/components/RevelationSection";
 import { ServicesSection } from "@/components/ServicesSection";
 import { ProcessSection } from "@/components/ProcessSection";
 import { ProjectsSection } from "@/components/ProjectsSection";
+import { TestimonialsSection } from "@/components/TestimonialsSection";
 import { UrgencySection } from "@/components/UrgencySection";
+import { GuaranteeSection } from "@/components/GuaranteeSection";
 import { ExclusivitySection } from "@/components/ExclusivitySection";
+import { FAQSection } from "@/components/FAQSection";
 import { ClimaxSection } from "@/components/ClimaxSection";
 
 export const Route = createFileRoute("/")({
@@ -43,14 +46,24 @@ function Index() {
           <ServicesSection />
           <ProcessSection />
           <ProjectsSection />
+          <TestimonialsSection />
           <UrgencySection />
+          <GuaranteeSection />
           <ExclusivitySection />
+          <FAQSection />
           <ClimaxSection />
 
-          <footer className="py-10 sm:py-12 px-4 sm:px-6 text-center relative" style={{ background: 'rgba(200, 230, 255, 0.3)' }}>
-            <p className="text-[10px] sm:text-xs tracking-widest uppercase" style={{ color: 'rgba(30, 60, 90, 0.6)' }}>
-              © {new Date().getFullYear()} ZailonSoft · Todos os direitos reservados
-            </p>
+          <footer className="py-10 sm:py-14 px-4 sm:px-6 text-center relative">
+            <div className="max-w-4xl mx-auto">
+              <p className="text-3xl sm:text-4xl font-black text-gradient-ember mb-3">ZAILONSOFT</p>
+              <p className="text-xs sm:text-sm tracking-[0.2em] uppercase text-ash-light font-semibold mb-6">
+                Engenharia Digital de Alta Performance
+              </p>
+              <div className="h-px w-24 mx-auto mb-6" style={{ background: 'linear-gradient(90deg, transparent, oklch(0.65 0.22 30 / 0.5), transparent)' }} />
+              <p className="text-[10px] sm:text-xs tracking-[0.2em] uppercase text-ash">
+                © {new Date().getFullYear()} ZailonSoft · Todos os direitos reservados
+              </p>
+            </div>
           </footer>
         </div>
       </div>

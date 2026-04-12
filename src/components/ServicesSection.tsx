@@ -44,18 +44,18 @@ export function ServicesSection() {
     <section className="relative py-24 sm:py-36 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
         <ScrollReveal>
-          <p className="text-xs sm:text-sm tracking-[0.3em] sm:tracking-[0.4em] uppercase mb-3 sm:mb-4 font-semibold" style={{ color: 'var(--ember)' }}>
+          <p className="text-xs sm:text-sm tracking-[0.3em] sm:tracking-[0.5em] uppercase mb-3 sm:mb-4 font-bold text-ember">
             Arsenal completo
           </p>
         </ScrollReveal>
         <ScrollReveal delay={150}>
-          <h2 className="text-3xl sm:text-4xl md:text-6xl font-black leading-tight mb-6 sm:mb-8">
+          <h2 className="text-3xl sm:text-5xl md:text-7xl font-black leading-[0.85] mb-6 sm:mb-8">
             Três armas.<br />
             <span className="text-gradient-ember">Um objetivo: resultado.</span>
           </h2>
         </ScrollReveal>
         <ScrollReveal delay={250}>
-          <p className="text-base sm:text-lg md:text-xl max-w-3xl mb-16 sm:mb-24" style={{ color: 'var(--ash-light)' }}>
+          <p className="text-base sm:text-lg md:text-xl max-w-3xl mb-16 sm:mb-24 text-steel leading-relaxed">
             Cada solução é projetada com um único propósito — gerar retorno real para o seu negócio.
             Sem templates. Sem atalhos. Tudo feito sob medida.
           </p>
@@ -64,18 +64,18 @@ export function ServicesSection() {
         <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
           {SERVICES.map((s, i) => (
             <ScrollReveal key={s.title} delay={300 + i * 200}>
-              <div className="glass-card-v2 rounded-xl overflow-hidden h-full flex flex-col group">
+              <div className="glass-card-v2 rounded-xl overflow-hidden h-full flex flex-col group hover:border-ember/25 transition-all duration-500">
                 <div className="p-6 sm:p-8 flex-1">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center mb-5 sm:mb-6 transition-all duration-500 group-hover:scale-110"
-                    style={{ background: 'oklch(0.65 0.22 30 / 0.12)', border: '1px solid oklch(0.65 0.22 30 / 0.2)' }}>
-                    <s.icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: 'var(--ember)' }} />
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center mb-5 sm:mb-6 transition-all duration-500 group-hover:scale-110 group-hover:shadow-[0_0_30px_oklch(0.65_0.22_30/0.3)]"
+                    style={{ background: 'oklch(0.65 0.22 30 / 0.12)', border: '1px solid oklch(0.65 0.22 30 / 0.25)' }}>
+                    <s.icon className="w-6 h-6 sm:w-7 sm:h-7 text-ember" />
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-black mb-2">{s.title}</h3>
-                  <p className="text-xs sm:text-sm tracking-wide mb-5 sm:mb-6" style={{ color: 'var(--ember)' }}>{s.tagline}</p>
-                  <ul className="space-y-2.5 sm:space-y-3">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-black mb-2 text-foreground">{s.title}</h3>
+                  <p className="text-xs sm:text-sm tracking-wide mb-5 sm:mb-6 text-ember font-semibold">{s.tagline}</p>
+                  <ul className="space-y-3 sm:space-y-4">
                     {s.points.map(p => (
-                      <li key={p} className="flex items-start gap-2.5 text-xs sm:text-sm" style={{ color: 'var(--ash-light)' }}>
-                        <span className="mt-1 w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--ember)' }} />
+                      <li key={p} className="flex items-start gap-3 text-sm sm:text-base text-steel">
+                        <span className="mt-1.5 w-2 h-2 rounded-full shrink-0 bg-ember" />
                         {p}
                       </li>
                     ))}
@@ -83,10 +83,9 @@ export function ServicesSection() {
                 </div>
                 <div className="px-6 sm:px-8 pb-6 sm:pb-8">
                   <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold tracking-wider uppercase transition-all duration-300 group-hover:gap-3"
-                    style={{ color: 'var(--ember)' }}>
+                    className="inline-flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider uppercase transition-all duration-300 group-hover:gap-4 text-ember">
                     Solicitar orçamento
-                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:translate-x-1" />
                   </a>
                 </div>
               </div>
