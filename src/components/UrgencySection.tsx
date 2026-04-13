@@ -1,7 +1,7 @@
 import { ScrollReveal } from './ScrollReveal';
 import { Clock, TrendingDown, AlertTriangle } from 'lucide-react';
 
-const WA_LINK = 'https://wa.me/5546991163505?text=Ol%C3%A1%20Jean%2C%20vim%20pelo%20site%20e%20quero%20saber%20mais!';
+const WA_LINK = 'https://wa.me/5546991163405?text=Ol%C3%A1%20Jean%2C%20vim%20pelo%20site%20e%20quero%20saber%20mais!';
 
 const URGENCY_POINTS = [
   {

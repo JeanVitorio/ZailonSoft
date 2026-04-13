@@ -1,7 +1,7 @@
 import { ScrollReveal } from './ScrollReveal';
 import { ShieldCheck, ArrowRight } from 'lucide-react';
 
-const WA_LINK = 'https://wa.me/5546991163505?text=Ol%C3%A1%20Jean%2C%20quero%20saber%20mais%20sobre%20a%20garantia!';
+const WA_LINK = 'https://wa.me/5546991163405?text=Ol%C3%A1%20Jean%2C%20quero%20saber%20mais%20sobre%20a%20garantia!';
 
 export function GuaranteeSection() {
   return (

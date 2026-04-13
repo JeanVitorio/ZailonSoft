@@ -1,7 +1,7 @@
 import { ScrollReveal } from './ScrollReveal';
 import { Instagram, MessageCircle, ChevronDown } from 'lucide-react';
 
-const WA_NUMBER = '5546991163505';
+const WA_NUMBER = '5546991163405';
 const WA_LINK = `https://wa.me/${WA_NUMBER}?text=Ol%C3%A1%20Jean%2C%20vim%20pelo%20site%20e%20quero%20saber%20mais!`;
 const INSTA_JEAN = 'https://www.instagram.com/jeandeveloper';
 const INSTA_ZAILON = 'https://www.instagram.com/zailonsoft';
