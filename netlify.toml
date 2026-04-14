@@ -2,6 +2,32 @@
   command = "npm run build"
   publish = "dist"
 
+# 🔥 MODELO PERSONAL
+[[redirects]]
+  from = "/personal/*"
+  to = "https://personalmodelozailon.netlify.app/:splat"
+  status = 200
+  force = true
+
+# 🔥 MODELO ACADEMIA
+[[redirects]]
+  from = "/academia/*"
+  to = "https://forge-academias.netlify.app/:splat"
+  status = 200
+  force = true
+
+# 🔥 (opcional) corrigir acesso sem barra
+[[redirects]]
+  from = "/personal"
+  to = "/personal/"
+  status = 301
+
+[[redirects]]
+  from = "/academia"
+  to = "/academia/"
+  status = 301
+
+# ⚠️ SEMPRE POR ÚLTIMO
 [[redirects]]
   from = "/*"
   to = "/index.html"
