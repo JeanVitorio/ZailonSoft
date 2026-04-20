@@ -66,7 +66,7 @@ export const FinalCTA = () => {
           </div>
 
           <p className="mt-8 text-xs font-semibold uppercase tracking-widest text-primary/80">
-            Apenas 4 vagas por mês · Restam 2 para abril
+            Apenas 4 vagas por mês · Entre em contato e confira a disponibilidade
           </p>
         </motion.div>
       </div>

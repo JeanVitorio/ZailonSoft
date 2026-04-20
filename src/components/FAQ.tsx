@@ -12,7 +12,7 @@ const faqs = [
   },
   {
     q: "Quanto custa um site da Zailonsoft?",
-    a: "Cada projeto é único. Investimentos começam em R$ 2.500 para landing pages, R$ 5.000 para sites institucionais e variam para sistemas. O orçamento é gratuito — fale com a gente no WhatsApp.",
+    a: "Cada projeto é único. Investimentos começam em R$ 800 para landing pages, R$ 1.500 para sites institucionais e variam para sistemas. O orçamento é gratuito fale com a gente no WhatsApp.",
   },
   {
     q: "E se eu não gostar do resultado?",
@@ -28,7 +28,7 @@ const faqs = [
   },
   {
     q: "Trabalham com empresas pequenas?",
-    a: "Sim. Atendemos desde negócios locais até indústrias. O critério é o compromisso com o resultado — se você quer crescer de verdade, somos a parceria certa.",
+    a: "Sim. Atendemos desde negócios locais até indústrias. O critério é o compromisso com o resultado se você quer crescer de verdade, somos a parceria certa.",
   },
 ];
 

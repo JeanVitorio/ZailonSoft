@@ -7,9 +7,11 @@ export const Footer = () => {
         <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-2">
             <a href="#top" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-orange font-display text-base text-primary-foreground">
-                Z
-              </div>
+              <img
+                src="/favicon.ico"
+                alt="ZailonSoft Logo"
+                className="h-8 w-8 rounded-md object-cover"
+              />
               <span className="font-display text-lg">
                 Zailon<span className="text-primary">soft</span>
               </span>

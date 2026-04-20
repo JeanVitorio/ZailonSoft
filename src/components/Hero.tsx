@@ -25,7 +25,7 @@ export const Hero = () => {
           className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary"
         >
           <Sparkles className="h-3.5 w-3.5" />
-          Vagas abertas para abril/maio · Apenas 4 projetos por mês
+          Vagas abertas · Apenas 4 projetos por mês
         </motion.div>
 
         <motion.h1

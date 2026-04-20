@@ -19,7 +19,7 @@ export const About = () => {
               <div className="overflow-hidden rounded-2xl border border-border shadow-elevated">
                 <img
                   src={jeanPortrait}
-                  alt="Jean — fundador da Zailonsoft, desenvolvedor e estrategista de conversão"
+                  alt="Jean fundador da Zailonsoft, desenvolvedor e estrategista de conversão"
                   width={1024}
                   height={1024}
                   loading="lazy"
@@ -54,7 +54,7 @@ export const About = () => {
             </h2>
             <p className="mt-6 text-pretty text-lg text-muted-foreground">
               A Zailonsoft nasceu da experiência prática em projetos reais. Não
-              entregamos sites — construímos máquinas de conversão pensadas
+              entregamos sites construímos máquinas de conversão pensadas
               para um único objetivo: aumentar suas vendas.
             </p>
 
