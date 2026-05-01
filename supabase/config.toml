@@ -1,0 +1,4 @@
+project_id = "lovable"
+
+[functions.submit-lead]
+verify_jwt = false
