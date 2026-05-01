@@ -330,22 +330,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const addLead = async (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       if (!lojaId) throw new Error('Loja não identificada.');
-      const result = await apiService.createClient({
-        clientPayload: {
-          name: lead.name,
-          phone: lead.phone,
-          cpf: lead.cpf || '',
-          job: '',
-          state: 'novo',
-          interested_vehicles: JSON.stringify([{ id: lead.vehicleId, nome: lead.vehicleName }]),
-          deal_type: lead.dealType || lead.source || 'catalog',
-          bot_data: {},
-        },
-        files: { documents: [], trade_in_photos: [] },
-        lojaId,
+      await apiService.submitLead({
+        loja_id: lojaId,
+        name: lead.name,
+        phone: lead.phone,
+        cpf: lead.cpf || '',
+        vehicle: lead.vehicleId
+          ? { id: lead.vehicleId, name: lead.vehicleName, price: lead.value }
+          : undefined,
+        deal_type: lead.dealType || 'a_vista',
+        source: 'admin',
+        notes: lead.notes || '',
       });
-      const newLead = mapClientToLead(result);
-      setLeads(prev => [newLead, ...prev]);
+      // Recarrega lista para refletir
+      await refreshData();
     } catch (err) {
       console.error('Erro ao criar lead:', err);
       throw err;
