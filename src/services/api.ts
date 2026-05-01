@@ -89,19 +89,9 @@ export interface ClientPayload {
   bot_data: any;
 }
 
-export interface ClientPayload {
-  name: string;
-  phone: string;
-  cpf: string;
-  job: string;
-  state: string;
-  interested_vehicles: string;
-  trade_in_car?: string;
-  financing_details?: string;
-  visit_details?: { day: string; time: string };
-  deal_type: string;
-  payment_method?: string;
-  bot_data: any;
+export interface Files {
+  documents: File[];
+  trade_in_photos: File[];
 }
 
 export interface SubmitLeadInput {
