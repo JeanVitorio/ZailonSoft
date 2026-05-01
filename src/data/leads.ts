@@ -22,6 +22,25 @@ export interface Lead {
   outcome?: string;
   lastContactAt?: string;
   followUpCount?: number;
+  // Blocos condicionais por tipo de negociação
+  financingDetails?: {
+    down_payment?: number;
+    installments?: number;
+    monthly_income?: number;
+  } | null;
+  tradeIn?: {
+    brand?: string;
+    model?: string;
+    year?: string;
+    estimated_value?: number;
+    difference_payment?: 'cash' | 'financing' | null;
+    photos?: string[];
+  } | null;
+  visitDetails?: { day?: string; time?: string } | null;
+  cashDetails?: { offered_value?: number; payment_window?: string } | null;
+  consortiumDetails?: { letter_value?: number; term_months?: number } | null;
+  cnhUrl?: string | null;
+  age?: string | number | null;
 }
 
 export const leads: Lead[] = [];

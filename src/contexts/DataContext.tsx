@@ -76,47 +76,54 @@ const mapCarToVehicle = (car: apiService.Car): Vehicle => ({
   likes: 0
 });
 
+const safeParse = (val: any): any => {
+  if (val == null) return null;
+  if (typeof val === 'object') return val;
+  if (typeof val === 'string' && val.trim()) {
+    try { return JSON.parse(val); } catch { return null; }
+  }
+  return null;
+};
+
 const mapClientToLead = (client: apiService.Client): Lead => {
   const bot = client.bot_data || {};
 
   let vehicleName = 'Veículo';
   let vehicleId = '';
+  let vehiclePrice = 0;
+  const interestedParsed = safeParse(client.interested_vehicles);
   try {
-    if (client.interested_vehicles) {
-      const parsed = typeof client.interested_vehicles === 'string'
-        ? JSON.parse(client.interested_vehicles)
-        : client.interested_vehicles;
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const first = typeof parsed[0] === 'string' ? JSON.parse(parsed[0]) : parsed[0];
-        vehicleName = first?.nome || first?.name || 'Veículo';
-        vehicleId = first?.id || '';
+    if (Array.isArray(interestedParsed) && interestedParsed.length > 0) {
+      const first = typeof interestedParsed[0] === 'string'
+        ? safeParse(interestedParsed[0])
+        : interestedParsed[0];
+      vehicleName = first?.nome || first?.name || 'Veículo';
+      vehicleId = first?.id || '';
+      vehiclePrice = parsePriceString(first?.preco || first?.price || 0);
+    } else {
+      const fromBot = bot.interested_vehicles?.[0] || bot.interested_vehicle;
+      if (fromBot) {
+        vehicleName = fromBot?.nome || fromBot?.name || 'Veículo';
+        vehicleId = fromBot?.id || '';
+        vehiclePrice = parsePriceString(fromBot?.preco || fromBot?.price || 0);
       }
     }
-  } catch {
-    const interested = bot.interested_vehicles?.[0] || bot.interested_vehicle;
-    if (interested) {
-      vehicleName = interested?.nome || interested?.name || (typeof interested === 'string' ? interested : 'Veículo');
-      vehicleId = interested?.id || '';
-    }
-  }
+  } catch {}
 
-  let value = 0;
-  try {
-    if (client.financing_details) {
-      const fin = typeof client.financing_details === 'string'
-        ? JSON.parse(client.financing_details)
-        : client.financing_details;
-      value = parsePriceString(fin?.entry ?? 0);
-    }
-  } catch {
-    value = parsePriceString(bot?.financing_details?.entry ?? 0);
+  // Parsed condicional blocks
+  const financing = safeParse(client.financing_details) || bot?.financing_details || null;
+  const tradeIn = safeParse(client.trade_in_car) || bot?.trade_in || null;
+  const visit = client.visit_details || bot?.visit_details || null;
+  const cashDetails = bot?.cash_details || null;
+  const consortiumDetails = bot?.consortium_details || null;
+
+  let value = vehiclePrice;
+  if (financing?.down_payment) {
+    value = parsePriceString(financing.down_payment) || vehiclePrice;
   }
 
   let followUpDate: string | undefined;
-  try {
-    const visit = client.visit_details || bot?.visit_details;
-    if (visit?.day) followUpDate = visit.day;
-  } catch {}
+  if (visit?.day) followUpDate = visit.day;
 
   const priorityMap: Record<string, Lead['priority']> = {
     alta: 'high', high: 'high',
@@ -148,7 +155,15 @@ const mapClientToLead = (client: apiService.Client): Lead => {
     outcome: client.outcome || '',
     lastContactAt: client.last_contact_at || undefined,
     followUpCount: client.follow_up_count || 0,
-  };
+    // Blocos condicionais
+    financingDetails: financing,
+    tradeIn: tradeIn,
+    visitDetails: visit,
+    cashDetails,
+    consortiumDetails,
+    cnhUrl: bot?.cnh_url || null,
+    age: bot?.age || null,
+  } as Lead;
 };
 
 const mapLojaToStore = (loja: apiService.LojaDetails): Store => {
