@@ -89,10 +89,76 @@ export interface ClientPayload {
   bot_data: any;
 }
 
-export interface Files {
-  documents: File[];
-  trade_in_photos: File[];
+export interface ClientPayload {
+  name: string;
+  phone: string;
+  cpf: string;
+  job: string;
+  state: string;
+  interested_vehicles: string;
+  trade_in_car?: string;
+  financing_details?: string;
+  visit_details?: { day: string; time: string };
+  deal_type: string;
+  payment_method?: string;
+  bot_data: any;
 }
+
+export interface SubmitLeadInput {
+  loja_slug?: string;
+  loja_id?: string;
+  name: string;
+  phone: string;
+  email?: string;
+  cpf?: string;
+  age?: string | number;
+  vehicle?: { id?: string; name?: string; price?: number };
+  deal_type: string;
+  cash_details?: { offered_value?: number; payment_window?: string };
+  financing_details?: { down_payment?: number; installments?: number; monthly_income?: number };
+  trade_in?: {
+    brand?: string;
+    model?: string;
+    year?: string;
+    estimated_value?: number;
+    difference_payment?: 'cash' | 'financing' | null;
+    photos?: string[];
+  };
+  visit_details?: { day?: string; time?: string };
+  consortium_details?: { letter_value?: number; term_months?: number };
+  cnh_url?: string;
+  source?: string;
+  notes?: string;
+  lgpd_consent?: boolean;
+}
+
+export const submitLead = async (payload: SubmitLeadInput) => {
+  const { data, error } = await supabase.functions.invoke('submit-lead', {
+    body: payload,
+  });
+  if (error) {
+    console.error('Erro ao enviar lead via edge function:', error);
+    throw new Error(error.message || 'Falha ao enviar lead.');
+  }
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+  return data?.lead;
+};
+
+// Upload de CNH para storage público (bucket cnh-uploads)
+export const uploadCnhPublic = async (file: File, lojaSlug: string): Promise<string> => {
+  const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
+  const path = `${lojaSlug}/${uuidv4()}.${ext}`;
+  const { error } = await supabase.storage.from('cnh-uploads').upload(path, file, { upsert: false });
+  if (error) {
+    console.warn('Falha ao subir CNH (continua sem):', error.message);
+    return '';
+  }
+  const { data } = supabase.storage.from('cnh-uploads').getPublicUrl(path);
+  return data.publicUrl;
+};
+
 
 // ======================= CARROS =======================
 
