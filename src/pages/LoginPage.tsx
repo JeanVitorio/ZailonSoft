@@ -12,11 +12,13 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false); // ✅ NOVO
+
   const { login, isLoggedIn, lojaSlug, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // If already logged in with slug, redirect
+  // ✅ REDIRECIONAMENTO CORRETO PELO SLUG
   React.useEffect(() => {
     if (!authLoading && isLoggedIn && lojaSlug) {
       navigate(`/${lojaSlug}/dashboard`, { replace: true });
@@ -45,11 +47,16 @@ const LoginPage = () => {
           title: 'Bem-vindo!',
           description: 'Login realizado com sucesso',
         });
-        // The useEffect above will handle redirect once lojaSlug loads
-        // Fallback: navigate to /sistema which redirects to slug
+
+        // ✅ AGORA SÓ ATIVA O REDIRECT
+        setRedirecting(true);
+
         setTimeout(() => {
-          navigate('/sistema', { replace: true });
-        }, 500);
+          if (!lojaSlug) {
+            navigate(`/${lojaSlug}/dashboard`, { replace: true });
+          }
+        }, 1500);
+
       } else {
         toast({
           title: 'Credenciais inválidas',
@@ -138,8 +145,14 @@ const LoginPage = () => {
               </a>
             </div>
 
-            <Button type="submit" variant="premium" size="lg" className="w-full" disabled={isLoading}>
-              {isLoading ? (
+            <Button 
+              type="submit" 
+              variant="premium" 
+              size="lg" 
+              className="w-full" 
+              disabled={isLoading || redirecting} // ✅ ALTERADO
+            >
+              {isLoading || redirecting ? (
                 <div className="w-5 h-5 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
               ) : (
                 <>
