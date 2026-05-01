@@ -1,9 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useParams } from 'react-router-dom';
 import { X, ChevronRight, ChevronLeft, Check, Upload, Trash2, MapPin, DollarSign, Car, CalendarDays, User, CreditCard, FileImage, Shield } from 'lucide-react';
 import { Vehicle } from '@/data/vehicles';
 import { formatPrice, maskPhone } from '@/lib/formatters';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { submitLead, uploadCnhPublic } from '@/services/api';
+import { toast } from '@/hooks/use-toast';
 import { Button } from './button';
 
 interface LeadFormProps {
@@ -67,11 +71,15 @@ const stepVariants = {
 };
 
 export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) => {
-  const { addLead, store } = useData();
+  const { refreshData } = useData();
+  const { lojaSlug: authSlug, lojaId } = useAuth();
+  const params = useParams<{ lojaSlug?: string }>();
+  const lojaSlug = params.lojaSlug || authSlug || '';
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [cnhPreview, setCnhPreview] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const totalSteps = useCallback(() => {
     // 0: Welcome, 1: Personal, 2: Interest, 3: dynamic, 4: CNH, 5: Confirm
@@ -192,27 +200,63 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
     if (step > 0) setStep(step - 1);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateStep()) return;
+    if (!lojaSlug && !lojaId) {
+      toast({ title: 'Loja não identificada', description: 'Não foi possível identificar a loja deste catálogo.', variant: 'destructive' });
+      return;
+    }
 
-    addLead({
-      name: formData.name,
-      email: '',
-      phone: formData.whatsapp,
-      vehicleId: vehicle.id,
-      vehicleName: vehicle.name,
-      status: 'new',
-      priority: 'medium',
-      value: vehicle.price,
-      notes: `Tipo: ${formData.interestType}${formData.interestType === 'financing' ? ` | Entrada: ${formData.downPayment} | ${formData.installments}x` : ''}${formData.interestType === 'visit' ? ` | Visita: ${formData.visitDate} ${formData.visitTime}` : ''}`,
-      source: 'catalog',
-    });
+    setSubmitting(true);
+    try {
+      let cnhUrl = '';
+      if (formData.cnhFile) {
+        cnhUrl = await uploadCnhPublic(formData.cnhFile, lojaSlug || 'shared');
+      }
 
-    // Reset & close
-    setStep(0);
-    setFormData(initialFormData);
-    setCnhPreview(null);
-    onClose();
+      const dealTypeMap: Record<string, string> = {
+        cash: 'a_vista', financing: 'financiamento', trade: 'troca', visit: 'visita',
+      };
+      const dpNum = parseCurrency(formData.downPayment);
+      const tradeVal = parseCurrency(formData.tradeValue);
+
+      await submitLead({
+        loja_slug: lojaSlug || undefined,
+        loja_id: !lojaSlug ? lojaId || undefined : undefined,
+        name: formData.name,
+        phone: formData.whatsapp,
+        age: formData.age,
+        vehicle: { id: vehicle.id, name: vehicle.name, price: vehicle.price },
+        deal_type: dealTypeMap[formData.interestType || 'cash'] || 'a_vista',
+        cash_details: formData.interestType === 'cash' ? { offered_value: vehicle.price } : undefined,
+        financing_details:
+          formData.interestType === 'financing' ||
+          (formData.interestType === 'trade' && formData.tradeDifference === 'financing')
+            ? { down_payment: dpNum, installments: formData.installments }
+            : undefined,
+        trade_in: formData.interestType === 'trade' ? {
+          brand: formData.tradeBrand, model: formData.tradeModel, year: formData.tradeYear,
+          estimated_value: tradeVal, difference_payment: formData.tradeDifference,
+        } : undefined,
+        visit_details: formData.interestType === 'visit' ? { day: formData.visitDate, time: formData.visitTime } : undefined,
+        cnh_url: cnhUrl || undefined,
+        lgpd_consent: formData.lgpdConsent,
+        source: 'catalog',
+      });
+
+      toast({ title: 'Proposta enviada!', description: 'A loja receberá seu contato em instantes.' });
+      try { await refreshData(); } catch {}
+
+      setStep(0);
+      setFormData(initialFormData);
+      setCnhPreview(null);
+      onClose();
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: 'Erro ao enviar', description: err?.message || 'Tente novamente em instantes.', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCnhUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
