@@ -775,9 +775,9 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
               )}
               <div className="flex-1" />
               {isFinalStep() ? (
-                <Button variant="premium" onClick={handleSubmit} className="min-w-[140px]">
-                  Enviar Proposta
-                  <Check className="w-4 h-4 ml-1" />
+                <Button variant="premium" onClick={handleSubmit} disabled={submitting} className="min-w-[140px]">
+                  {submitting ? 'Enviando...' : 'Enviar Proposta'}
+                  {!submitting && <Check className="w-4 h-4 ml-1" />}
                 </Button>
               ) : (
                 <Button variant="premium" onClick={next} className="min-w-[120px]">
