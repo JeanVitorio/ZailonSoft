@@ -446,6 +446,143 @@ const CRMKanban = () => {
                       </div>
                     )}
 
+                    {/* === Bloco condicional por tipo de negociação === */}
+                    {selectedLead.dealType === 'financiamento' && selectedLead.financingDetails && (
+                      <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <DollarSign className="w-4 h-4 text-emerald-400" />
+                          <p className="text-sm font-semibold text-emerald-400">Dados do Financiamento</p>
+                        </div>
+                        {selectedLead.financingDetails.down_payment != null && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Entrada</span>
+                            <span className="text-white font-medium">{formatPrice(Number(selectedLead.financingDetails.down_payment) || 0)}</span>
+                          </div>
+                        )}
+                        {selectedLead.financingDetails.installments != null && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Parcelas</span>
+                            <span className="text-white font-medium">{selectedLead.financingDetails.installments}x</span>
+                          </div>
+                        )}
+                        {selectedLead.financingDetails.monthly_income != null && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Renda mensal</span>
+                            <span className="text-white font-medium">{formatPrice(Number(selectedLead.financingDetails.monthly_income) || 0)}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {selectedLead.dealType === 'a_vista' && selectedLead.cashDetails && (
+                      <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <DollarSign className="w-4 h-4 text-amber-400" />
+                          <p className="text-sm font-semibold text-amber-400">Pagamento à Vista</p>
+                        </div>
+                        {selectedLead.cashDetails.offered_value != null && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Valor oferecido</span>
+                            <span className="text-white font-medium">{formatPrice(Number(selectedLead.cashDetails.offered_value) || 0)}</span>
+                          </div>
+                        )}
+                        {selectedLead.cashDetails.payment_window && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Prazo</span>
+                            <span className="text-white font-medium">{selectedLead.cashDetails.payment_window}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {selectedLead.dealType === 'troca' && selectedLead.tradeIn && (
+                      <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20 space-y-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Car className="w-4 h-4 text-blue-400" />
+                          <p className="text-sm font-semibold text-blue-400">Veículo de Troca</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          {selectedLead.tradeIn.brand && (
+                            <div><span className="text-muted-foreground">Marca: </span><span className="text-white">{selectedLead.tradeIn.brand}</span></div>
+                          )}
+                          {selectedLead.tradeIn.model && (
+                            <div><span className="text-muted-foreground">Modelo: </span><span className="text-white">{selectedLead.tradeIn.model}</span></div>
+                          )}
+                          {selectedLead.tradeIn.year && (
+                            <div><span className="text-muted-foreground">Ano: </span><span className="text-white">{selectedLead.tradeIn.year}</span></div>
+                          )}
+                          {selectedLead.tradeIn.estimated_value != null && (
+                            <div><span className="text-muted-foreground">Valor: </span><span className="text-white">{formatPrice(Number(selectedLead.tradeIn.estimated_value) || 0)}</span></div>
+                          )}
+                        </div>
+                        {selectedLead.tradeIn.difference_payment && (
+                          <div className="text-sm pt-2 border-t border-white/5">
+                            <span className="text-muted-foreground">Diferença será paga: </span>
+                            <span className="text-white font-medium">{selectedLead.tradeIn.difference_payment === 'cash' ? 'À vista' : 'Financiada'}</span>
+                          </div>
+                        )}
+                        {selectedLead.tradeIn.photos && selectedLead.tradeIn.photos.length > 0 && (
+                          <div className="flex gap-2 pt-2 overflow-x-auto">
+                            {selectedLead.tradeIn.photos.map((url, i) => (
+                              <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                                <img src={url} alt="" className="w-full h-full object-cover" />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {selectedLead.dealType === 'visita' && selectedLead.visitDetails && (
+                      <div className="p-4 rounded-xl bg-purple-500/5 border border-purple-500/20 space-y-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Calendar className="w-4 h-4 text-purple-400" />
+                          <p className="text-sm font-semibold text-purple-400">Visita Agendada</p>
+                        </div>
+                        {selectedLead.visitDetails.day && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Data</span>
+                            <span className="text-white font-medium">{new Date(selectedLead.visitDetails.day).toLocaleDateString('pt-BR')}</span>
+                          </div>
+                        )}
+                        {selectedLead.visitDetails.time && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Horário</span>
+                            <span className="text-white font-medium">{selectedLead.visitDetails.time}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {(selectedLead.dealType === 'consorcio' || selectedLead.dealType === 'leasing') && selectedLead.consortiumDetails && (
+                      <div className="p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/20 space-y-2">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Tag className="w-4 h-4 text-cyan-400" />
+                          <p className="text-sm font-semibold text-cyan-400">{selectedLead.dealType === 'consorcio' ? 'Consórcio' : 'Leasing'}</p>
+                        </div>
+                        {selectedLead.consortiumDetails.letter_value != null && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Valor da carta</span>
+                            <span className="text-white font-medium">{formatPrice(Number(selectedLead.consortiumDetails.letter_value) || 0)}</span>
+                          </div>
+                        )}
+                        {selectedLead.consortiumDetails.term_months != null && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Prazo</span>
+                            <span className="text-white font-medium">{selectedLead.consortiumDetails.term_months} meses</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {selectedLead.cnhUrl && (
+                      <a href={selectedLead.cnhUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] transition-colors">
+                        <Download className="w-4 h-4 text-amber-400" />
+                        <span className="text-sm text-white">Ver CNH enviada</span>
+                      </a>
+                    )}
+
                     {selectedLead.tags && selectedLead.tags.length > 0 && (
                       <div className="flex gap-1 flex-wrap">
                         {selectedLead.tags.map((tag, i) => (
@@ -475,6 +612,12 @@ const CRMKanban = () => {
                         <div className="p-3 rounded-xl bg-white/[0.02]">
                           <p className="text-xs text-muted-foreground mb-1">Responsável</p>
                           <p className="text-sm text-white">{selectedLead.owner}</p>
+                        </div>
+                      )}
+                      {selectedLead.age && (
+                        <div className="p-3 rounded-xl bg-white/[0.02]">
+                          <p className="text-xs text-muted-foreground mb-1">Idade</p>
+                          <p className="text-sm text-white">{selectedLead.age}</p>
                         </div>
                       )}
                     </div>
