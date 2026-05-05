@@ -1,61 +1,68 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, CreditCard, LogOut, ArrowRight } from 'lucide-react';
+import { AlertTriangle, MessageCircle, LogOut, Phone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
+
+const SUPPORT_PHONE = '5546991163405';
+const SUPPORT_DISPLAY = '(46) 99116-3405';
 
 const SubscribePage = () => {
-  const { logout, user, subscription } = useAuth();
+  const { logout, user } = useAuth();
+  const waUrl = `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(
+    `Olá! Preciso liberar meu acesso ao AutoConnect (${user?.email || ''}).`,
+  )}`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
+    <div className="min-h-screen flex items-center justify-center p-4 md:p-6 bg-background">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md glass-card rounded-3xl p-8 text-center"
+        className="w-full max-w-md glass-card rounded-3xl p-6 md:p-8 text-center"
       >
         <div className="w-20 h-20 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-6">
-          <CreditCard className="w-10 h-10 text-amber-400" />
+          <AlertTriangle className="w-10 h-10 text-amber-400" />
         </div>
 
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 mb-6">
-          <AlertTriangle className="w-4 h-4 text-red-400" />
-          <span className="text-sm font-medium text-red-400">Assinatura Pendente</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-6">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span className="text-sm font-medium text-amber-400">Período de teste encerrado</span>
         </div>
 
-        <h1 className="text-2xl font-bold text-white mb-3">
-          Sua assinatura não está ativa
+        <h1 className="text-2xl font-bold text-foreground mb-3">
+          Seu período de acesso terminou
         </h1>
-        <p className="text-muted-foreground mb-4">
-          Para continuar usando o sistema, é necessário regularizar sua assinatura.
-          Clique no botão abaixo para realizar o pagamento.
+        <p className="text-muted-foreground mb-6 leading-relaxed">
+          Para continuar usando o AutoConnect, entre em contato com a nossa equipe.
+          Vamos te orientar e liberar seu acesso novamente em poucos minutos.
         </p>
-        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-6">
-          <p className="text-sm text-amber-400 font-medium">Plano mensal: <strong>R$ 99,00/mês</strong></p>
-        </div>
 
         {user?.email && (
-          <div className="p-3 rounded-xl bg-white/[0.02] mb-6">
-            <p className="text-sm text-muted-foreground">Logado como</p>
-            <p className="text-white font-medium">{user.email}</p>
-            {subscription?.status && (
-              <p className="text-xs text-red-400 mt-1">Status: {subscription.status}</p>
-            )}
+          <div className="p-3 rounded-xl bg-muted/30 mb-6">
+            <p className="text-xs text-muted-foreground">Conta</p>
+            <p className="text-foreground font-medium truncate">{user.email}</p>
           </div>
         )}
 
         <div className="space-y-3">
-          <a href="https://buy.stripe.com/fZuaEZcoU5Jl1QwfpUew800" target="_blank" rel="noopener noreferrer" className="block">
+          <a href={waUrl} target="_blank" rel="noopener noreferrer" className="block">
             <Button variant="premium" size="lg" className="w-full">
-              <CreditCard className="w-5 h-5" />
-              Pagar Mensalidade — R$ 99/mês
-              <ArrowRight className="w-4 h-4" />
+              <MessageCircle className="w-5 h-5" />
+              Falar com a equipe no WhatsApp
+            </Button>
+          </a>
+          <a href={`tel:+${SUPPORT_PHONE}`} className="block">
+            <Button variant="outline" size="lg" className="w-full">
+              <Phone className="w-4 h-4" /> {SUPPORT_DISPLAY}
             </Button>
           </a>
 
-          <Button variant="outline" size="lg" className="w-full" onClick={logout}>
-            <LogOut className="w-4 h-4" />
-            Sair da conta
+          <Button variant="ghost" size="lg" className="w-full" onClick={logout}>
+            <LogOut className="w-4 h-4" /> Sair da conta
           </Button>
         </div>
       </motion.div>
