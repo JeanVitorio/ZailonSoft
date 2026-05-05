@@ -101,7 +101,7 @@ const LoginPage = () => {
             <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema da JVS Soluções" target="_blank" rel="noopener noreferrer">
               <Button variant="outline" size="sm" className="w-full">
                 <MessageCircle className="w-4 h-4" />
-                Comprar pelo WhatsApp · (46) 99116-3405
+                Adquirir pelo WhatsApp
               </Button>
             </a>
           </div>

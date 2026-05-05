@@ -137,8 +137,8 @@ const HomePage = () => {
               <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema NILO da JVS Soluções" target="_blank" rel="noopener noreferrer">
                 <Button variant="default" size="sm" className="btn-primary-glow">
                   <MessageCircle className="w-4 h-4" />
-                  <span className="hidden sm:inline">Comprar pelo WhatsApp</span>
-                  <span className="sm:hidden">Comprar</span>
+                  <span className="hidden sm:inline">Adquirir pelo WhatsApp</span>
+                  <span className="sm:hidden">Adquirir</span>
                 </Button>
               </a>
             </div>
@@ -190,7 +190,7 @@ const HomePage = () => {
               <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema NILO da JVS Soluções" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
                   <MessageCircle className="w-5 h-5" />
-                  Comprar pelo WhatsApp
+                  Adquirir pelo WhatsApp
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </a>
@@ -383,7 +383,7 @@ const HomePage = () => {
               <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema NILO da JVS Soluções" target="_blank" rel="noopener noreferrer" className="block">
                 <Button variant="premium" size="lg" className="w-full animate-glow-pulse mb-3">
                   <MessageCircle className="w-5 h-5" />
-                  Comprar pelo WhatsApp · (46) 99116-3405
+                  Adquirir pelo WhatsApp
                 </Button>
               </a>
               <p className="text-xs text-muted-foreground">Atendimento humano direto com o desenvolvedor</p>
@@ -401,7 +401,7 @@ const HomePage = () => {
 
           {[
             { q: 'Como faço para comprar?', a: 'Você chama no WhatsApp (46) 99116-3405. A gente conversa, eu libero seu acesso e você já começa a usar.' },
-            { q: 'Preciso instalar algo?', a: 'Não! O JVS Soluções é 100% online. Basta acessar pelo navegador do celular ou computador.' },
+            { q: 'Preciso instalar algo?', a: 'Não! O NILO é 100% online. Basta acessar pelo navegador do celular ou computador.' },
             { q: 'Quantos veículos posso cadastrar?', a: 'Ilimitado! Cadastre quantos veículos precisar sem custo adicional.' },
             { q: 'Como meus clientes acessam o catálogo?', a: 'Você recebe um link exclusivo (ex: jvssolucoes.com/loja/sua-loja) para compartilhar por WhatsApp, Instagram ou onde quiser.' },
             { q: 'Os dados são seguros?', a: 'Sim! Cada loja tem isolamento total. Ninguém acessa os dados de outra loja. Usamos criptografia e políticas de segurança avançadas.' },
@@ -439,10 +439,10 @@ const HomePage = () => {
                   Junte-se a dezenas de lojas que já estão vendendo mais com JVS Soluções
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
-                  <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema da JVS Soluções" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                  <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema NILO" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                     <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
                       <MessageCircle className="w-5 h-5" />
-                      Comprar pelo WhatsApp
+                      Adquirir pelo WhatsApp
                       <ArrowRight className="w-5 h-5" />
                     </Button>
                   </a>
@@ -464,8 +464,8 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src={jvsLogo} alt="JVS Soluções" className="w-8 h-8" />
-              <span className="text-sm text-muted-foreground">JVS Soluções © {new Date().getFullYear()}</span>
+              <img src={jvsLogo} alt="NILO" className="w-8 h-8" />
+              <span className="text-sm text-muted-foreground">NILO © {new Date().getFullYear()}</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link to="/login" className="hover:text-primary transition-colors">Entrar</Link>
