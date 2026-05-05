@@ -349,28 +349,17 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* Plano - sem preço, contato direto */}
       <section className="py-20 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-transparent" />
         <div className="container mx-auto px-4">
           <AnimatedSection>
-            <div className="max-w-xl mx-auto glass-card p-8 md:p-10 rounded-3xl text-center relative overflow-hidden">
+            <div className="max-w-xl mx-auto glass-card p-6 sm:p-8 md:p-10 rounded-3xl text-center relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400" />
-              
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 mb-4">
-                <span className="text-xs font-medium text-red-400">🔥 Oferta de lançamento — por tempo limitado</span>
-              </div>
-
               <p className="text-muted-foreground mb-2">Plano completo</p>
-              <div className="flex items-baseline justify-center gap-2 mb-2">
-                <span className="text-lg text-muted-foreground line-through">R$ 250/mês</span>
-              </div>
-              <div className="flex items-baseline justify-center gap-2 mb-1">
-                <span className="text-5xl md:text-6xl font-bold text-gradient">R$ 99</span>
-                <span className="text-lg text-muted-foreground">/mês</span>
-              </div>
-              <p className="text-sm text-emerald-400 font-medium mb-6">Economia de R$ 151/mês 🎉</p>
-              
+              <h3 className="text-3xl md:text-4xl font-bold text-gradient mb-4">Tudo incluso</h3>
+              <p className="text-sm text-muted-foreground mb-6">Fale com nosso time para uma proposta personalizada para a sua loja.</p>
+
               <div className="space-y-3 text-left mb-8">
                 {[
                   'Catálogo online com link exclusivo',
@@ -378,7 +367,7 @@ const HomePage = () => {
                   'Dashboard com métricas avançadas',
                   'Upload de fotos ilimitado',
                   'Integração WhatsApp',
-                  'Suporte premium via WhatsApp',
+                  'Suporte premium',
                   'Atualizações gratuitas',
                   'Sem limite de veículos',
                 ].map((item, i) => (
@@ -386,21 +375,18 @@ const HomePage = () => {
                     <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                       <Check className="w-3 h-3 text-emerald-400" />
                     </div>
-                    <span className="text-white text-sm">{item}</span>
+                    <span className="text-foreground text-sm">{item}</span>
                   </div>
                 ))}
               </div>
-              
-              <a href="https://buy.stripe.com/fZuaEZcoU5Jl1QwfpUew800" target="_blank" rel="noopener noreferrer" className="block">
-                <Button variant="premium" size="xl" className="w-full animate-glow-pulse mb-4">
-                  <CreditCard className="w-5 h-5" />
-                  Assinar Agora — R$ 99/mês
+
+              <a href="https://wa.me/5546991163405?text=Olá! Quero contratar o AutoConnect" target="_blank" rel="noopener noreferrer" className="block">
+                <Button variant="premium" size="lg" className="w-full animate-glow-pulse mb-3">
+                  <MessageCircle className="w-5 h-5" />
+                  Falar com a equipe
                 </Button>
               </a>
-              
-              <p className="text-xs text-muted-foreground">
-                ✓ Pagamento seguro via Stripe · ✓ Cancele a qualquer momento
-              </p>
+              <p className="text-xs text-muted-foreground">Atendimento humano · resposta rápida via WhatsApp</p>
             </div>
           </AnimatedSection>
         </div>
@@ -452,20 +438,19 @@ const HomePage = () => {
                 <p className="text-muted-foreground max-w-lg mx-auto mb-6">
                   Junte-se a dezenas de lojas que já estão vendendo mais com AutoConnect
                 </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <a href="https://buy.stripe.com/fZuaEZcoU5Jl1QwfpUew800" target="_blank" rel="noopener noreferrer">
-                    <Button variant="premium" size="xl" className="animate-glow-pulse">
-                      <CreditCard className="w-5 h-5" />
-                      Assinar Agora — R$ 99/mês
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
+                  <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o AutoConnect" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                    <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
+                      <MessageCircle className="w-5 h-5" />
+                      Falar com a equipe
                       <ArrowRight className="w-5 h-5" />
                     </Button>
                   </a>
-                  <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer">
-                    <Button variant="glass" size="xl">
-                      <MessageCircle className="w-5 h-5" />
-                      Falar com Consultor
+                  <Link to="/login" className="w-full sm:w-auto">
+                    <Button variant="glass" size="lg" className="w-full sm:w-auto">
+                      Criar conta grátis
                     </Button>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
