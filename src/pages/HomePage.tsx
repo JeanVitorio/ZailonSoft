@@ -126,7 +126,7 @@ const HomePage = () => {
           <div className="flex items-center justify-between gap-2">
             <Link to="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
               <img src="/favicon.ico" alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex-shrink-0" />
-              <span className="text-base sm:text-lg font-bold text-foreground truncate">AutoConnect</span>
+              <span className="text-base sm:text-lg font-bold text-foreground truncate">JVS Soluções</span>
             </Link>
             <div className="flex items-center gap-1.5 sm:gap-3">
               <ThemeToggle />
@@ -136,7 +136,7 @@ const HomePage = () => {
               <Link to="/login">
                 <Button variant="outline" size="sm">Entrar</Button>
               </Link>
-              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o AutoConnect" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o JVS Soluções" target="_blank" rel="noopener noreferrer">
                 <Button variant="default" size="sm" className="btn-primary-glow">
                   <Rocket className="w-4 h-4" />
                   <span className="hidden sm:inline">Falar com a equipe</span>
@@ -189,7 +189,7 @@ const HomePage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 px-2">
-              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o AutoConnect" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o JVS Soluções" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
                   <MessageCircle className="w-5 h-5" />
                   Falar com a equipe
@@ -380,7 +380,7 @@ const HomePage = () => {
                 ))}
               </div>
 
-              <a href="https://wa.me/5546991163405?text=Olá! Quero contratar o AutoConnect" target="_blank" rel="noopener noreferrer" className="block">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero contratar o JVS Soluções" target="_blank" rel="noopener noreferrer" className="block">
                 <Button variant="premium" size="lg" className="w-full animate-glow-pulse mb-3">
                   <MessageCircle className="w-5 h-5" />
                   Falar com a equipe
@@ -400,7 +400,7 @@ const HomePage = () => {
           </AnimatedSection>
 
           {[
-            { q: 'Preciso instalar algo?', a: 'Não! O AutoConnect é 100% online. Basta acessar pelo navegador do celular ou computador.' },
+            { q: 'Preciso instalar algo?', a: 'Não! O JVS Soluções é 100% online. Basta acessar pelo navegador do celular ou computador.' },
             { q: 'Posso cancelar quando quiser?', a: 'Sim, sem multas nem contratos. Cancele a qualquer momento pelo painel.' },
             { q: 'Quantos veículos posso cadastrar?', a: 'Ilimitado! Cadastre quantos veículos precisar sem custo adicional.' },
             { q: 'Como meus clientes acessam o catálogo?', a: 'Você recebe um link exclusivo (ex: autoconnect.com/loja/sua-loja) para compartilhar por WhatsApp, Instagram ou onde quiser.' },
@@ -436,10 +436,10 @@ const HomePage = () => {
                   Pronto para acelerar suas vendas?
                 </h2>
                 <p className="text-muted-foreground max-w-lg mx-auto mb-6">
-                  Junte-se a dezenas de lojas que já estão vendendo mais com AutoConnect
+                  Junte-se a dezenas de lojas que já estão vendendo mais com JVS Soluções
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
-                  <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o AutoConnect" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                  <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o JVS Soluções" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                     <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
                       <MessageCircle className="w-5 h-5" />
                       Falar com a equipe
@@ -464,12 +464,12 @@ const HomePage = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img src="/favicon.ico" alt="Logo" className="w-8 h-8 rounded-lg" />
-              <span className="text-sm text-muted-foreground">AutoConnect © {new Date().getFullYear()}</span>
+              <span className="text-sm text-muted-foreground">JVS Soluções © {new Date().getFullYear()}</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link to="/demo" className="hover:text-amber-400 transition-colors">Demo</Link>
               <Link to="/login" className="hover:text-amber-400 transition-colors">Entrar</Link>
-              <a href="https://instagram.com/zailonsoft" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors flex items-center gap-1">
+              <a href="https://instagram.com/_jvs_solucoes_" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors flex items-center gap-1">
                 <Instagram className="w-4 h-4" />@zailonsoft
               </a>
               <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">WhatsApp</a>

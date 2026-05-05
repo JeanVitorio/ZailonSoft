@@ -61,7 +61,7 @@ const MainLayout = () => {
     logout();
   };
 
-  const storeName = lojaInfo?.nome || 'AutoConnect';
+  const storeName = lojaInfo?.nome || 'JVS Soluções';
 
   return (
     <div className="min-h-screen flex">
