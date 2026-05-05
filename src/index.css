@@ -193,23 +193,32 @@
   }
 }
 
-/* Fix select dropdowns for dark theme - options need dark bg */
+/* Fix select dropdowns - options need contrasting bg per theme */
 @layer base {
-  select option {
+  .dark select option {
     background-color: #1a1a2e;
     color: #fafafa;
+  }
+  .light select option {
+    background-color: #ffffff;
+    color: #0f172a;
   }
 }
 
 @layer components {
-  /* Glass Card Effect */
+  /* Glass Card Effect (theme-aware) */
   .glass-card {
-    @apply relative overflow-hidden;
-    background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(0,0,0,0.1));
+    @apply relative overflow-hidden bg-card text-card-foreground;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 
+    border: 1px solid hsl(var(--border));
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  .dark .glass-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(0,0,0,0.1));
+    box-shadow:
       0 8px 32px rgba(0, 0, 0, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
