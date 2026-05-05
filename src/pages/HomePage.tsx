@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import heroCarImage from '@/assets/hero-car.jpg';
-
+import { ThemeToggle } from '@/components/ThemeToggle';
 // Animated section wrapper
 const AnimatedSection = ({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {
   const ref = useRef(null);
@@ -121,25 +121,26 @@ const HomePage = () => {
       </div>
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-3">
-              <img src="/favicon.ico" alt="Logo" className="w-10 h-10 rounded-xl" />
-              <span className="text-lg font-bold text-white">AutoConnect</span>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/5">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <img src="/favicon.ico" alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex-shrink-0" />
+              <span className="text-base sm:text-lg font-bold text-foreground truncate">AutoConnect</span>
             </Link>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Link to="/demo">
+            <div className="flex items-center gap-1.5 sm:gap-3">
+              <ThemeToggle />
+              <Link to="/demo" className="hidden sm:block">
                 <Button variant="ghost" size="sm">Demo</Button>
               </Link>
               <Link to="/login">
                 <Button variant="outline" size="sm">Entrar</Button>
               </Link>
-              <a href="https://buy.stripe.com/fZuaEZcoU5Jl1QwfpUew800" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o AutoConnect" target="_blank" rel="noopener noreferrer">
                 <Button variant="default" size="sm" className="btn-primary-glow">
                   <Rocket className="w-4 h-4" />
-                  <span className="hidden sm:inline">Assinar Agora</span>
-                  <span className="sm:hidden">Assinar</span>
+                  <span className="hidden sm:inline">Falar com a equipe</span>
+                  <span className="sm:hidden">Contato</span>
                 </Button>
               </a>
             </div>
@@ -148,14 +149,14 @@ const HomePage = () => {
       </header>
 
       {/* Hero */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
+      <section ref={heroRef} className="relative min-h-[100svh] flex items-center justify-center pt-24 sm:pt-28 pb-16 overflow-hidden">
         <motion.div style={{ y: heroImageY, scale: heroScale, opacity: heroOpacity }} className="absolute inset-0 z-0">
           <img src={heroCarImage} alt="Luxury car" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/70 via-[#050505]/50 to-[#050505]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/60 via-transparent to-[#050505]/60" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/60 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-background/60" />
         </motion.div>
 
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] md:w-[900px] h-[300px] md:h-[500px] bg-amber-500/8 rounded-full blur-[150px] z-0" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[90vw] md:w-[900px] h-[300px] md:h-[500px] bg-amber-500/8 rounded-full blur-[100px] md:blur-[150px] z-0" />
 
         <div className="relative z-10 container mx-auto px-4 text-center">
           <motion.div
@@ -163,53 +164,52 @@ const HomePage = () => {
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
-            {/* Urgency badge */}
             <motion.div
               animate={{ scale: [1, 1.02, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 mb-4 backdrop-blur-sm"
+              className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-red-500/10 border border-red-500/20 mb-3 sm:mb-4 backdrop-blur-sm"
             >
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-sm font-medium text-red-400">🔥 Vagas limitadas — Oferta de lançamento</span>
+              <span className="text-[11px] sm:text-sm font-medium text-red-400">🔥 Vagas limitadas — Oferta de lançamento</span>
             </motion.div>
 
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-6 backdrop-blur-sm">
-              <Zap className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-medium text-amber-400">Plataforma SaaS para Lojas de Veículos</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-4 sm:mb-6 backdrop-blur-sm">
+              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+              <span className="text-[11px] sm:text-sm font-medium text-amber-400">Plataforma SaaS para Lojas de Veículos</span>
             </div>
-            
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-[1.05]" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
+
+            <h1 className="text-[2rem] sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-[1.1]" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
               Sua loja de veículos
               <span className="text-gradient block">no próximo nível</span>
             </h1>
-            
-            <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto mb-8" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}>
-              Catálogo profissional, CRM completo e dashboard de vendas. 
-              Tudo pronto para usar em minutos. <strong className="text-white">Por apenas R$ 99/mês.</strong>
+
+            <p className="text-base sm:text-lg md:text-xl text-white/70 max-w-2xl mx-auto mb-6 sm:mb-8 px-2" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}>
+              Catálogo profissional, CRM completo e dashboard de vendas.
+              <strong className="text-white"> Tudo pronto para usar em minutos.</strong>
             </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="https://buy.stripe.com/fZuaEZcoU5Jl1QwfpUew800" target="_blank" rel="noopener noreferrer">
-                <Button variant="premium" size="xl" className="animate-glow-pulse">
-                  <CreditCard className="w-5 h-5" />
-                  Começar Agora — R$ 99/mês
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 px-2">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o AutoConnect" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
+                  <MessageCircle className="w-5 h-5" />
+                  Falar com a equipe
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </a>
-              <Link to="/demo">
-                <Button variant="glass" size="xl">
+              <Link to="/demo" className="w-full sm:w-auto">
+                <Button variant="glass" size="lg" className="w-full sm:w-auto">
                   <Eye className="w-5 h-5" />
                   Ver Demonstração
                 </Button>
               </Link>
             </div>
 
-            <p className="text-xs text-muted-foreground mt-4">✓ Sem contrato · ✓ Cancele quando quiser · ✓ Suporte incluso</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground mt-4">✓ Atendimento humano · ✓ Suporte premium · ✓ Setup rápido</p>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="mt-16">
-            <a href="#stats" className="inline-flex flex-col items-center text-white/50 hover:text-amber-400 transition-colors">
-              <span className="text-sm mb-2">Saiba mais</span>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="mt-10 sm:mt-16">
+            <a href="#features" className="inline-flex flex-col items-center text-white/50 hover:text-amber-400 transition-colors">
+              <span className="text-xs sm:text-sm mb-2">Saiba mais</span>
               <ChevronDown className="w-5 h-5 animate-bounce" />
             </a>
           </motion.div>
