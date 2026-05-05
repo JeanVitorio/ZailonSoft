@@ -16,6 +16,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import jvsLogo from '@/assets/jvs-logo.png';
 
 const MainLayout = () => {
   const { isLoggedIn, isActive, user, logout, lojaSlug, lojaInfo, loading } = useAuth();
