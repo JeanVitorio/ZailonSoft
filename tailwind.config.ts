@@ -64,15 +64,17 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // AutoConnect Premium Colors
+        // JVS Soluções - paleta da logo (azul → ciano → verde)
+        // Mantemos os nomes "amber/orange" para não quebrar componentes,
+        // mas mapeados para os tons da marca.
         amber: {
-          300: "#fcd34d",
-          400: "#fbbf24",
-          500: "#f59e0b",
-          600: "#d97706",
+          300: "#5eead4", // teal-300
+          400: "#22d3ee", // cyan-400
+          500: "#06b6d4", // cyan-500
+          600: "#0891b2", // cyan-600
         },
         orange: {
-          400: "#fb923c",
+          400: "#10b981", // emerald-500
         },
         emerald: {
           400: "#34d399",
@@ -93,12 +95,12 @@ export default {
         "3xl": "2rem",
       },
       boxShadow: {
-        'glow-sm': '0 2px 8px rgba(251, 191, 36, 0.05)',
-        'glow-md': '0 4px 16px rgba(251, 191, 36, 0.08)',
-        'glow-lg': '0 8px 32px rgba(251, 191, 36, 0.12)',
-        'glow-xl': '0 16px 64px rgba(251, 191, 36, 0.15)',
-        'glow-amber': '0 0 40px rgba(251, 191, 36, 0.15)',
-        'glow-emerald': '0 0 40px rgba(16, 185, 129, 0.15)',
+        'glow-sm': '0 2px 8px rgba(34, 211, 238, 0.08)',
+        'glow-md': '0 4px 16px rgba(34, 211, 238, 0.12)',
+        'glow-lg': '0 8px 32px rgba(34, 211, 238, 0.18)',
+        'glow-xl': '0 16px 64px rgba(34, 211, 238, 0.22)',
+        'glow-amber': '0 0 40px rgba(34, 211, 238, 0.20)',
+        'glow-emerald': '0 0 40px rgba(16, 185, 129, 0.20)',
       },
       keyframes: {
         "accordion-down": {

@@ -11,7 +11,7 @@ const SUPPORT_DISPLAY = '(46) 99116-3405';
 const SubscribePage = () => {
   const { logout, user } = useAuth();
   const waUrl = `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(
-    `Olá! Preciso liberar meu acesso ao AutoConnect (${user?.email || ''}).`,
+    `Olá! Preciso liberar meu acesso ao JVS Soluções (${user?.email || ''}).`,
   )}`;
 
   return (
@@ -28,17 +28,17 @@ const SubscribePage = () => {
           <AlertTriangle className="w-10 h-10 text-amber-400" />
         </div>
 
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-6">
-          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-          <span className="text-sm font-medium text-amber-400">Período de teste encerrado</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
+          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+          <span className="text-sm font-medium text-primary">Acesso pendente</span>
         </div>
 
         <h1 className="text-2xl font-bold text-foreground mb-3">
-          Seu período de acesso terminou
+          Seu acesso ainda não está liberado
         </h1>
         <p className="text-muted-foreground mb-6 leading-relaxed">
-          Para continuar usando o AutoConnect, entre em contato com a nossa equipe.
-          Vamos te orientar e liberar seu acesso novamente em poucos minutos.
+          Para liberar (ou renovar) o uso do sistema JVS Soluções, fale comigo direto no WhatsApp.
+          Eu confirmo o pagamento e libero seu acesso na hora.
         </p>
 
         {user?.email && (
