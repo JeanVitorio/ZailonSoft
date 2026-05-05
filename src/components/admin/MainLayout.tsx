@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const MainLayout = () => {
   const { isLoggedIn, isActive, user, logout, lojaSlug, lojaInfo, loading } = useAuth();
@@ -107,9 +108,10 @@ const MainLayout = () => {
               <span className="text-amber-400 font-semibold">{user?.email?.charAt(0).toUpperCase() || 'A'}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{user?.email || 'Usuário'}</p>
+              <p className="text-sm font-medium text-foreground truncate">{user?.email || 'Usuário'}</p>
               <p className="text-xs text-muted-foreground truncate">{storeName}</p>
             </div>
+            <ThemeToggle />
           </div>
           <button
             onClick={() => setShowLogoutConfirm(true)}
@@ -132,12 +134,15 @@ const MainLayout = () => {
             )}
             <span className="font-bold text-white">{storeName}</span>
           </Link>
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-foreground"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </header>
 
