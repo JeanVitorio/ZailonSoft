@@ -62,7 +62,7 @@ const MainLayout = () => {
     logout();
   };
 
-  const storeName = lojaInfo?.nome || 'JVS Soluções';
+  const storeName = lojaInfo?.nome || 'NILO';
 
   return (
     <div className="min-h-screen flex">

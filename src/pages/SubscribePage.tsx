@@ -11,7 +11,7 @@ const SUPPORT_DISPLAY = '(46) 99116-3405';
 const SubscribePage = () => {
   const { logout, user } = useAuth();
   const waUrl = `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(
-    `Olá! Preciso liberar meu acesso ao JVS Soluções (${user?.email || ''}).`,
+    `Olá! Preciso liberar meu acesso ao NILO (${user?.email || ''}).`,
   )}`;
 
   return (
@@ -37,7 +37,7 @@ const SubscribePage = () => {
           Seu acesso ainda não está liberado
         </h1>
         <p className="text-muted-foreground mb-6 leading-relaxed">
-          Para liberar (ou renovar) o uso do sistema JVS Soluções, fale comigo direto no WhatsApp.
+          Para liberar (ou renovar) o uso do sistema NILO, fale comigo direto no WhatsApp.
           Eu confirmo o pagamento e libero seu acesso na hora.
         </p>
 

@@ -52,8 +52,8 @@ const LoginPage = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <div className="flex items-center justify-between mb-8">
             <Link to="/" className="inline-flex items-center gap-3">
-              <img src={jvsLogo} alt="JVS Soluções" className="w-10 h-10" />
-              <span className="text-xl font-bold text-foreground">JVS Soluções</span>
+              <img src={jvsLogo} alt="NILO" className="w-10 h-10" />
+              <span className="text-xl font-bold text-foreground">NILO Soluções</span>
             </Link>
             <ThemeToggle />
           </div>
@@ -115,7 +115,7 @@ const LoginPage = () => {
 
         <div className="relative z-10 flex flex-col justify-end p-12">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <img src={jvsLogo} alt="JVS Soluções" className="w-24 h-24 mb-6" />
+            <img src={jvsLogo} alt="NILO" className="w-24 h-24 mb-6" />
             <h2 className="text-4xl font-bold text-white mb-4">
               Gerencie sua loja com
               <span className="text-gradient block">excelência</span>

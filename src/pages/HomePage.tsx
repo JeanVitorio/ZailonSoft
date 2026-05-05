@@ -126,15 +126,15 @@ const HomePage = () => {
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <Link to="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <img src={jvsLogo} alt="JVS Soluções" className="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0" />
-              <span className="text-base sm:text-lg font-bold text-foreground truncate">JVS Soluções</span>
+              <img src={jvsLogo} alt="NILO" className="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0" />
+              <span className="text-base sm:text-lg font-bold text-foreground truncate">NILO</span>
             </Link>
             <div className="flex items-center gap-1.5 sm:gap-3">
               <ThemeToggle />
               <Link to="/login">
                 <Button variant="outline" size="sm">Entrar</Button>
               </Link>
-              <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema da JVS Soluções" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema NILO da JVS Soluções" target="_blank" rel="noopener noreferrer">
                 <Button variant="default" size="sm" className="btn-primary-glow">
                   <MessageCircle className="w-4 h-4" />
                   <span className="hidden sm:inline">Comprar pelo WhatsApp</span>
@@ -187,7 +187,7 @@ const HomePage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 px-2">
-              <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema da JVS Soluções" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema NILO da JVS Soluções" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
                   <MessageCircle className="w-5 h-5" />
                   Comprar pelo WhatsApp
@@ -380,7 +380,7 @@ const HomePage = () => {
                 ))}
               </div>
 
-              <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema da JVS Soluções" target="_blank" rel="noopener noreferrer" className="block">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema NILO da JVS Soluções" target="_blank" rel="noopener noreferrer" className="block">
                 <Button variant="premium" size="lg" className="w-full animate-glow-pulse mb-3">
                   <MessageCircle className="w-5 h-5" />
                   Comprar pelo WhatsApp · (46) 99116-3405
