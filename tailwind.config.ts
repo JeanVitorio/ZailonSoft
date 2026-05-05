@@ -64,15 +64,17 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // AutoConnect Premium Colors
+        // JVS Soluções - paleta da logo (azul → ciano → verde)
+        // Mantemos os nomes "amber/orange" para não quebrar componentes,
+        // mas mapeados para os tons da marca.
         amber: {
-          300: "#fcd34d",
-          400: "#fbbf24",
-          500: "#f59e0b",
-          600: "#d97706",
+          300: "#5eead4", // teal-300
+          400: "#22d3ee", // cyan-400
+          500: "#06b6d4", // cyan-500
+          600: "#0891b2", // cyan-600
         },
         orange: {
-          400: "#fb923c",
+          400: "#10b981", // emerald-500
         },
         emerald: {
           400: "#34d399",
