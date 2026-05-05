@@ -9,7 +9,6 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 
 // Public Pages
 import HomePage from "./pages/HomePage";
-import DemoPage from "./pages/DemoPage";
 import PublicCatalog from "./pages/PublicCatalog";
 import PublicVehicleDetail from "./pages/PublicVehicleDetail";
 import LoginPage from "./pages/LoginPage";
@@ -52,7 +51,6 @@ const App = () => (
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/demo" element={<DemoPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/assinar" element={<SubscribePage />} />
 
