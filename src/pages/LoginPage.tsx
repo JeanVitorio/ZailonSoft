@@ -53,7 +53,7 @@ const LoginPage = () => {
           <div className="flex items-center justify-between mb-8">
             <Link to="/" className="inline-flex items-center gap-3">
               <img src={jvsLogo} alt="NILO" className="w-10 h-10" />
-              <span className="text-xl font-bold text-foreground">NILO Soluções</span>
+              <span className="text-xl font-bold text-foreground">NILO</span>
             </Link>
             <ThemeToggle />
           </div>
