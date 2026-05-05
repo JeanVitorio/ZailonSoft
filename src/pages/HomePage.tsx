@@ -439,18 +439,19 @@ const HomePage = () => {
                   Junte-se a dezenas de lojas que já estão vendendo mais com JVS Soluções
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
-                  <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o JVS Soluções" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                  <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema da JVS Soluções" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                     <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
                       <MessageCircle className="w-5 h-5" />
-                      Falar com a equipe
+                      Comprar pelo WhatsApp
                       <ArrowRight className="w-5 h-5" />
                     </Button>
                   </a>
-                  <Link to="/login" className="w-full sm:w-auto">
+                  <a href="https://www.instagram.com/_jvs_solucoes_/" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                     <Button variant="glass" size="lg" className="w-full sm:w-auto">
-                      Criar conta grátis
+                      <Instagram className="w-5 h-5" />
+                      Instagram
                     </Button>
-                  </Link>
+                  </a>
                 </div>
               </div>
             </div>
@@ -463,16 +464,15 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src="/favicon.ico" alt="Logo" className="w-8 h-8 rounded-lg" />
+              <img src={jvsLogo} alt="JVS Soluções" className="w-8 h-8" />
               <span className="text-sm text-muted-foreground">JVS Soluções © {new Date().getFullYear()}</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link to="/demo" className="hover:text-amber-400 transition-colors">Demo</Link>
-              <Link to="/login" className="hover:text-amber-400 transition-colors">Entrar</Link>
-              <a href="https://instagram.com/_jvs_solucoes_" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors flex items-center gap-1">
-                <Instagram className="w-4 h-4" />@zailonsoft
+              <Link to="/login" className="hover:text-primary transition-colors">Entrar</Link>
+              <a href="https://www.instagram.com/_jvs_solucoes_/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors flex items-center gap-1">
+                <Instagram className="w-4 h-4" />@_jvs_solucoes_
               </a>
-              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">WhatsApp</a>
+              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">(46) 99116-3405</a>
             </div>
           </div>
         </div>
