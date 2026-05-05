@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import heroCarImage from '@/assets/hero-car.jpg';
+import jvsLogo from '@/assets/jvs-logo.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
 // Animated section wrapper
 const AnimatedSection = ({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {
@@ -125,22 +126,19 @@ const HomePage = () => {
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <Link to="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <img src="/favicon.ico" alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex-shrink-0" />
+              <img src={jvsLogo} alt="JVS Soluções" className="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0" />
               <span className="text-base sm:text-lg font-bold text-foreground truncate">JVS Soluções</span>
             </Link>
             <div className="flex items-center gap-1.5 sm:gap-3">
               <ThemeToggle />
-              <Link to="/demo" className="hidden sm:block">
-                <Button variant="ghost" size="sm">Demo</Button>
-              </Link>
               <Link to="/login">
                 <Button variant="outline" size="sm">Entrar</Button>
               </Link>
-              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o JVS Soluções" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema da JVS Soluções" target="_blank" rel="noopener noreferrer">
                 <Button variant="default" size="sm" className="btn-primary-glow">
-                  <Rocket className="w-4 h-4" />
-                  <span className="hidden sm:inline">Falar com a equipe</span>
-                  <span className="sm:hidden">Contato</span>
+                  <MessageCircle className="w-4 h-4" />
+                  <span className="hidden sm:inline">Comprar pelo WhatsApp</span>
+                  <span className="sm:hidden">Comprar</span>
                 </Button>
               </a>
             </div>
@@ -189,22 +187,22 @@ const HomePage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 px-2">
-              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o JVS Soluções" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema da JVS Soluções" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
                   <MessageCircle className="w-5 h-5" />
-                  Falar com a equipe
+                  Comprar pelo WhatsApp
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </a>
-              <Link to="/demo" className="w-full sm:w-auto">
+              <a href="https://www.instagram.com/_jvs_solucoes_/" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <Button variant="glass" size="lg" className="w-full sm:w-auto">
-                  <Eye className="w-5 h-5" />
-                  Ver Demonstração
+                  <Instagram className="w-5 h-5" />
+                  Ver no Instagram
                 </Button>
-              </Link>
+              </a>
             </div>
 
-            <p className="text-[11px] sm:text-xs text-muted-foreground mt-4">✓ Atendimento humano · ✓ Suporte premium · ✓ Setup rápido</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground mt-4">✓ Atendimento humano · ✓ (46) 99116-3405 · ✓ Suporte direto com o desenvolvedor</p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="mt-10 sm:mt-16">
