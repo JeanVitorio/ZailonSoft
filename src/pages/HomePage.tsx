@@ -81,8 +81,8 @@ const HomePage = () => {
   ];
 
   const steps = [
-    { step: '01', title: 'Assine o plano', description: 'Crie sua conta e ative sua assinatura em menos de 2 minutos', icon: CreditCard },
-    { step: '02', title: 'Configure sua loja', description: 'Adicione logo, dados de contato e personalize seu catálogo', icon: Layers },
+    { step: '01', title: 'Fale no WhatsApp', description: 'Chame a equipe JVS Soluções no (46) 99116-3405 e conte sobre sua loja', icon: MessageCircle },
+    { step: '02', title: 'Receba seu acesso', description: 'A gente cria sua conta personalizada e libera seu painel em minutos', icon: CreditCard },
     { step: '03', title: 'Cadastre veículos', description: 'Suba fotos, preencha os dados e publique instantaneamente', icon: Car },
     { step: '04', title: 'Comece a vender', description: 'Compartilhe o link do catálogo e receba leads pelo WhatsApp', icon: Rocket },
   ];
@@ -347,16 +347,18 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Plano - sem preço, contato direto */}
+      {/* Como adquirir - sem preços, contato direto */}
       <section className="py-20 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
         <div className="container mx-auto px-4">
           <AnimatedSection>
             <div className="max-w-xl mx-auto glass-card p-6 sm:p-8 md:p-10 rounded-3xl text-center relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400" />
-              <p className="text-muted-foreground mb-2">Plano completo</p>
-              <h3 className="text-3xl md:text-4xl font-bold text-gradient mb-4">Tudo incluso</h3>
-              <p className="text-sm text-muted-foreground mb-6">Fale com nosso time para uma proposta personalizada para a sua loja.</p>
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400" />
+              <p className="text-muted-foreground mb-2">Como adquirir</p>
+              <h3 className="text-3xl md:text-4xl font-bold text-gradient mb-4">Compra direta no WhatsApp</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                Aqui não vendemos planos engessados. Você fala direto comigo, eu monto o sistema do jeito que sua loja precisa e libero o acesso na hora.
+              </p>
 
               <div className="space-y-3 text-left mb-8">
                 {[
@@ -364,8 +366,8 @@ const HomePage = () => {
                   'CRM Kanban ilimitado',
                   'Dashboard com métricas avançadas',
                   'Upload de fotos ilimitado',
-                  'Integração WhatsApp',
-                  'Suporte premium',
+                  'Integração com WhatsApp',
+                  'Suporte direto com o desenvolvedor',
                   'Atualizações gratuitas',
                   'Sem limite de veículos',
                 ].map((item, i) => (
@@ -378,13 +380,13 @@ const HomePage = () => {
                 ))}
               </div>
 
-              <a href="https://wa.me/5546991163405?text=Olá! Quero contratar o JVS Soluções" target="_blank" rel="noopener noreferrer" className="block">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema da JVS Soluções" target="_blank" rel="noopener noreferrer" className="block">
                 <Button variant="premium" size="lg" className="w-full animate-glow-pulse mb-3">
                   <MessageCircle className="w-5 h-5" />
-                  Falar com a equipe
+                  Comprar pelo WhatsApp · (46) 99116-3405
                 </Button>
               </a>
-              <p className="text-xs text-muted-foreground">Atendimento humano · resposta rápida via WhatsApp</p>
+              <p className="text-xs text-muted-foreground">Atendimento humano direto com o desenvolvedor</p>
             </div>
           </AnimatedSection>
         </div>
@@ -398,10 +400,10 @@ const HomePage = () => {
           </AnimatedSection>
 
           {[
+            { q: 'Como faço para comprar?', a: 'Você chama no WhatsApp (46) 99116-3405. A gente conversa, eu libero seu acesso e você já começa a usar.' },
             { q: 'Preciso instalar algo?', a: 'Não! O JVS Soluções é 100% online. Basta acessar pelo navegador do celular ou computador.' },
-            { q: 'Posso cancelar quando quiser?', a: 'Sim, sem multas nem contratos. Cancele a qualquer momento pelo painel.' },
             { q: 'Quantos veículos posso cadastrar?', a: 'Ilimitado! Cadastre quantos veículos precisar sem custo adicional.' },
-            { q: 'Como meus clientes acessam o catálogo?', a: 'Você recebe um link exclusivo (ex: autoconnect.com/loja/sua-loja) para compartilhar por WhatsApp, Instagram ou onde quiser.' },
+            { q: 'Como meus clientes acessam o catálogo?', a: 'Você recebe um link exclusivo (ex: jvssolucoes.com/loja/sua-loja) para compartilhar por WhatsApp, Instagram ou onde quiser.' },
             { q: 'Os dados são seguros?', a: 'Sim! Cada loja tem isolamento total. Ninguém acessa os dados de outra loja. Usamos criptografia e políticas de segurança avançadas.' },
           ].map((faq, index) => (
             <AnimatedSection key={index} delay={index * 0.08}>
