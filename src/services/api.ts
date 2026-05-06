@@ -125,6 +125,7 @@ export interface SubmitLeadInput {
 export const submitLead = async (payload: SubmitLeadInput) => {
   const { data, error } = await supabase.functions.invoke('submit-lead', {
     body: payload,
+    headers: { 'Content-Type': 'application/json' },
   });
   if (error) {
     console.error('Erro ao enviar lead via edge function:', error);
