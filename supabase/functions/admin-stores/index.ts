@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "create") {
-      const { email, password, store_name, slug, phone, owner_name, access_days, status } = body;
+      const { email, password, store_name, slug, phone, owner_name, access_days, status, logo_url, descricao, site, whatsapp, horario_funcionamento, localizacao, redes_sociais } = body;
       if (!email || !password || !store_name) {
         return json({ error: "Campos obrigatórios: email, password, store_name" }, 400);
       }
@@ -97,6 +97,13 @@ Deno.serve(async (req) => {
           email,
           telefone_principal: phone || null,
           proprietario: owner_name || null,
+          logo_url: logo_url || null,
+          descricao: descricao || null,
+          site: site || null,
+          whatsapp: whatsapp || null,
+          horario_funcionamento: horario_funcionamento || null,
+          localizacao: localizacao || null,
+          redes_sociais: redes_sociais || null,
           user_id: userId,
         })
         .select()
