@@ -74,11 +74,7 @@ const HomePage = () => {
     { problem: 'Gastar horas com planilhas', solution: 'Sistema pronto que faz tudo automaticamente' },
   ];
 
-  const testimonials = [
-    { name: 'Roberto S.', role: 'Auto King Veículos', text: 'Triplicamos nossos leads em 2 meses. O catálogo online é um diferencial enorme.' },
-    { name: 'Marcela P.', role: 'MP Motors', text: 'Nunca mais perdi um cliente por falta de follow-up. O CRM é sensacional.' },
-    { name: 'Carlos D.', role: 'CD Premium Cars', text: 'Investimento que se paga no primeiro mês. Simples, bonito e funcional.' },
-  ];
+  const testimonials = [];
 
   const steps = [
     { step: '01', title: 'Fale no WhatsApp', description: 'Chame a equipe JVS Soluções no (46) 99116-3405 e conte sobre sua loja', icon: MessageCircle },
@@ -311,7 +307,7 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Quem usa, <span className="text-gradient">recomenda</span>
+              {/* Quem usa, <span className="text-gradient">recomenda</span> */}
             </h2>
           </AnimatedSection>
 
