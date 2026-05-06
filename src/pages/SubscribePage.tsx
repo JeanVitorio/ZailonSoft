@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Navigate } from 'react-router-dom';
 import { AlertTriangle, MessageCircle, LogOut, Phone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,20 @@ const SUPPORT_PHONE = '5546991163405';
 const SUPPORT_DISPLAY = '(46) 99116-3405';
 
 const SubscribePage = () => {
-  const { logout, user } = useAuth();
+  const { logout, user, isActive, lojaSlug, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (isActive && lojaSlug) {
+    return <Navigate to={`/${lojaSlug}/dashboard`} replace />;
+  }
+
   const waUrl = `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(
     `Olá! Preciso liberar meu acesso ao NILO (${user?.email || ''}).`,
   )}`;

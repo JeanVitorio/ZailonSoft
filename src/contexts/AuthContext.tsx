@@ -169,10 +169,11 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
 
   const loading = authLoading || subLoading || lojaLoading;
   const isLoggedIn = !!user;
-  
+
+  const normalizedStatus = subscription?.status?.toString().trim().toLowerCase() || '';
   // active only if subscription status is 'active'
   // pending_payment, incomplete, canceled, unpaid = NOT active
-  const isActive = loading ? false : subscription?.status === 'active';
+  const isActive = loading ? false : normalizedStatus === 'active';
 
   const value = {
     user,
