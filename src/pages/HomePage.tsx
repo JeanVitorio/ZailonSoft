@@ -162,18 +162,10 @@ const HomePage = () => {
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
-            <motion.div
-              animate={{ scale: [1, 1.02, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-red-500/10 border border-red-500/20 mb-3 sm:mb-4 backdrop-blur-sm"
-            >
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-[11px] sm:text-sm font-medium text-red-400">🔥 Vagas limitadas — Oferta de lançamento</span>
-            </motion.div>
 
             <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-4 sm:mb-6 backdrop-blur-sm">
               <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
-              <span className="text-[11px] sm:text-sm font-medium text-amber-400">Plataforma SaaS para Lojas de Veículos</span>
+              <span className="text-[11px] sm:text-sm font-medium text-amber-400">A melhor plataforma para Lojas de Veículos</span>
             </div>
 
             <h1 className="text-[2rem] sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-[1.1]" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
