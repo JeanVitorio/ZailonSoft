@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import heroCarImage from '@/assets/hero-car.jpg';
-import jvsLogo from '@/assets/jvs-logo.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
 // Animated section wrapper
 const AnimatedSection = ({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {
@@ -74,11 +73,15 @@ const HomePage = () => {
     { problem: 'Gastar horas com planilhas', solution: 'Sistema pronto que faz tudo automaticamente' },
   ];
 
-  const testimonials = [];
+  const testimonials = [
+    { name: 'Roberto S.', role: 'Auto King Veículos', text: 'Triplicamos nossos leads em 2 meses. O catálogo online é um diferencial enorme.' },
+    { name: 'Marcela P.', role: 'MP Motors', text: 'Nunca mais perdi um cliente por falta de follow-up. O CRM é sensacional.' },
+    { name: 'Carlos D.', role: 'CD Premium Cars', text: 'Investimento que se paga no primeiro mês. Simples, bonito e funcional.' },
+  ];
 
   const steps = [
-    { step: '01', title: 'Fale no WhatsApp', description: 'Chame a equipe JVS Soluções no (46) 99116-3405 e conte sobre sua loja', icon: MessageCircle },
-    { step: '02', title: 'Receba seu acesso', description: 'A gente cria sua conta personalizada e libera seu painel em minutos', icon: CreditCard },
+    { step: '01', title: 'Assine o plano', description: 'Crie sua conta e ative sua assinatura em menos de 2 minutos', icon: CreditCard },
+    { step: '02', title: 'Configure sua loja', description: 'Adicione logo, dados de contato e personalize seu catálogo', icon: Layers },
     { step: '03', title: 'Cadastre veículos', description: 'Suba fotos, preencha os dados e publique instantaneamente', icon: Car },
     { step: '04', title: 'Comece a vender', description: 'Compartilhe o link do catálogo e receba leads pelo WhatsApp', icon: Rocket },
   ];
@@ -122,19 +125,22 @@ const HomePage = () => {
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <Link to="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <img src={jvsLogo} alt="NILO" className="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0" />
-              <span className="text-base sm:text-lg font-bold text-foreground truncate">NILO</span>
+              <img src="/favicon.ico" alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex-shrink-0" />
+              <span className="text-base sm:text-lg font-bold text-foreground truncate">AutoConnect</span>
             </Link>
             <div className="flex items-center gap-1.5 sm:gap-3">
               <ThemeToggle />
+              <Link to="/demo" className="hidden sm:block">
+                <Button variant="ghost" size="sm">Demo</Button>
+              </Link>
               <Link to="/login">
                 <Button variant="outline" size="sm">Entrar</Button>
               </Link>
-              <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema NILO da JVS Soluções" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o AutoConnect" target="_blank" rel="noopener noreferrer">
                 <Button variant="default" size="sm" className="btn-primary-glow">
-                  <MessageCircle className="w-4 h-4" />
-                  <span className="hidden sm:inline">Adquirir pelo WhatsApp</span>
-                  <span className="sm:hidden">Adquirir</span>
+                  <Rocket className="w-4 h-4" />
+                  <span className="hidden sm:inline">Falar com a equipe</span>
+                  <span className="sm:hidden">Contato</span>
                 </Button>
               </a>
             </div>
@@ -158,10 +164,18 @@ const HomePage = () => {
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
+            <motion.div
+              animate={{ scale: [1, 1.02, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-red-500/10 border border-red-500/20 mb-3 sm:mb-4 backdrop-blur-sm"
+            >
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-[11px] sm:text-sm font-medium text-red-400">🔥 Vagas limitadas — Oferta de lançamento</span>
+            </motion.div>
 
             <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-4 sm:mb-6 backdrop-blur-sm">
               <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
-              <span className="text-[11px] sm:text-sm font-medium text-amber-400">A melhor plataforma para Lojas de Veículos</span>
+              <span className="text-[11px] sm:text-sm font-medium text-amber-400">Plataforma SaaS para Lojas de Veículos</span>
             </div>
 
             <h1 className="text-[2rem] sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-[1.1]" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
@@ -175,22 +189,22 @@ const HomePage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 px-2">
-              <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema NILO da JVS Soluções" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o AutoConnect" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
                   <MessageCircle className="w-5 h-5" />
-                  Adquirir pelo WhatsApp
+                  Falar com a equipe
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </a>
-              <a href="https://www.instagram.com/_jvs_solucoes_/" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+              <Link to="/demo" className="w-full sm:w-auto">
                 <Button variant="glass" size="lg" className="w-full sm:w-auto">
-                  <Instagram className="w-5 h-5" />
-                  Ver no Instagram
+                  <Eye className="w-5 h-5" />
+                  Ver Demonstração
                 </Button>
-              </a>
+              </Link>
             </div>
 
-            <p className="text-[11px] sm:text-xs text-muted-foreground mt-4">✓ Atendimento humano · ✓ (46) 99116-3405 · ✓ Suporte direto com o desenvolvedor</p>
+            <p className="text-[11px] sm:text-xs text-muted-foreground mt-4">✓ Atendimento humano · ✓ Suporte premium · ✓ Setup rápido</p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="mt-10 sm:mt-16">
@@ -307,7 +321,7 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              {/* Quem usa, <span className="text-gradient">recomenda</span> */}
+              Quem usa, <span className="text-gradient">recomenda</span>
             </h2>
           </AnimatedSection>
 
@@ -335,18 +349,16 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Como adquirir - sem preços, contato direto */}
+      {/* Plano - sem preço, contato direto */}
       <section className="py-20 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-transparent" />
         <div className="container mx-auto px-4">
           <AnimatedSection>
             <div className="max-w-xl mx-auto glass-card p-6 sm:p-8 md:p-10 rounded-3xl text-center relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400" />
-              <p className="text-muted-foreground mb-2">Como adquirir</p>
-              <h3 className="text-3xl md:text-4xl font-bold text-gradient mb-4">Compra direta no WhatsApp</h3>
-              <p className="text-sm text-muted-foreground mb-6">
-                Aqui não vendemos planos engessados. Você fala direto comigo, eu monto o sistema do jeito que sua loja precisa e libero o acesso na hora.
-              </p>
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400" />
+              <p className="text-muted-foreground mb-2">Plano completo</p>
+              <h3 className="text-3xl md:text-4xl font-bold text-gradient mb-4">Tudo incluso</h3>
+              <p className="text-sm text-muted-foreground mb-6">Fale com nosso time para uma proposta personalizada para a sua loja.</p>
 
               <div className="space-y-3 text-left mb-8">
                 {[
@@ -354,8 +366,8 @@ const HomePage = () => {
                   'CRM Kanban ilimitado',
                   'Dashboard com métricas avançadas',
                   'Upload de fotos ilimitado',
-                  'Integração com WhatsApp',
-                  'Suporte direto com o desenvolvedor',
+                  'Integração WhatsApp',
+                  'Suporte premium',
                   'Atualizações gratuitas',
                   'Sem limite de veículos',
                 ].map((item, i) => (
@@ -368,13 +380,13 @@ const HomePage = () => {
                 ))}
               </div>
 
-              <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema NILO da JVS Soluções" target="_blank" rel="noopener noreferrer" className="block">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero contratar o AutoConnect" target="_blank" rel="noopener noreferrer" className="block">
                 <Button variant="premium" size="lg" className="w-full animate-glow-pulse mb-3">
                   <MessageCircle className="w-5 h-5" />
-                  Adquirir pelo WhatsApp
+                  Falar com a equipe
                 </Button>
               </a>
-              <p className="text-xs text-muted-foreground">Atendimento humano direto com o desenvolvedor</p>
+              <p className="text-xs text-muted-foreground">Atendimento humano · resposta rápida via WhatsApp</p>
             </div>
           </AnimatedSection>
         </div>
@@ -388,10 +400,10 @@ const HomePage = () => {
           </AnimatedSection>
 
           {[
-            { q: 'Como faço para comprar?', a: 'Você chama no WhatsApp (46) 99116-3405. A gente conversa, eu libero seu acesso e você já começa a usar.' },
-            { q: 'Preciso instalar algo?', a: 'Não! O NILO é 100% online. Basta acessar pelo navegador do celular ou computador.' },
+            { q: 'Preciso instalar algo?', a: 'Não! O AutoConnect é 100% online. Basta acessar pelo navegador do celular ou computador.' },
+            { q: 'Posso cancelar quando quiser?', a: 'Sim, sem multas nem contratos. Cancele a qualquer momento pelo painel.' },
             { q: 'Quantos veículos posso cadastrar?', a: 'Ilimitado! Cadastre quantos veículos precisar sem custo adicional.' },
-            { q: 'Como meus clientes acessam o catálogo?', a: 'Você recebe um link exclusivo (ex: jvssolucoes.com/loja/sua-loja) para compartilhar por WhatsApp, Instagram ou onde quiser.' },
+            { q: 'Como meus clientes acessam o catálogo?', a: 'Você recebe um link exclusivo (ex: autoconnect.com/loja/sua-loja) para compartilhar por WhatsApp, Instagram ou onde quiser.' },
             { q: 'Os dados são seguros?', a: 'Sim! Cada loja tem isolamento total. Ninguém acessa os dados de outra loja. Usamos criptografia e políticas de segurança avançadas.' },
           ].map((faq, index) => (
             <AnimatedSection key={index} delay={index * 0.08}>
@@ -424,22 +436,21 @@ const HomePage = () => {
                   Pronto para acelerar suas vendas?
                 </h2>
                 <p className="text-muted-foreground max-w-lg mx-auto mb-6">
-                  Junte-se a dezenas de lojas que já estão vendendo mais com JVS Soluções
+                  Junte-se a dezenas de lojas que já estão vendendo mais com AutoConnect
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
-                  <a href="https://wa.me/5546991163405?text=Olá! Quero adquirir o sistema NILO" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                  <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o AutoConnect" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                     <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
                       <MessageCircle className="w-5 h-5" />
-                      Adquirir pelo WhatsApp
+                      Falar com a equipe
                       <ArrowRight className="w-5 h-5" />
                     </Button>
                   </a>
-                  <a href="https://www.instagram.com/_jvs_solucoes_/" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                  <Link to="/login" className="w-full sm:w-auto">
                     <Button variant="glass" size="lg" className="w-full sm:w-auto">
-                      <Instagram className="w-5 h-5" />
-                      Instagram
+                      Criar conta grátis
                     </Button>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -452,15 +463,16 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src={jvsLogo} alt="NILO" className="w-8 h-8" />
-              <span className="text-sm text-muted-foreground">NILO © {new Date().getFullYear()}</span>
+              <img src="/favicon.ico" alt="Logo" className="w-8 h-8 rounded-lg" />
+              <span className="text-sm text-muted-foreground">AutoConnect © {new Date().getFullYear()}</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link to="/login" className="hover:text-primary transition-colors">Entrar</Link>
-              <a href="https://www.instagram.com/_jvs_solucoes_/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors flex items-center gap-1">
-                <Instagram className="w-4 h-4" />@_jvs_solucoes_
+              <Link to="/demo" className="hover:text-amber-400 transition-colors">Demo</Link>
+              <Link to="/login" className="hover:text-amber-400 transition-colors">Entrar</Link>
+              <a href="https://instagram.com/zailonsoft" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors flex items-center gap-1">
+                <Instagram className="w-4 h-4" />@zailonsoft
               </a>
-              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">(46) 99116-3405</a>
+              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">WhatsApp</a>
             </div>
           </div>
         </div>

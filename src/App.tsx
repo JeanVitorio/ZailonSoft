@@ -8,8 +8,9 @@ import { DataProvider } from "@/contexts/DataContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
 // Public Pages
+import JvsHome from "./pages/JvsHome";
 import HomePage from "./pages/HomePage";
-import ZailonsoftLanding from "./pages/ZailonsoftLanding";
+import DemoPage from "./pages/DemoPage";
 import PublicCatalog from "./pages/PublicCatalog";
 import PublicVehicleDetail from "./pages/PublicVehicleDetail";
 import LoginPage from "./pages/LoginPage";
@@ -51,8 +52,9 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<ZailonsoftLanding />} />
-                <Route path="/Nilo" element={<HomePage />} />
+                <Route path="/" element={<JvsHome />} />
+                <Route path="/nilo" element={<HomePage />} />
+                <Route path="/demo" element={<DemoPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/assinar" element={<SubscribePage />} />
 

@@ -66,7 +66,7 @@ const Index = () => {
             >
               <img src="/favicon.ico" alt="Logo" className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-glow-md" />
               <div>
-                <h1 className="text-lg md:text-xl font-bold text-white">{store.name || 'JVS Soluções'}</h1>
+                <h1 className="text-lg md:text-xl font-bold text-white">{store.name || 'AutoConnect'}</h1>
                 <p className="text-[10px] md:text-xs text-muted-foreground">Catálogo Premium</p>
               </div>
             </motion.div>
@@ -328,14 +328,14 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <img src="/favicon.ico" alt="Logo" className="w-8 h-8 md:w-10 md:h-10 rounded-xl" />
               <span className="text-xs md:text-sm text-muted-foreground">
-                {store.name || 'JVS Soluções'} © {new Date().getFullYear()}
+                {store.name || 'AutoConnect'} © {new Date().getFullYear()}
               </span>
             </div>
             <div className="flex items-center gap-4 md:gap-6">
               <a href={`https://wa.me/${store.whatsapp || '5546991163405'}`} target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors">
                 WhatsApp
               </a>
-              <a href="https://instagram.com/_jvs_solucoes_" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors flex items-center gap-1">
+              <a href="https://instagram.com/zailonsoft" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors flex items-center gap-1">
                 <Instagram className="w-3 h-3 md:w-4 md:h-4" />
                 @zailonsoft
               </a>

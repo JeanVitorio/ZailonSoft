@@ -297,10 +297,6 @@ const CreateStoreModal: React.FC<{
     password: '',
     phone: '',
     owner_name: '',
-    logo_url: '',
-    descricao: '',
-    site: '',
-    whatsapp: '',
     access_days: '7',
     status: 'active',
   });
@@ -350,18 +346,6 @@ const CreateStoreModal: React.FC<{
           </Field>
           <Field label="Proprietário">
             <Input value={form.owner_name} onChange={(e) => setForm({ ...form, owner_name: e.target.value })} />
-          </Field>
-          <Field label="Logo URL">
-            <Input value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} placeholder="https://exemplo.com/logo.png" />
-          </Field>
-          <Field label="Descrição">
-            <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} placeholder="Descrição da loja" />
-          </Field>
-          <Field label="Site">
-            <Input value={form.site} onChange={(e) => setForm({ ...form, site: e.target.value })} placeholder="https://exemplo.com" />
-          </Field>
-          <Field label="WhatsApp">
-            <Input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} placeholder="(11) 99999-9999" />
           </Field>
           <Field label="Período de acesso">
             <select
@@ -415,10 +399,6 @@ const EditStoreModal: React.FC<{
     slug: loja.slug,
     email: loja.email || '',
     telefone_principal: loja.telefone_principal || '',
-    logo_url: loja.logo_url || '',
-    descricao: '',
-    site: '',
-    whatsapp: '',
   });
   const [sub, setSub] = useState({
     status: loja.subscription?.status || 'active',
@@ -493,18 +473,6 @@ const EditStoreModal: React.FC<{
               value={form.telefone_principal}
               onChange={(e) => setForm({ ...form, telefone_principal: e.target.value })}
             />
-          </Field>
-          <Field label="Logo URL">
-            <Input value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} placeholder="https://exemplo.com/logo.png" />
-          </Field>
-          <Field label="Descrição">
-            <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} placeholder="Descrição da loja" />
-          </Field>
-          <Field label="Site">
-            <Input value={form.site} onChange={(e) => setForm({ ...form, site: e.target.value })} placeholder="https://exemplo.com" />
-          </Field>
-          <Field label="WhatsApp">
-            <Input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} placeholder="(11) 99999-9999" />
           </Field>
         </div>
         <Button variant="premium" size="sm" onClick={saveLoja}>

@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Navigate } from 'react-router-dom';
 import { AlertTriangle, MessageCircle, LogOut, Phone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -10,22 +9,9 @@ const SUPPORT_PHONE = '5546991163405';
 const SUPPORT_DISPLAY = '(46) 99116-3405';
 
 const SubscribePage = () => {
-  const { logout, user, isActive, lojaSlug, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (isActive && lojaSlug) {
-    return <Navigate to={`/${lojaSlug}/dashboard`} replace />;
-  }
-
+  const { logout, user } = useAuth();
   const waUrl = `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(
-    `Olá! Preciso liberar meu acesso ao NILO (${user?.email || ''}).`,
+    `Olá! Preciso liberar meu acesso ao AutoConnect (${user?.email || ''}).`,
   )}`;
 
   return (
@@ -42,17 +28,17 @@ const SubscribePage = () => {
           <AlertTriangle className="w-10 h-10 text-amber-400" />
         </div>
 
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-          <span className="text-sm font-medium text-primary">Acesso pendente</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-6">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span className="text-sm font-medium text-amber-400">Período de teste encerrado</span>
         </div>
 
         <h1 className="text-2xl font-bold text-foreground mb-3">
-          Seu acesso ainda não está liberado
+          Seu período de acesso terminou
         </h1>
         <p className="text-muted-foreground mb-6 leading-relaxed">
-          Para liberar (ou renovar) o uso do sistema NILO, fale comigo direto no WhatsApp.
-          Eu confirmo o pagamento e libero seu acesso na hora.
+          Para continuar usando o AutoConnect, entre em contato com a nossa equipe.
+          Vamos te orientar e liberar seu acesso novamente em poucos minutos.
         </p>
 
         {user?.email && (

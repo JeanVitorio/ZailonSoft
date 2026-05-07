@@ -123,119 +123,17 @@ export interface SubmitLeadInput {
 }
 
 export const submitLead = async (payload: SubmitLeadInput) => {
-  try {
-    let lojaId = payload.loja_id;
-    if (!lojaId && payload.loja_slug) {
-      const { data: loja, error: lojaError } = await supabase
-        .from('lojas')
-        .select('id')
-        .eq('slug', payload.loja_slug)
-        .maybeSingle();
-
-      if (lojaError) {
-        console.error('Erro ao buscar loja por slug:', lojaError);
-        throw new Error('Falha ao identificar a loja.');
-      }
-      if (!loja?.id) {
-        throw new Error('Loja não encontrada.');
-      }
-      lojaId = loja.id;
-    }
-
-    if (!lojaId) {
-      throw new Error('Loja não informada.');
-    }
-
-    const id = uuidv4();
-    const chat_id = `web_${id}`;
-
-    const interestedVehicles = payload.vehicle
-      ? JSON.stringify([
-          {
-            id: payload.vehicle.id ?? '',
-            nome: payload.vehicle.name ?? '',
-            preco: payload.vehicle.price ?? 0,
-          },
-        ])
-      : '';
-
-    const tradeInCar = payload.trade_in
-      ? JSON.stringify({
-          brand: payload.trade_in.brand ?? '',
-          model: payload.trade_in.model ?? '',
-          year: payload.trade_in.year ?? '',
-          estimated_value: payload.trade_in.estimated_value ?? 0,
-          difference_payment: payload.trade_in.difference_payment ?? null,
-          photos: payload.trade_in.photos ?? [],
-        })
-      : '';
-
-    const financingDetails = payload.financing_details
-      ? JSON.stringify(payload.financing_details)
-      : '';
-
-    const visitDetails = payload.visit_details
-      ? {
-          day: payload.visit_details.day ?? '',
-          time: payload.visit_details.time ?? '',
-        }
-      : null;
-
-    const botData = {
-      cash_details: payload.cash_details ?? null,
-      consortium_details: payload.consortium_details ?? null,
-      cnh_url: payload.cnh_url ?? null,
-      lgpd_consent: !!payload.lgpd_consent,
-      age: payload.age ?? null,
-      submitted_at: new Date().toISOString(),
-      source: payload.source ?? 'catalog',
-      history: [
-        {
-          timestamp: new Date().toLocaleString('pt-BR'),
-          updated_data: { state: 'Lead criado via formulário' },
-        },
-      ],
-    };
-
-    const insertPayload = {
-      id,
-      chat_id,
-      loja_id: lojaId,
-      name: payload.name,
-      phone: payload.phone,
-      cpf: payload.cpf ?? '',
-      job: '',
-      state: 'novo',
-      deal_type: payload.deal_type,
-      interested_vehicles: interestedVehicles,
-      trade_in_car: tradeInCar,
-      financing_details: financingDetails,
-      visit_details: visitDetails,
-      bot_data: botData,
-      notes: payload.notes ?? '',
-      channel: payload.source ?? 'catalog',
-      priority: 'normal',
-      documents: [],
-      tags: [],
-      follow_up_count: 0,
-    };
-
-    const { data, error } = await supabase
-      .from('clients')
-      .insert(insertPayload)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Erro ao inserir lead:', error);
-      throw new Error('Falha ao salvar lead. ' + error.message);
-    }
-
-    return data;
-  } catch (err: any) {
-    console.error('Erro ao enviar lead direto:', err);
-    throw new Error(err?.message || 'Falha ao enviar lead.');
+  const { data, error } = await supabase.functions.invoke('submit-lead', {
+    body: payload,
+  });
+  if (error) {
+    console.error('Erro ao enviar lead via edge function:', error);
+    throw new Error(error.message || 'Falha ao enviar lead.');
   }
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+  return data?.lead;
 };
 
 // Upload de CNH para storage público (bucket cnh-uploads)

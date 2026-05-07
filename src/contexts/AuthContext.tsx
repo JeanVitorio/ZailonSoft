@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { supabase } from '@/services/supabaseClient';
 import { User } from '@supabase/supabase-js';
 import { QueryClient } from '@tanstack/react-query';
@@ -40,13 +40,16 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
   const [lojaInfo, setLojaInfo] = useState<LojaInfo | null>(null);
   const [lojaLoading, setLojaLoading] = useState(true);
 
-  const loadSubscription = async (currentUserId: string | undefined) => {
+  // Token incremental para invalidar respostas antigas e prevenir race conditions
+  const reqIdRef = useRef(0);
+
+  const loadSubscription = async (currentUserId: string | undefined, reqId: number) => {
     if (!currentUserId) {
+      if (reqId !== reqIdRef.current) return;
       setSubscription(null);
       setSubLoading(false);
       return;
     }
-    setSubLoading(true);
     try {
       const { data, error } = await supabase
         .from('subscriptions')
@@ -54,22 +57,24 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
         .eq('user_id', currentUserId)
         .maybeSingle();
       if (error) throw error;
+      if (reqId !== reqIdRef.current) return; // resposta obsoleta
       setSubscription(data as Subscription | null);
     } catch (err: any) {
       console.error('Erro ao carregar assinatura:', err.message);
+      if (reqId !== reqIdRef.current) return;
       setSubscription(null);
     } finally {
-      setSubLoading(false);
+      if (reqId === reqIdRef.current) setSubLoading(false);
     }
   };
 
-  const loadLojaInfo = async (currentUserId: string | undefined) => {
+  const loadLojaInfo = async (currentUserId: string | undefined, reqId: number) => {
     if (!currentUserId) {
+      if (reqId !== reqIdRef.current) return;
       setLojaInfo(null);
       setLojaLoading(false);
       return;
     }
-    setLojaLoading(true);
     try {
       const { data, error } = await supabase
         .from('lojas')
@@ -77,70 +82,74 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
         .eq('user_id', currentUserId)
         .maybeSingle();
       if (error) throw error;
+      if (reqId !== reqIdRef.current) return;
       setLojaInfo(data as LojaInfo | null);
     } catch (err: any) {
       console.error('Erro ao carregar loja:', err.message);
+      if (reqId !== reqIdRef.current) return;
       setLojaInfo(null);
     } finally {
+      if (reqId === reqIdRef.current) setLojaLoading(false);
+    }
+  };
+
+  // Aplica novo usuário de forma atômica: trava loading antes do fetch async
+  const applyUser = (currentUser: User | null) => {
+    const reqId = ++reqIdRef.current;
+    setUser(currentUser);
+    setAuthLoading(false);
+
+    if (currentUser) {
+      // CRÍTICO: marcar como loading ANTES de qualquer async,
+      // para evitar uma janela com loading=false + isActive=false.
+      setSubLoading(true);
+      setLojaLoading(true);
+      loadSubscription(currentUser.id, reqId);
+      loadLojaInfo(currentUser.id, reqId);
+    } else {
+      setSubscription(null);
+      setLojaInfo(null);
+      setSubLoading(false);
       setLojaLoading(false);
     }
   };
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      setAuthLoading(false);
-
-      if (currentUser) {
-        await Promise.all([
-          loadSubscription(currentUser.id),
-          loadLojaInfo(currentUser.id),
-        ]);
-      } else {
-        setSubscription(null);
-        setLojaInfo(null);
-        setSubLoading(false);
-        setLojaLoading(false);
-      }
-    };
-
-    checkSession();
-
+    // 1) Listener primeiro (recomendação Supabase)
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      setAuthLoading(false);
+      applyUser(session?.user ?? null);
+    });
 
-      if (currentUser) {
-        loadSubscription(currentUser.id);
-        loadLojaInfo(currentUser.id);
-      } else {
-        setSubscription(null);
-        setLojaInfo(null);
-        setSubLoading(false);
-        setLojaLoading(false);
-      }
+    // 2) Sessão atual
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      applyUser(session?.user ?? null);
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const refreshSubscription = async () => {
-    if (user?.id) await loadSubscription(user.id);
+    if (user?.id) {
+      setSubLoading(true);
+      await loadSubscription(user.id, reqIdRef.current);
+    }
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    // Trava loading antes da troca de sessão p/ evitar flash de "sem assinatura"
+    setSubLoading(true);
+    setLojaLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       console.error('Erro no login:', error.message);
+      setSubLoading(false);
+      setLojaLoading(false);
       return false;
     }
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    await refreshSubscription();
+    // applyUser será chamado pelo listener; aguardamos a propagação
     return true;
   };
 
@@ -150,15 +159,11 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
       console.error('Erro no signup:', error.message);
       return false;
     }
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    if (data.user?.id) {
-      await loadSubscription(data.user.id);
-      await loadLojaInfo(data.user.id);
-    }
     return !!data.user;
   };
 
   const logout = async () => {
+    reqIdRef.current++; // invalida fetches em voo
     await supabase.auth.signOut();
     if (queryClient) queryClient.clear();
     setUser(null);
@@ -167,13 +172,9 @@ export function AuthProvider({ children, queryClient }: { children: ReactNode; q
     window.location.href = '/login';
   };
 
-  const loading = authLoading || subLoading || lojaLoading;
+  const loading = authLoading || (!!user && (subLoading || lojaLoading));
   const isLoggedIn = !!user;
-
-  const normalizedStatus = subscription?.status?.toString().trim().toLowerCase() || '';
-  // active only if subscription status is 'active'
-  // pending_payment, incomplete, canceled, unpaid = NOT active
-  const isActive = loading ? false : normalizedStatus === 'active';
+  const isActive = loading ? false : subscription?.status === 'active';
 
   const value = {
     user,
