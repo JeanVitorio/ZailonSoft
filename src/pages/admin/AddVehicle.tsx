@@ -134,7 +134,7 @@ const AddVehicle = () => {
             <div className="flex flex-col items-center">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
                 index < currentStep ? 'bg-emerald-500 text-white' :
-                index === currentStep ? 'bg-amber-500 text-slate-950' :
+                index === currentStep ? 'bg-cyan-500 text-slate-950' :
                 'bg-white/5 text-muted-foreground'
               }`}>
                 {index < currentStep ? <Check className="w-5 h-5" /> : <step.icon className="w-5 h-5" />}
@@ -185,7 +185,7 @@ const AddVehicle = () => {
               <div>
                 <label className="block text-sm font-medium text-muted-foreground mb-2">Combustível</label>
                 <select value={formData.fuel} onChange={(e) => handleInputChange('fuel', e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-amber-500/50">
+                  className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50">
                   <option value="Gasolina">Gasolina</option>
                   <option value="Etanol">Etanol</option>
                   <option value="Flex">Flex</option>
@@ -197,7 +197,7 @@ const AddVehicle = () => {
               <div>
                 <label className="block text-sm font-medium text-muted-foreground mb-2">Câmbio</label>
                 <select value={formData.transmission} onChange={(e) => handleInputChange('transmission', e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-amber-500/50">
+                  className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50">
                   <option value="Automático">Automático</option>
                   <option value="Manual">Manual</option>
                   <option value="CVT">CVT</option>
@@ -221,7 +221,7 @@ const AddVehicle = () => {
               </label>
               <textarea value={formData.description} onChange={(e) => handleInputChange('description', e.target.value.slice(0, 1000))}
                 placeholder="Descreva o veículo em detalhes..." rows={6}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-muted-foreground/60 focus:outline-none focus:border-amber-500/50 resize-none" />
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-muted-foreground/60 focus:outline-none focus:border-cyan-500/50 resize-none" />
             </div>
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">Opcionais</label>
@@ -232,7 +232,7 @@ const AddVehicle = () => {
               </div>
               <div className="flex flex-wrap gap-2">
                 {formData.features.map((feature, index) => (
-                  <span key={index} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm">
+                  <span key={index} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm">
                     {feature}
                     <button onClick={() => removeFeature(feature)} className="hover:text-amber-200"><X className="w-3 h-3" /></button>
                   </span>
@@ -250,12 +250,12 @@ const AddVehicle = () => {
             
             <div 
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-white/10 rounded-2xl p-8 text-center hover:border-amber-500/30 transition-colors cursor-pointer"
+              className="border-2 border-dashed border-white/10 rounded-2xl p-8 text-center hover:border-cyan-500/30 transition-colors cursor-pointer"
             >
               <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-white font-medium mb-2">Clique para selecionar fotos do seu dispositivo</p>
               <p className="text-sm text-muted-foreground">PNG, JPG ou WEBP até 5MB (máx. 10 imagens)</p>
-              <p className="text-xs text-amber-400 mt-4">{imageFiles.length}/10 imagens selecionadas</p>
+              <p className="text-xs text-cyan-400 mt-4">{imageFiles.length}/10 imagens selecionadas</p>
             </div>
 
             {imagePreviews.length > 0 && (
@@ -270,14 +270,14 @@ const AddVehicle = () => {
                     </div>
                     {index === 0 && (
                       <div className="absolute top-2 right-2">
-                        <span className="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-400 text-xs backdrop-blur-sm">Principal</span>
+                        <span className="px-2 py-1 rounded-lg bg-cyan-500/20 text-cyan-400 text-xs backdrop-blur-sm">Principal</span>
                       </div>
                     )}
                   </div>
                 ))}
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="aspect-video rounded-xl border-2 border-dashed border-white/10 flex items-center justify-center cursor-pointer hover:border-amber-500/30 transition-colors"
+                  className="aspect-video rounded-xl border-2 border-dashed border-white/10 flex items-center justify-center cursor-pointer hover:border-cyan-500/30 transition-colors"
                 >
                   <Upload className="w-8 h-8 text-muted-foreground" />
                 </div>
@@ -295,7 +295,7 @@ const AddVehicle = () => {
               </div>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-amber-400 font-medium">{formData.brand} • {formData.year}</p>
+                  <p className="text-sm text-cyan-400 font-medium">{formData.brand} • {formData.year}</p>
                   <h3 className="text-2xl font-bold text-white">{formData.name || 'Nome do veículo'}</h3>
                 </div>
                 <div className="price-tag text-xl">R$ {formData.price.toLocaleString('pt-BR')}</div>

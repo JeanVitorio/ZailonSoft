@@ -25,8 +25,8 @@ const VehicleDetail = () => {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
-          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
-            <Settings2 className="w-8 h-8 md:w-10 md:h-10 text-amber-400" />
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-cyan-500/10 flex items-center justify-center mx-auto mb-4">
+            <Settings2 className="w-8 h-8 md:w-10 md:h-10 text-cyan-400" />
           </div>
           <h2 className="text-xl md:text-2xl font-bold text-white mb-2">Veículo não encontrado</h2>
           <p className="text-sm md:text-base text-muted-foreground mb-6">O veículo que você procura não está disponível</p>
@@ -71,7 +71,7 @@ const VehicleDetail = () => {
               <button className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground hover:text-red-400 hover:bg-red-400/10 transition-all">
                 <Heart className="w-4 h-4 md:w-5 md:h-5" />
               </button>
-              <button className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground hover:text-amber-400 hover:bg-amber-400/10 transition-all">
+              <button className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground hover:text-cyan-400 hover:bg-cyan-400/10 transition-all">
                 <Share2 className="w-4 h-4 md:w-5 md:h-5" />
               </button>
             </div>
@@ -111,8 +111,8 @@ const VehicleDetail = () => {
                   onClick={() => setShowVideo(!showVideo)}
                   className={`absolute top-3 right-3 md:top-4 md:right-4 px-3 py-1.5 md:px-4 md:py-2 rounded-xl flex items-center gap-1.5 md:gap-2 transition-all ${
                     showVideo 
-                      ? 'bg-amber-500 text-slate-950'
-                      : 'bg-black/50 backdrop-blur-sm text-white hover:bg-amber-500/20'
+                      ? 'bg-cyan-500 text-slate-950'
+                      : 'bg-black/50 backdrop-blur-sm text-white hover:bg-cyan-500/20'
                   }`}
                 >
                   <Play className="w-3 h-3 md:w-4 md:h-4" />
@@ -125,7 +125,7 @@ const VehicleDetail = () => {
                 vehicle.status === 'available'
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                   : vehicle.status === 'reserved'
-                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
                   : 'bg-red-500/20 text-red-400 border border-red-500/30'
               }`}>
                 {vehicle.status === 'available' ? 'Disponível' : vehicle.status === 'reserved' ? 'Reservado' : 'Vendido'}
@@ -140,7 +140,7 @@ const VehicleDetail = () => {
                   onClick={() => { setActiveImage(index); setShowVideo(false); }}
                   className={`relative w-16 h-12 md:w-20 md:h-16 rounded-xl overflow-hidden flex-shrink-0 transition-all ${
                     activeImage === index && !showVideo
-                      ? 'ring-2 ring-amber-500 ring-offset-1 ring-offset-[#050505]'
+                      ? 'ring-2 ring-cyan-500 ring-offset-1 ring-offset-[#050505]'
                       : 'opacity-60 hover:opacity-100'
                   }`}
                 >
@@ -160,7 +160,7 @@ const VehicleDetail = () => {
             {/* Title & Price */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs md:text-sm text-amber-400 font-medium">{vehicle.brand}</p>
+                <p className="text-xs md:text-sm text-cyan-400 font-medium">{vehicle.brand}</p>
                 <div className="flex items-center gap-3 text-xs md:text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Eye className="w-3.5 h-3.5" />
@@ -183,8 +183,8 @@ const VehicleDetail = () => {
               {specs.map((spec, index) => (
                 <div key={index} className="glass-card p-3 md:p-4 rounded-xl flex-shrink-0 w-[130px] md:w-auto">
                   <div className="flex items-center gap-2 md:gap-3">
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                      <spec.icon className="w-4 h-4 md:w-5 md:h-5 text-amber-400" />
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
+                      <spec.icon className="w-4 h-4 md:w-5 md:h-5 text-cyan-400" />
                     </div>
                     <div className="min-w-0">
                       <p className="text-[10px] md:text-xs text-muted-foreground">{spec.label}</p>

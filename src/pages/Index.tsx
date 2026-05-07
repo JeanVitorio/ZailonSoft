@@ -53,8 +53,8 @@ const Index = () => {
     <div className="min-h-screen bg-[#050505]">
       {/* Hero Header */}
       <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-transparent" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] md:w-[800px] h-[300px] md:h-[400px] bg-amber-500/10 rounded-full blur-[120px] opacity-50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] md:w-[800px] h-[300px] md:h-[400px] bg-cyan-500/10 rounded-full blur-[120px] opacity-50" />
 
         <div className="relative container mx-auto px-4 py-6 md:py-12">
           {/* Top Bar */}
@@ -91,9 +91,9 @@ const Index = () => {
             transition={{ delay: 0.1 }}
             className="text-center mb-6 md:mb-8"
           >
-            <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-3 md:mb-4">
-              <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-amber-400" />
-              <span className="text-xs md:text-sm font-medium text-amber-400">Veículos Exclusivos</span>
+            <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-3 md:mb-4">
+              <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
+              <span className="text-xs md:text-sm font-medium text-cyan-400">Veículos Exclusivos</span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4 leading-tight">
               Encontre seu próximo
@@ -130,7 +130,7 @@ const Index = () => {
                 onClick={() => setShowFilters(!showFilters)}
                 className={`h-12 md:h-14 w-12 md:w-14 rounded-xl flex items-center justify-center transition-all flex-shrink-0 ${
                   showFilters || hasActiveFilters
-                    ? 'bg-amber-500 text-slate-950'
+                    ? 'bg-cyan-500 text-slate-950'
                     : 'bg-white/5 border border-white/10 text-muted-foreground hover:text-white hover:bg-white/10'
                 }`}
               >
@@ -154,7 +154,7 @@ const Index = () => {
                       <button
                         onClick={() => setSelectedBrand('')}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                          !selectedBrand ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                          !selectedBrand ? 'bg-cyan-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                         }`}
                       >
                         Todas
@@ -164,7 +164,7 @@ const Index = () => {
                           key={brand}
                           onClick={() => setSelectedBrand(brand)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                            selectedBrand === brand ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                            selectedBrand === brand ? 'bg-cyan-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                           }`}
                         >
                           {brand}
@@ -182,7 +182,7 @@ const Index = () => {
                       <button
                         onClick={() => setSelectedYear('')}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                          !selectedYear ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                          !selectedYear ? 'bg-cyan-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                         }`}
                       >
                         Todos
@@ -192,7 +192,7 @@ const Index = () => {
                           key={year}
                           onClick={() => setSelectedYear(year.toString())}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                            selectedYear === year.toString() ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                            selectedYear === year.toString() ? 'bg-cyan-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                           }`}
                         >
                           {year}
@@ -230,10 +230,10 @@ const Index = () => {
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
-                  <button onClick={handleResetFilters} className="text-xs text-muted-foreground hover:text-amber-400 transition-colors">
+                  <button onClick={handleResetFilters} className="text-xs text-muted-foreground hover:text-cyan-400 transition-colors">
                     Limpar filtros
                   </button>
-                  <button onClick={() => setShowFilters(false)} className="text-xs text-amber-400 font-medium hover:text-amber-300 transition-colors">
+                  <button onClick={() => setShowFilters(false)} className="text-xs text-cyan-400 font-medium hover:text-cyan-300 transition-colors">
                     Aplicar
                   </button>
                 </div>
@@ -245,21 +245,21 @@ const Index = () => {
               <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 mt-3 flex-wrap">
                 <span className="text-xs text-muted-foreground">Filtros:</span>
                 {selectedBrand && (
-                  <button onClick={() => setSelectedBrand('')} className="badge-premium flex items-center gap-1 hover:border-amber-500/50 transition-colors">
+                  <button onClick={() => setSelectedBrand('')} className="badge-premium flex items-center gap-1 hover:border-cyan-500/50 transition-colors">
                     {selectedBrand} <X className="w-3 h-3" />
                   </button>
                 )}
                 {selectedYear && (
-                  <button onClick={() => setSelectedYear('')} className="badge-premium flex items-center gap-1 hover:border-amber-500/50 transition-colors">
+                  <button onClick={() => setSelectedYear('')} className="badge-premium flex items-center gap-1 hover:border-cyan-500/50 transition-colors">
                     {selectedYear} <X className="w-3 h-3" />
                   </button>
                 )}
                 {(minPrice > 0 || maxPrice > 0) && (
-                  <button onClick={() => { setMinPrice(0); setMaxPrice(0); }} className="badge-premium flex items-center gap-1 hover:border-amber-500/50 transition-colors">
+                  <button onClick={() => { setMinPrice(0); setMaxPrice(0); }} className="badge-premium flex items-center gap-1 hover:border-cyan-500/50 transition-colors">
                     {minPrice > 0 ? formatPrice(minPrice) : 'R$ 0'} - {maxPrice > 0 ? formatPrice(maxPrice) : '∞'} <X className="w-3 h-3" />
                   </button>
                 )}
-                <button onClick={handleResetFilters} className="text-xs text-amber-400 hover:text-amber-300 underline">
+                <button onClick={handleResetFilters} className="text-xs text-cyan-400 hover:text-cyan-300 underline">
                   Limpar
                 </button>
               </motion.div>
@@ -303,7 +303,7 @@ const Index = () => {
             animate={{ opacity: 1 }}
             className="flex flex-col items-center justify-center py-16 md:py-20 text-center"
           >
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-cyan-500/10 flex items-center justify-center mb-4">
               <img src="/favicon.ico" alt="Logo" className="w-8 h-8 md:w-10 md:h-10" />
             </div>
             <h3 className="text-lg md:text-xl font-semibold text-white mb-2">
@@ -332,14 +332,14 @@ const Index = () => {
               </span>
             </div>
             <div className="flex items-center gap-4 md:gap-6">
-              <a href={`https://wa.me/${store.whatsapp || '5546991163405'}`} target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors">
+              <a href={`https://wa.me/${store.whatsapp || '5546991163405'}`} target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors">
                 WhatsApp
               </a>
-              <a href="https://instagram.com/zailonsoft" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors flex items-center gap-1">
+              <a href="https://instagram.com/nilosistema" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors flex items-center gap-1">
                 <Instagram className="w-3 h-3 md:w-4 md:h-4" />
-                @zailonsoft
+                @nilosistema
               </a>
-              <Link to="/" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors">
+              <Link to="/" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors">
                 Sobre
               </Link>
             </div>

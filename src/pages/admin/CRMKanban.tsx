@@ -197,7 +197,7 @@ const CRMKanban = () => {
                 </div>
 
                 <div className="mb-3 p-2 rounded-xl bg-white/[0.02]">
-                  <p className="text-xs text-muted-foreground">Total: <span className={`font-semibold ${totalValue > 0 ? 'text-amber-400' : ''}`}>{formatPrice(totalValue)}</span></p>
+                  <p className="text-xs text-muted-foreground">Total: <span className={`font-semibold ${totalValue > 0 ? 'text-cyan-400' : ''}`}>{formatPrice(totalValue)}</span></p>
                 </div>
 
                 <div className="space-y-2">
@@ -207,11 +207,11 @@ const CRMKanban = () => {
                     return (
                       <motion.div key={lead.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: colIndex * 0.05 + leadIndex * 0.03 }}
                         onClick={() => openLeadDetail(lead)}
-                        className={`glass-card p-3 rounded-xl cursor-pointer group ${isHighValue ? 'border-amber-500/30' : ''}`}>
+                        className={`glass-card p-3 rounded-xl cursor-pointer group ${isHighValue ? 'border-cyan-500/30' : ''}`}>
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2 min-w-0">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400/20 to-orange-400/20 flex items-center justify-center flex-shrink-0">
-                              <span className="text-amber-400 text-sm font-semibold">{lead.name.charAt(0)}</span>
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400/20 to-blue-400/20 flex items-center justify-center flex-shrink-0">
+                              <span className="text-cyan-400 text-sm font-semibold">{lead.name.charAt(0)}</span>
                             </div>
                             <div className="min-w-0">
                               <p className="font-medium text-white text-sm truncate">{lead.name}</p>
@@ -219,7 +219,7 @@ const CRMKanban = () => {
                             </div>
                           </div>
                           <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium flex-shrink-0 ${
-                            lead.priority === 'high' ? 'bg-red-500/20 text-red-400' : lead.priority === 'medium' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'
+                            lead.priority === 'high' ? 'bg-red-500/20 text-red-400' : lead.priority === 'medium' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-500/20 text-blue-400'
                           }`} title="Chance de venda">{priorityLabels[lead.priority]}</span>
                         </div>
 
@@ -236,7 +236,7 @@ const CRMKanban = () => {
                         )}
 
                         <div className="flex items-center justify-between mb-2">
-                          <span className={`font-semibold text-xs ${isHighValue ? 'text-amber-400' : 'text-white'}`}>{formatPrice(leadValue)}</span>
+                          <span className={`font-semibold text-xs ${isHighValue ? 'text-cyan-400' : 'text-white'}`}>{formatPrice(leadValue)}</span>
                           <span className="text-[10px] text-muted-foreground">{new Date(lead.createdAt).toLocaleDateString('pt-BR')}</span>
                         </div>
 
@@ -296,7 +296,7 @@ const CRMKanban = () => {
                 <div>
                   <label className="block text-sm text-muted-foreground mb-1">Veículo de interesse</label>
                   <select value={newVehicle} onChange={e => setNewVehicle(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500/50" style={{ colorScheme: 'dark' }}>
+                    className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50" style={{ colorScheme: 'dark' }}>
                     <option value="">Selecionar veículo</option>
                     {vehicles.map(v => (<option key={v.id} value={v.id}>{v.name} - {formatPrice(v.price)}</option>))}
                   </select>
@@ -308,7 +308,7 @@ const CRMKanban = () => {
                       <button key={p} onClick={() => setNewPriority(p)}
                         className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
                           newPriority === p
-                            ? p === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : p === 'medium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                            ? p === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : p === 'medium' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                             : 'bg-white/5 text-muted-foreground border border-white/10'
                         }`}>
                         {p === 'high' ? 'Alta' : p === 'medium' ? 'Média' : 'Baixa'}
@@ -337,7 +337,7 @@ const CRMKanban = () => {
                 <h3 className="text-lg font-semibold text-white">{isEditing ? 'Editar Lead' : 'Detalhes do Lead'}</h3>
                 <div className="flex items-center gap-2">
                   {!isEditing && (
-                    <button onClick={() => setIsEditing(true)} className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400 hover:bg-amber-500/20">
+                    <button onClick={() => setIsEditing(true)} className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400 hover:bg-cyan-500/20">
                       <Edit className="w-4 h-4" />
                     </button>
                   )}
@@ -350,8 +350,8 @@ const CRMKanban = () => {
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {/* Lead header */}
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400/20 to-orange-400/20 flex items-center justify-center">
-                    <span className="text-amber-400 text-xl font-semibold">{selectedLead.name.charAt(0)}</span>
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-400/20 to-blue-400/20 flex items-center justify-center">
+                    <span className="text-cyan-400 text-xl font-semibold">{selectedLead.name.charAt(0)}</span>
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-white">{selectedLead.name}</h2>
@@ -364,17 +364,17 @@ const CRMKanban = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 rounded-xl bg-white/[0.02]">
                     <div className="flex items-center gap-2 mb-1">
-                      <Car className="w-4 h-4 text-amber-400" />
+                      <Car className="w-4 h-4 text-cyan-400" />
                       <span className="text-xs text-muted-foreground">Veículo de Interesse</span>
                     </div>
                     <p className="text-sm font-medium text-white truncate">{selectedLead.vehicleName}</p>
                   </div>
                   <div className="p-3 rounded-xl bg-white/[0.02]">
                     <div className="flex items-center gap-2 mb-1">
-                      <DollarSign className="w-4 h-4 text-amber-400" />
+                      <DollarSign className="w-4 h-4 text-cyan-400" />
                       <span className="text-xs text-muted-foreground">Valor</span>
                     </div>
-                    <p className="text-sm font-medium text-amber-400">{formatPrice(getLeadValue(selectedLead))}</p>
+                    <p className="text-sm font-medium text-cyan-400">{formatPrice(getLeadValue(selectedLead))}</p>
                   </div>
                 </div>
 
@@ -384,7 +384,7 @@ const CRMKanban = () => {
                     <div>
                       <label className="block text-sm font-medium text-muted-foreground mb-2">Status do Lead</label>
                       <select value={editStatus} onChange={(e) => setEditStatus(e.target.value as Lead['status'])}
-                        className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500/50" style={{ colorScheme: 'dark' }}>
+                        className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50" style={{ colorScheme: 'dark' }}>
                         {Object.entries(statusLabels).map(([key, label]) => (
                           <option key={key} value={key}>{label}</option>
                         ))}
@@ -398,7 +398,7 @@ const CRMKanban = () => {
                           <button key={p} onClick={() => setEditPriority(p)}
                             className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
                               editPriority === p
-                                ? p === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : p === 'medium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                ? p === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : p === 'medium' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                                 : 'bg-white/5 text-muted-foreground border border-white/10'
                             }`}>
                             {p === 'high' ? '🔥 Alta' : p === 'medium' ? '⚡ Média' : '❄️ Baixa'}
@@ -410,7 +410,7 @@ const CRMKanban = () => {
                     <div>
                       <label className="block text-sm font-medium text-muted-foreground mb-2">Tipo de Negociação</label>
                       <select value={editDealType} onChange={(e) => setEditDealType(e.target.value)}
-                        className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500/50" style={{ colorScheme: 'dark' }}>
+                        className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50" style={{ colorScheme: 'dark' }}>
                         <option value="">Não informado</option>
                         <option value="financiamento">Financiamento</option>
                         <option value="a_vista">À Vista</option>
@@ -433,7 +433,7 @@ const CRMKanban = () => {
                         {statusLabels[selectedLead.status]}
                       </span>
                       <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                        selectedLead.priority === 'high' ? 'bg-red-500/20 text-red-400' : selectedLead.priority === 'medium' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'
+                        selectedLead.priority === 'high' ? 'bg-red-500/20 text-red-400' : selectedLead.priority === 'medium' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-500/20 text-blue-400'
                       }`}>
                         Chance: {priorityLabels[selectedLead.priority]}
                       </span>
@@ -475,10 +475,10 @@ const CRMKanban = () => {
                     )}
 
                     {selectedLead.dealType === 'a_vista' && selectedLead.cashDetails && (
-                      <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-2">
+                      <div className="p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/20 space-y-2">
                         <div className="flex items-center gap-2 mb-1">
-                          <DollarSign className="w-4 h-4 text-amber-400" />
-                          <p className="text-sm font-semibold text-amber-400">Pagamento à Vista</p>
+                          <DollarSign className="w-4 h-4 text-cyan-400" />
+                          <p className="text-sm font-semibold text-cyan-400">Pagamento à Vista</p>
                         </div>
                         {selectedLead.cashDetails.offered_value != null && (
                           <div className="flex justify-between text-sm">
@@ -578,7 +578,7 @@ const CRMKanban = () => {
                     {selectedLead.cnhUrl && (
                       <a href={selectedLead.cnhUrl} target="_blank" rel="noopener noreferrer"
                         className="flex items-center gap-2 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] transition-colors">
-                        <Download className="w-4 h-4 text-amber-400" />
+                        <Download className="w-4 h-4 text-cyan-400" />
                         <span className="text-sm text-white">Ver CNH enviada</span>
                       </a>
                     )}
@@ -586,7 +586,7 @@ const CRMKanban = () => {
                     {selectedLead.tags && selectedLead.tags.length > 0 && (
                       <div className="flex gap-1 flex-wrap">
                         {selectedLead.tags.map((tag, i) => (
-                          <span key={i} className="px-2 py-0.5 rounded text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">{tag}</span>
+                          <span key={i} className="px-2 py-0.5 rounded text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">{tag}</span>
                         ))}
                       </div>
                     )}

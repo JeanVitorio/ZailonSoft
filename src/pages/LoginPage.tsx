@@ -101,7 +101,7 @@ const LoginPage = () => {
             <button
               onClick={() => setMode('login')}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                mode === 'login' ? 'bg-amber-500 text-slate-950' : 'text-muted-foreground'
+                mode === 'login' ? 'bg-cyan-500 text-slate-950' : 'text-muted-foreground'
               }`}
             >
               Entrar
@@ -109,7 +109,7 @@ const LoginPage = () => {
             <button
               onClick={() => setMode('signup')}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                mode === 'signup' ? 'bg-amber-500 text-slate-950' : 'text-muted-foreground'
+                mode === 'signup' ? 'bg-cyan-500 text-slate-950' : 'text-muted-foreground'
               }`}
             >
               Criar conta
@@ -230,7 +230,7 @@ const LoginPage = () => {
 
           <div className="mt-8 text-center">
             <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-amber-400 transition-colors">
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-cyan-400 transition-colors">
               <MessageCircle className="w-4 h-4" /> Precisa de ajuda? Fale conosco
             </a>
           </div>
@@ -239,7 +239,7 @@ const LoginPage = () => {
 
       {/* Right Panel */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-transparent" />
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200')] bg-cover bg-center opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
 

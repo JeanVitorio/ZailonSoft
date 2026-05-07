@@ -28,7 +28,7 @@ const MainLayout = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -90,11 +90,11 @@ const MainLayout = () => {
                 to={item.path}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
                   isItemActive
-                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                    ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
                     : 'text-muted-foreground hover:text-white hover:bg-white/5'
                 }`}
               >
-                <item.icon className={`w-5 h-5 ${isItemActive ? 'text-amber-400' : 'group-hover:text-amber-400'}`} />
+                <item.icon className={`w-5 h-5 ${isItemActive ? 'text-cyan-400' : 'group-hover:text-cyan-400'}`} />
                 <span className="font-medium">{item.label}</span>
                 {isItemActive && <ChevronRight className="w-4 h-4 ml-auto" />}
               </Link>
@@ -104,8 +104,8 @@ const MainLayout = () => {
 
         <div className="p-4 border-t border-white/5">
           <div className="flex items-center gap-3 px-4 py-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/20 to-orange-400/20 flex items-center justify-center">
-              <span className="text-amber-400 font-semibold">{user?.email?.charAt(0).toUpperCase() || 'A'}</span>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400/20 to-blue-400/20 flex items-center justify-center">
+              <span className="text-cyan-400 font-semibold">{user?.email?.charAt(0).toUpperCase() || 'A'}</span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{user?.email || 'Usuário'}</p>
@@ -191,7 +191,7 @@ const MainLayout = () => {
                       onClick={() => setSidebarOpen(false)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                         isItemActive
-                          ? 'bg-amber-500/10 text-amber-400'
+                          ? 'bg-cyan-500/10 text-cyan-400'
                           : 'text-muted-foreground hover:text-white hover:bg-white/5'
                       }`}
                     >

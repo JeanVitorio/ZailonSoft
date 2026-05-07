@@ -50,8 +50,8 @@ export const Filters: React.FC<FiltersProps> = ({
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                    <Filter className="w-5 h-5 text-amber-400" />
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                    <Filter className="w-5 h-5 text-cyan-400" />
                   </div>
                   <h2 className="text-xl font-bold text-white">Filtros</h2>
                 </div>
@@ -75,7 +75,7 @@ export const Filters: React.FC<FiltersProps> = ({
                       onClick={() => onFilterChange('brand', '')}
                       className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                         filters.brand === ''
-                          ? 'bg-amber-500 text-slate-950'
+                          ? 'bg-cyan-500 text-slate-950'
                           : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                       }`}
                     >
@@ -87,7 +87,7 @@ export const Filters: React.FC<FiltersProps> = ({
                         onClick={() => onFilterChange('brand', brand)}
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                           filters.brand === brand
-                            ? 'bg-amber-500 text-slate-950'
+                            ? 'bg-cyan-500 text-slate-950'
                             : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                         }`}
                       >
@@ -107,7 +107,7 @@ export const Filters: React.FC<FiltersProps> = ({
                       onClick={() => onFilterChange('year', '')}
                       className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                         filters.year === ''
-                          ? 'bg-amber-500 text-slate-950'
+                          ? 'bg-cyan-500 text-slate-950'
                           : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                       }`}
                     >
@@ -119,7 +119,7 @@ export const Filters: React.FC<FiltersProps> = ({
                         onClick={() => onFilterChange('year', year.toString())}
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                           filters.year === year.toString()
-                            ? 'bg-amber-500 text-slate-950'
+                            ? 'bg-cyan-500 text-slate-950'
                             : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                         }`}
                       >
@@ -139,7 +139,7 @@ export const Filters: React.FC<FiltersProps> = ({
                       onClick={() => onFilterChange('fuel', '')}
                       className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                         filters.fuel === ''
-                          ? 'bg-amber-500 text-slate-950'
+                          ? 'bg-cyan-500 text-slate-950'
                           : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                       }`}
                     >
@@ -151,7 +151,7 @@ export const Filters: React.FC<FiltersProps> = ({
                         onClick={() => onFilterChange('fuel', fuel)}
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                           filters.fuel === fuel
-                            ? 'bg-amber-500 text-slate-950'
+                            ? 'bg-cyan-500 text-slate-950'
                             : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                         }`}
                       >
@@ -174,7 +174,7 @@ export const Filters: React.FC<FiltersProps> = ({
                         value={filters.minPrice || ''}
                         onChange={(e) => onFilterChange('minPrice', parseInt(e.target.value) || 0)}
                         placeholder="R$ 0"
-                        className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-muted-foreground focus:outline-none focus:border-amber-500/50"
+                        className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50"
                       />
                     </div>
                     <div>
@@ -184,7 +184,7 @@ export const Filters: React.FC<FiltersProps> = ({
                         value={filters.maxPrice || ''}
                         onChange={(e) => onFilterChange('maxPrice', parseInt(e.target.value) || 0)}
                         placeholder="Sem limite"
-                        className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-muted-foreground focus:outline-none focus:border-amber-500/50"
+                        className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-muted-foreground focus:outline-none focus:border-cyan-500/50"
                       />
                     </div>
                   </div>

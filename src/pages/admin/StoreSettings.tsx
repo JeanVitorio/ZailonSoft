@@ -157,7 +157,7 @@ const StoreSettings = () => {
         {tabs.map((tab) => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all text-sm ${
-              activeTab === tab.id ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white'
+              activeTab === tab.id ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white'
             }`}>
             <tab.icon className="w-4 h-4" />
             <span className="hidden sm:inline">{tab.label}</span>
@@ -232,20 +232,20 @@ const StoreSettings = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 md:space-y-6">
           <div className="glass-card rounded-2xl p-4 md:p-6">
             <h2 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-amber-400" /> Horário de Funcionamento
+              <Clock className="w-5 h-5 text-cyan-400" /> Horário de Funcionamento
             </h2>
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-muted-foreground mb-2">Abre às</label>
                 <select value={openTime} onChange={(e) => setOpenTime(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white focus:outline-none focus:border-amber-500/50" style={{ colorScheme: 'dark' }}>
+                  className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" style={{ colorScheme: 'dark' }}>
                   {hours.map(h => (<option key={h.value} value={h.value}>{h.label}</option>))}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-muted-foreground mb-2">Fecha às</label>
                 <select value={closeTime} onChange={(e) => setCloseTime(e.target.value)}
-                  className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white focus:outline-none focus:border-amber-500/50" style={{ colorScheme: 'dark' }}>
+                  className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" style={{ colorScheme: 'dark' }}>
                   {hours.map(h => (<option key={h.value} value={h.value}>{h.label}</option>))}
                 </select>
               </div>
@@ -269,7 +269,7 @@ const StoreSettings = () => {
 
           <div className="glass-card rounded-2xl p-4 md:p-6">
             <h2 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-amber-400" /> Datas Específicas Bloqueadas
+              <Calendar className="w-5 h-5 text-cyan-400" /> Datas Específicas Bloqueadas
             </h2>
             <div className="flex flex-col sm:flex-row gap-2 mb-4">
               <Input type="date" value={newBlockedDate} onChange={(e) => setNewBlockedDate(e.target.value)} className="flex-1 h-12" />
@@ -315,8 +315,8 @@ const StoreSettings = () => {
                 {sellers.map((seller, index) => (
                   <motion.div key={seller.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}
                     className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors group">
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-amber-400/20 to-orange-400/20 flex items-center justify-center flex-shrink-0">
-                      <span className="text-amber-400 font-semibold text-base md:text-lg">{seller.name.charAt(0)}</span>
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-cyan-400/20 to-blue-400/20 flex items-center justify-center flex-shrink-0">
+                      <span className="text-cyan-400 font-semibold text-base md:text-lg">{seller.name.charAt(0)}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-white text-sm md:text-base">{seller.name}</p>

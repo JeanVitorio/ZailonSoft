@@ -41,7 +41,7 @@ export const VehiclePostCard: React.FC<VehiclePostCardProps> = ({ vehicle, index
             
             {/* Video Icon */}
             {hasVideo && (
-              <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center border border-white/20 group-hover:bg-amber-500/20 group-hover:border-amber-500/40 transition-all">
+              <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center border border-white/20 group-hover:bg-cyan-500/20 group-hover:border-cyan-500/40 transition-all">
                 <Play className="w-4 h-4 text-white fill-white" />
               </div>
             )}
@@ -51,7 +51,7 @@ export const VehiclePostCard: React.FC<VehiclePostCardProps> = ({ vehicle, index
               <div className="absolute top-4 left-4">
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                   vehicle.status === 'reserved' 
-                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
                     : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                 }`}>
                   {vehicle.status === 'reserved' ? 'Reservado' : 'Vendido'}
@@ -73,7 +73,7 @@ export const VehiclePostCard: React.FC<VehiclePostCardProps> = ({ vehicle, index
                 </div>
               </div>
               
-              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-amber-400 transition-colors">
+              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">
                 {vehicle.name}
               </h3>
               
@@ -84,7 +84,7 @@ export const VehiclePostCard: React.FC<VehiclePostCardProps> = ({ vehicle, index
                 <motion.div
                   initial={{ x: -5, opacity: 0 }}
                   whileHover={{ x: 0, opacity: 1 }}
-                  className="flex items-center text-amber-400 text-sm font-medium"
+                  className="flex items-center text-cyan-400 text-sm font-medium"
                 >
                   Ver detalhes
                   <ChevronRight className="w-4 h-4 ml-1" />

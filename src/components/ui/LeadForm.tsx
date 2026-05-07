@@ -300,11 +300,11 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-amber-500/10 flex items-center justify-center mb-4 md:mb-6"
+              className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-cyan-500/10 flex items-center justify-center mb-4 md:mb-6"
             >
               <span className="text-3xl md:text-4xl">👋</span>
             </motion.div>
-            <h3 className="text-xl md:text-2xl font-bold text-white mb-3">Oi! Eu sou o Zailon</h3>
+            <h3 className="text-xl md:text-2xl font-bold text-white mb-3">Olá! Sou da equipe NILO</h3>
             <p className="text-sm md:text-base text-muted-foreground max-w-sm leading-relaxed">
               Assistente da loja. Vou te fazer algumas perguntas rápidas pra te ajudar com esse carro, tudo bem?
             </p>
@@ -315,7 +315,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
         return (
           <div className="space-y-4 md:space-y-5">
             <h3 className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
-              <User className="w-5 h-5 text-amber-400" />
+              <User className="w-5 h-5 text-cyan-400" />
               Seus dados
             </h3>
             <div>
@@ -367,15 +367,15 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
                   onClick={() => updateField('interestType', opt.type)}
                   className={`p-4 md:p-6 rounded-2xl border transition-all text-center ${
                     formData.interestType === opt.type
-                      ? 'border-amber-500/50 bg-amber-500/10 glow-amber'
+                      ? 'border-cyan-500/50 bg-cyan-500/10 glow-amber'
                       : 'border-white/6 bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]'
                   }`}
                 >
                   <opt.icon className={`w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 ${
-                    formData.interestType === opt.type ? 'text-amber-400' : 'text-muted-foreground'
+                    formData.interestType === opt.type ? 'text-cyan-400' : 'text-muted-foreground'
                   }`} />
                   <span className={`text-sm md:text-base font-medium ${
-                    formData.interestType === opt.type ? 'text-amber-400' : 'text-white'
+                    formData.interestType === opt.type ? 'text-cyan-400' : 'text-white'
                   }`}>
                     {opt.label}
                   </span>
@@ -389,12 +389,12 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
         return (
           <div className="space-y-4 md:space-y-5">
             <h3 className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-amber-400" />
+              <CreditCard className="w-5 h-5 text-cyan-400" />
               Simulação de Financiamento
             </h3>
             <div className="glass-card rounded-xl p-4">
               <p className="text-xs text-muted-foreground mb-1">Valor do veículo</p>
-              <p className="text-lg font-bold text-amber-400">{formatPrice(vehicle.price)}</p>
+              <p className="text-lg font-bold text-cyan-400">{formatPrice(vehicle.price)}</p>
             </div>
             <div>
               <label className="block text-sm text-muted-foreground mb-1.5">Valor de entrada</label>
@@ -409,7 +409,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
               />
               {errors.downPayment && <p className="text-xs text-red-400 mt-1">{errors.downPayment}</p>}
               {dpNum > 0 && dpNum < vehicle.price * 0.3 && (
-                <p className="text-xs text-amber-400 mt-1">⚠️ Entrada abaixo de 30% pode dificultar aprovação</p>
+                <p className="text-xs text-cyan-400 mt-1">⚠️ Entrada abaixo de 30% pode dificultar aprovação</p>
               )}
             </div>
             <div>
@@ -421,7 +421,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
                     onClick={() => updateField('installments', n)}
                     className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                       formData.installments === n
-                        ? 'bg-amber-500 text-slate-950'
+                        ? 'bg-cyan-500 text-slate-950'
                         : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                     }`}
                   >
@@ -442,7 +442,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
                 </div>
                 <div className="border-t border-white/5 pt-2 flex justify-between text-sm">
                   <span className="text-muted-foreground">≈ Parcela</span>
-                  <span className="text-amber-400 font-bold">{formatPrice(Math.ceil(toFinance / formData.installments))}/mês</span>
+                  <span className="text-cyan-400 font-bold">{formatPrice(Math.ceil(toFinance / formData.installments))}/mês</span>
                 </div>
               </div>
             )}
@@ -453,7 +453,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
         return (
           <div className="space-y-4 md:space-y-5">
             <h3 className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
-              <Car className="w-5 h-5 text-amber-400" />
+              <Car className="w-5 h-5 text-cyan-400" />
               Dados do veículo de troca
             </h3>
             <div className="grid grid-cols-2 gap-3">
@@ -520,7 +520,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
               </div>
               <div className="border-t border-white/5 pt-2 flex justify-between text-sm">
                 <span className="text-muted-foreground">Diferença</span>
-                <span className="text-amber-400 font-bold">{formatPrice(vehicle.price - parseCurrency(formData.tradeValue))}</span>
+                <span className="text-cyan-400 font-bold">{formatPrice(vehicle.price - parseCurrency(formData.tradeValue))}</span>
               </div>
             </div>
             {errors.tradeDifference && <p className="text-xs text-red-400">{errors.tradeDifference}</p>}
@@ -530,11 +530,11 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
                 onClick={() => updateField('tradeDifference', 'cash')}
                 className={`p-4 md:p-5 rounded-2xl border transition-all text-center ${
                   formData.tradeDifference === 'cash'
-                    ? 'border-amber-500/50 bg-amber-500/10'
+                    ? 'border-cyan-500/50 bg-cyan-500/10'
                     : 'border-white/6 bg-white/[0.02]'
                 }`}
               >
-                <DollarSign className="w-6 h-6 mx-auto mb-2 text-amber-400" />
+                <DollarSign className="w-6 h-6 mx-auto mb-2 text-cyan-400" />
                 <span className="text-sm font-medium text-white">À vista</span>
               </motion.button>
               <motion.button
@@ -542,7 +542,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
                 onClick={() => updateField('tradeDifference', 'financing')}
                 className={`p-4 md:p-5 rounded-2xl border transition-all text-center ${
                   formData.tradeDifference === 'financing'
-                    ? 'border-amber-500/50 bg-amber-500/10'
+                    ? 'border-cyan-500/50 bg-cyan-500/10'
                     : 'border-white/6 bg-white/[0.02]'
                 }`}
               >
@@ -557,7 +557,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
         return (
           <div className="space-y-4 md:space-y-5">
             <h3 className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
-              <CalendarDays className="w-5 h-5 text-amber-400" />
+              <CalendarDays className="w-5 h-5 text-cyan-400" />
               Agende sua visita
             </h3>
             <div>
@@ -580,7 +580,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
                     onClick={() => updateField('visitTime', t)}
                     className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
                       formData.visitTime === t
-                        ? 'bg-amber-500 text-slate-950'
+                        ? 'bg-cyan-500 text-slate-950'
                         : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                     }`}
                   >
@@ -597,7 +597,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
         return (
           <div className="space-y-4 md:space-y-5">
             <h3 className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
-              <FileImage className="w-5 h-5 text-amber-400" />
+              <FileImage className="w-5 h-5 text-cyan-400" />
               Documentação (CNH)
             </h3>
             <p className="text-sm text-muted-foreground">Envie uma foto da sua CNH para agilizar o processo.</p>
@@ -614,7 +614,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
               </div>
             ) : (
               <label className={`flex flex-col items-center justify-center p-8 md:p-12 rounded-2xl border-2 border-dashed cursor-pointer transition-all ${
-                errors.cnhFile ? 'border-red-500/50 bg-red-500/5' : 'border-white/10 bg-white/[0.02] hover:border-amber-500/30 hover:bg-amber-500/5'
+                errors.cnhFile ? 'border-red-500/50 bg-red-500/5' : 'border-white/10 bg-white/[0.02] hover:border-cyan-500/30 hover:bg-cyan-500/5'
               }`}>
                 <Upload className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground mb-3" />
                 <span className="text-sm text-muted-foreground text-center">
@@ -647,7 +647,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Negociação</span>
-                <span className="text-amber-400 font-medium capitalize">{
+                <span className="text-cyan-400 font-medium capitalize">{
                   formData.interestType === 'cash' ? 'À vista' :
                   formData.interestType === 'financing' ? 'Financiamento' :
                   formData.interestType === 'trade' ? 'Troca' : 'Visita'
@@ -683,7 +683,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
               </div>
               <input type="checkbox" className="hidden" checked={formData.lgpdConsent} onChange={(e) => updateField('lgpdConsent', e.target.checked)} />
               <span className="text-xs text-muted-foreground leading-relaxed">
-                <Shield className="w-3 h-3 inline mr-1 text-amber-400" />
+                <Shield className="w-3 h-3 inline mr-1 text-cyan-400" />
                 Autorizo o uso dos meus dados conforme a LGPD (Lei Geral de Proteção de Dados) para fins de contato comercial.
               </span>
             </label>
@@ -730,7 +730,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-white truncate">{vehicle.name}</p>
-                  <p className="text-xs text-amber-400 font-medium">{formatPrice(vehicle.price)}</p>
+                  <p className="text-xs text-cyan-400 font-medium">{formatPrice(vehicle.price)}</p>
                 </div>
                 <button
                   onClick={handleClose}
@@ -742,7 +742,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
               {/* Progress */}
               <div className="mt-3 h-1 bg-white/5 rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-amber-500 to-orange-400 rounded-full"
+                  className="h-full bg-gradient-to-r from-cyan-500 to-blue-400 rounded-full"
                   animate={{ width: `${progressPercent}%` }}
                   transition={{ duration: 0.4, ease: 'easeOut' }}
                 />

@@ -93,7 +93,7 @@ const HomePage = () => {
         {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 rounded-full bg-amber-500/20"
+            className="absolute w-1 h-1 rounded-full bg-cyan-500/20"
             style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
             animate={{
               y: [0, -30, 0],
@@ -104,17 +104,17 @@ const HomePage = () => {
         ))}
         {/* Road lines animation */}
         <motion.div
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] h-32 bg-gradient-to-t from-amber-500/20 to-transparent"
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] h-32 bg-gradient-to-t from-cyan-500/20 to-transparent"
           animate={{ y: [-200, 800] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
         />
         <motion.div
-          className="absolute bottom-0 left-[30%] w-[2px] h-20 bg-gradient-to-t from-amber-500/10 to-transparent"
+          className="absolute bottom-0 left-[30%] w-[2px] h-20 bg-gradient-to-t from-cyan-500/10 to-transparent"
           animate={{ y: [-100, 800] }}
           transition={{ duration: 4, repeat: Infinity, ease: 'linear', delay: 1 }}
         />
         <motion.div
-          className="absolute bottom-0 left-[70%] w-[2px] h-20 bg-gradient-to-t from-amber-500/10 to-transparent"
+          className="absolute bottom-0 left-[70%] w-[2px] h-20 bg-gradient-to-t from-cyan-500/10 to-transparent"
           animate={{ y: [-100, 800] }}
           transition={{ duration: 3.5, repeat: Infinity, ease: 'linear', delay: 2 }}
         />
@@ -156,7 +156,7 @@ const HomePage = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-transparent to-background/60" />
         </motion.div>
 
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[90vw] md:w-[900px] h-[300px] md:h-[500px] bg-amber-500/8 rounded-full blur-[100px] md:blur-[150px] z-0" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[90vw] md:w-[900px] h-[300px] md:h-[500px] bg-cyan-500/8 rounded-full blur-[100px] md:blur-[150px] z-0" />
 
         <div className="relative z-10 container mx-auto px-4 text-center">
           <motion.div
@@ -173,9 +173,9 @@ const HomePage = () => {
               <span className="text-[11px] sm:text-sm font-medium text-red-400">🔥 Vagas limitadas — Oferta de lançamento</span>
             </motion.div>
 
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-4 sm:mb-6 backdrop-blur-sm">
-              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
-              <span className="text-[11px] sm:text-sm font-medium text-amber-400">Plataforma SaaS para Lojas de Veículos</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-4 sm:mb-6 backdrop-blur-sm">
+              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400" />
+              <span className="text-[11px] sm:text-sm font-medium text-cyan-400">Plataforma SaaS para Lojas de Veículos</span>
             </div>
 
             <h1 className="text-[2rem] sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-[1.1]" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
@@ -208,7 +208,7 @@ const HomePage = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} className="mt-10 sm:mt-16">
-            <a href="#features" className="inline-flex flex-col items-center text-white/50 hover:text-amber-400 transition-colors">
+            <a href="#features" className="inline-flex flex-col items-center text-white/50 hover:text-cyan-400 transition-colors">
               <span className="text-xs sm:text-sm mb-2">Saiba mais</span>
               <ChevronDown className="w-5 h-5 animate-bounce" />
             </a>
@@ -257,9 +257,9 @@ const HomePage = () => {
       <section id="features" className="py-20 relative">
         <div className="container mx-auto px-4">
           <AnimatedSection className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-4">
-              <Gauge className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-medium text-amber-400">Tudo que você precisa</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-4">
+              <Gauge className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm font-medium text-cyan-400">Tudo que você precisa</span>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Uma plataforma completa
@@ -272,9 +272,9 @@ const HomePage = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <AnimatedSection key={index} delay={index * 0.06}>
-                <div className="glass-card p-6 rounded-2xl group hover:border-amber-500/30 transition-all duration-300 h-full">
-                  <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center mb-4 group-hover:bg-amber-500/20 transition-colors">
-                    <feature.icon className="w-6 h-6 text-amber-400" />
+                <div className="glass-card p-6 rounded-2xl group hover:border-cyan-500/30 transition-all duration-300 h-full">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center mb-4 group-hover:bg-cyan-500/20 transition-colors">
+                    <feature.icon className="w-6 h-6 text-cyan-400" />
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
                   <p className="text-muted-foreground text-sm">{feature.description}</p>
@@ -287,7 +287,7 @@ const HomePage = () => {
 
       {/* How it works */}
       <section className="py-20 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent" />
         <div className="container mx-auto px-4">
           <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -299,15 +299,15 @@ const HomePage = () => {
             {steps.map((step, index) => (
               <AnimatedSection key={index} delay={index * 0.15}>
                 <div className="relative text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                    <step.icon className="w-7 h-7 text-amber-400" />
+                  <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mx-auto mb-4">
+                    <step.icon className="w-7 h-7 text-cyan-400" />
                   </div>
-                  <span className="text-xs text-amber-400 font-bold">{step.step}</span>
+                  <span className="text-xs text-cyan-400 font-bold">{step.step}</span>
                   <h3 className="text-lg font-semibold text-white mt-1 mb-2">{step.title}</h3>
                   <p className="text-sm text-muted-foreground">{step.description}</p>
                   {index < steps.length - 1 && (
                     <div className="hidden md:block absolute top-8 right-0 translate-x-1/2 w-8">
-                      <ArrowRight className="w-5 h-5 text-amber-500/30" />
+                      <ArrowRight className="w-5 h-5 text-cyan-500/30" />
                     </div>
                   )}
                 </div>
@@ -330,12 +330,12 @@ const HomePage = () => {
               <AnimatedSection key={index} delay={index * 0.1}>
                 <div className="glass-card p-6 rounded-2xl h-full flex flex-col">
                   <div className="flex gap-1 mb-4">
-                    {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />)}
+                    {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-cyan-400 fill-cyan-400" />)}
                   </div>
                   <p className="text-white/80 text-sm mb-4 flex-1">"{t.text}"</p>
                   <div className="flex items-center gap-3 pt-4 border-t border-white/5">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400/20 to-orange-400/20 flex items-center justify-center">
-                      <span className="text-amber-400 font-semibold">{t.name.charAt(0)}</span>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-400/20 flex items-center justify-center">
+                      <span className="text-cyan-400 font-semibold">{t.name.charAt(0)}</span>
                     </div>
                     <div>
                       <p className="text-white font-medium text-sm">{t.name}</p>
@@ -351,11 +351,11 @@ const HomePage = () => {
 
       {/* Plano - sem preço, contato direto */}
       <section className="py-20 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent" />
         <div className="container mx-auto px-4">
           <AnimatedSection>
             <div className="max-w-xl mx-auto glass-card p-6 sm:p-8 md:p-10 rounded-3xl text-center relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400" />
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400" />
               <p className="text-muted-foreground mb-2">Plano completo</p>
               <h3 className="text-3xl md:text-4xl font-bold text-gradient mb-4">Tudo incluso</h3>
               <p className="text-sm text-muted-foreground mb-6">Fale com nosso time para uma proposta personalizada para a sua loja.</p>
@@ -408,7 +408,7 @@ const HomePage = () => {
           ].map((faq, index) => (
             <AnimatedSection key={index} delay={index * 0.08}>
               <details className="glass-card rounded-xl mb-3 group">
-                <summary className="flex items-center justify-between p-4 cursor-pointer text-white font-medium hover:text-amber-400 transition-colors">
+                <summary className="flex items-center justify-between p-4 cursor-pointer text-white font-medium hover:text-cyan-400 transition-colors">
                   {faq.q}
                   <ChevronDown className="w-4 h-4 text-muted-foreground group-open:rotate-180 transition-transform" />
                 </summary>
@@ -424,10 +424,10 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <AnimatedSection>
             <div className="glass-card p-8 md:p-12 rounded-3xl text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10" />
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-cyan-500/10" />
               {/* Animated speed lines */}
               <motion.div
-                className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-amber-400/50 to-transparent"
+                className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"
                 animate={{ x: ['-100%', '100%'] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
               />
@@ -467,12 +467,12 @@ const HomePage = () => {
               <span className="text-sm text-muted-foreground">AutoConnect © {new Date().getFullYear()}</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link to="/demo" className="hover:text-amber-400 transition-colors">Demo</Link>
-              <Link to="/login" className="hover:text-amber-400 transition-colors">Entrar</Link>
-              <a href="https://instagram.com/zailonsoft" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors flex items-center gap-1">
-                <Instagram className="w-4 h-4" />@zailonsoft
+              <Link to="/demo" className="hover:text-cyan-400 transition-colors">Demo</Link>
+              <Link to="/login" className="hover:text-cyan-400 transition-colors">Entrar</Link>
+              <a href="https://instagram.com/nilosistema" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-400 transition-colors flex items-center gap-1">
+                <Instagram className="w-4 h-4" />@nilosistema
               </a>
-              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors">WhatsApp</a>
+              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-400 transition-colors">WhatsApp</a>
             </div>
           </div>
         </div>
