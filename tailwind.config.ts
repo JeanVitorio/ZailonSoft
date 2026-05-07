@@ -126,8 +126,8 @@ export default {
           "100%": { opacity: "1", transform: "scale(1)" },
         },
         "glow-pulse": {
-          "0%, 100%": { boxShadow: "0 0 20px rgba(251, 191, 36, 0.2)" },
-          "50%": { boxShadow: "0 0 40px rgba(251, 191, 36, 0.4)" },
+          "0%, 100%": { boxShadow: "0 0 20px rgba(7, 171, 216, 0.25)" },
+          "50%": { boxShadow: "0 0 40px rgba(7, 171, 216, 0.5)" },
         },
         "shimmer": {
           "0%": { backgroundPosition: "200% 0" },
