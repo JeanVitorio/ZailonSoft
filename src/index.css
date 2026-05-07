@@ -26,60 +26,53 @@
     --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary - Amber Gold (Ferrari-inspired warmth) */
-    --primary: 43 96% 56%; /* #fbbf24 cyan-400 */
-    --primary-hover: 38 92% 50%; /* #f59e0b cyan-500 */
-    --primary-glow: 43 96% 56% / 0.3;
-    --primary-foreground: 222 47% 11%; /* Dark text on amber */
+    /* Primary - JVS Cyan (logo) */
+    --primary: 195 94% 50%;
+    --primary-hover: 210 100% 44%;
+    --primary-glow: 195 94% 50% / 0.35;
+    --primary-foreground: 222 47% 11%;
 
-    /* Secondary - Warm Orange */
-    --secondary: 27 96% 61%; /* #fb923c blue-400 */
+    /* Secondary - JVS Deep Blue */
+    --secondary: 220 100% 28%;
     --secondary-foreground: 0 0% 98%;
 
-    /* Muted - Subtle grays */
     --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%; /* #A1A1AA */
+    --muted-foreground: 240 5% 65%;
 
-    /* Accent - Emerald Performance */
-    --accent: 160 84% 39%; /* #10b981 emerald-500 */
-    --accent-glow: 160 84% 39% / 0.3;
-    --accent-foreground: 0 0% 98%;
+    /* Accent - NILO Mint */
+    --accent: 165 79% 68%;
+    --accent-glow: 165 79% 68% / 0.35;
+    --accent-foreground: 222 47% 11%;
 
-    /* Semantic Colors */
-    --destructive: 0 84% 60%; /* #ef4444 red-500 */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --success: 160 84% 39%; /* emerald-500 */
-    --warning: 38 92% 50%; /* cyan-500 */
+    --success: 160 84% 39%;
+    --warning: 38 92% 50%;
 
-    /* Border/Input */
     --border: 0 0% 100% / 0.08;
     --input: 0 0% 100% / 0.06;
-    --ring: 43 96% 56%; /* amber focus ring */
+    --ring: 195 94% 50%;
 
-    /* Radius - Smooth premium curves */
     --radius: 0.75rem;
 
-    /* Premium Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(43 96% 56%), hsl(27 96% 61%), hsl(43 96% 70%));
+    --gradient-primary: linear-gradient(135deg, hsl(220 100% 28%), hsl(195 94% 50%), hsl(165 79% 68%));
     --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.1));
-    --gradient-glow: radial-gradient(circle at center, hsl(43 96% 56% / 0.2), transparent 70%);
+    --gradient-glow: radial-gradient(circle at center, hsl(195 94% 50% / 0.25), transparent 70%);
     --gradient-hero: linear-gradient(180deg, rgba(5,5,5,0) 0%, rgba(5,5,5,0.8) 50%, rgba(5,5,5,1) 100%);
 
-    /* Shadows - Amber glow radiante */
-    --shadow-sm: 0 2px 8px rgba(7, 171, 216, 0.05);
-    --shadow-md: 0 4px 16px rgba(7, 171, 216, 0.08);
-    --shadow-lg: 0 8px 32px rgba(7, 171, 216, 0.12);
-    --shadow-glow: 0 0 40px rgba(7, 171, 216, 0.15);
+    --shadow-sm: 0 2px 8px rgba(7, 171, 216, 0.08);
+    --shadow-md: 0 4px 16px rgba(7, 171, 216, 0.12);
+    --shadow-lg: 0 8px 32px rgba(7, 171, 216, 0.18);
+    --shadow-glow: 0 0 40px rgba(7, 171, 216, 0.25);
 
-    /* Sidebar */
     --sidebar-background: 0 0% 3%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 43 96% 56%;
+    --sidebar-primary: 195 94% 50%;
     --sidebar-primary-foreground: 222 47% 11%;
     --sidebar-accent: 0 0% 100% / 0.05;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 100% / 0.06;
-    --sidebar-ring: 43 96% 56%;
+    --sidebar-ring: 195 94% 50%;
   }
 
   .light {
