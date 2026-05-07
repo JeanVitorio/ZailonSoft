@@ -227,7 +227,7 @@
   /* Premium Button Glow */
   .btn-primary-glow {
     @apply relative overflow-hidden;
-    background: linear-gradient(135deg, #fbbf24, #f59e0b, #fcd34d);
+    background: linear-gradient(135deg, #07abd8, #006fdf, #67f6cd);
     box-shadow: 
       0 4px 16px rgba(7, 171, 216, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -248,7 +248,7 @@
 
   /* Text Gradient */
   .text-gradient {
-    background: linear-gradient(135deg, #fbbf24, #fb923c, #fcd34d);
+    background: linear-gradient(135deg, #07abd8, #0075df, #67f6cd);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -324,7 +324,7 @@
     @apply inline-flex items-center px-4 py-2 rounded-xl font-bold;
     background: linear-gradient(135deg, rgba(7, 171, 216, 0.15), rgba(7, 171, 216, 0.05));
     border: 1px solid rgba(7, 171, 216, 0.3);
-    color: #fbbf24;
+    color: #07abd8;
   }
 
   /* Badge premium */
@@ -332,7 +332,7 @@
     @apply inline-flex items-center px-3 py-1 text-xs font-medium rounded-full;
     background: rgba(7, 171, 216, 0.1);
     border: 1px solid rgba(7, 171, 216, 0.2);
-    color: #fbbf24;
+    color: #07abd8;
   }
 
   /* Kanban column */
@@ -356,7 +356,7 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, #fbbf24, #fb923c);
+    background: linear-gradient(90deg, #07abd8, #0075df);
   }
 }
 
@@ -417,7 +417,7 @@
   /* Gradient text */
   .gradient-text-amber {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, #fbbf24, #fb923c, #fcd34d);
+    background-image: linear-gradient(135deg, #07abd8, #0075df, #67f6cd);
   }
 
   /* Backdrop blur variations */

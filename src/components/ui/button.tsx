@@ -12,7 +12,7 @@ const buttonVariants = cva(
         default:
           "bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 hover:from-cyan-400 hover:to-cyan-500 hover:scale-[1.02] hover:shadow-glow-lg active:scale-[0.98]",
         destructive:
-          "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-500 hover:to-red-600 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]",
+          "bg-gradient-to-r from-rose-600 to-red-700 text-white hover:from-rose-500 hover:to-red-600 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]",
         outline:
           "border border-cyan-500/30 bg-transparent text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/50 hover:scale-[1.02] active:scale-[0.98]",
         secondary:
