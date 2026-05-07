@@ -160,7 +160,7 @@ export default {
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-premium': 'linear-gradient(135deg, #fbbf24, #fb923c, #fcd34d)',
+        'gradient-premium': 'linear-gradient(135deg, #002e85, #07abd8, #67f6cd)',
         'gradient-glass': 'linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.1))',
         'gradient-hero': 'linear-gradient(180deg, rgba(5,5,5,0) 0%, rgba(5,5,5,0.8) 50%, rgba(5,5,5,1) 100%)',
       },
