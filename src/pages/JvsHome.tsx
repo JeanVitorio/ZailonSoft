@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import JeanFoto from "@/assets/jean.jpg";
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
@@ -453,10 +454,13 @@ const JvsHome: React.FC = () => {
                   transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
                   className="absolute -inset-4 rounded-full bg-[conic-gradient(from_0deg,rgba(7,171,216,0.5),rgba(0,46,133,0.1),rgba(103,246,205,0.5),rgba(7,171,216,0.5))] blur-2xl"
                 />
-                <div className="relative aspect-square rounded-3xl bg-gradient-to-br from-cyan-500/30 to-blue-700/30 border border-cyan-400/30 flex items-center justify-center overflow-hidden">
-                  <span className="text-9xl font-bold bg-gradient-to-br from-cyan-200 to-blue-400 bg-clip-text text-transparent">J</span>
-                </div>
-                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-black/80 border border-cyan-500/30 backdrop-blur-md text-sm whitespace-nowrap">
+                  <div className="relative aspect-square rounded-3xl bg-gradient-to-br from-cyan-500/30 to-blue-700/30 border border-cyan-400/30 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={JeanFoto}
+                      alt="Jean"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-black/80 border border-cyan-500/30 backdrop-blur-md text-sm whitespace-nowrap">
                   <span className="font-bold text-white">Jean</span>
                   <span className="text-cyan-300"> · CEO & Fundador</span>
                 </div>
