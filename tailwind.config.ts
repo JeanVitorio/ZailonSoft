@@ -64,15 +64,19 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // AutoConnect Premium Colors
-        amber: {
-          300: "#fcd34d",
-          400: "#fbbf24",
-          500: "#f59e0b",
-          600: "#d97706",
+        // JVS Brand Colors (logo)
+        cyan: {
+          200: "#a5f0e6",
+          300: "#67f6cd",
+          400: "#22d3ee",
+          500: "#07abd8",
+          600: "#0891b2",
         },
-        orange: {
-          400: "#fb923c",
+        blue: {
+          400: "#3b82f6",
+          500: "#0075df",
+          600: "#006fdf",
+          700: "#1d4ed8",
         },
         emerald: {
           400: "#34d399",
@@ -93,12 +97,12 @@ export default {
         "3xl": "2rem",
       },
       boxShadow: {
-        'glow-sm': '0 2px 8px rgba(251, 191, 36, 0.05)',
-        'glow-md': '0 4px 16px rgba(251, 191, 36, 0.08)',
-        'glow-lg': '0 8px 32px rgba(251, 191, 36, 0.12)',
-        'glow-xl': '0 16px 64px rgba(251, 191, 36, 0.15)',
-        'glow-amber': '0 0 40px rgba(251, 191, 36, 0.15)',
-        'glow-emerald': '0 0 40px rgba(16, 185, 129, 0.15)',
+        'glow-sm': '0 2px 8px rgba(7, 171, 216, 0.08)',
+        'glow-md': '0 4px 16px rgba(7, 171, 216, 0.15)',
+        'glow-lg': '0 8px 32px rgba(7, 171, 216, 0.25)',
+        'glow-xl': '0 16px 64px rgba(7, 171, 216, 0.35)',
+        'glow-cyan': '0 0 40px rgba(7, 171, 216, 0.3)',
+        'glow-emerald': '0 0 40px rgba(103, 246, 205, 0.3)',
       },
       keyframes: {
         "accordion-down": {
