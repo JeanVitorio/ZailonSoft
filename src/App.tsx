@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 
 // Public Pages
 import HomePage from "./pages/HomePage";
+import ZailonsoftLanding from "./pages/ZailonsoftLanding";
 import PublicCatalog from "./pages/PublicCatalog";
 import PublicVehicleDetail from "./pages/PublicVehicleDetail";
 import LoginPage from "./pages/LoginPage";
@@ -50,7 +51,8 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<HomePage />} />
+                <Route path="/" element={<ZailonsoftLanding />} />
+                <Route path="/Nilo" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/assinar" element={<SubscribePage />} />
 
