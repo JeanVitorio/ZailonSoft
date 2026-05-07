@@ -19,7 +19,7 @@ export interface Store {
 
 export const defaultStore: Store = {
   id: "store-1",
-  name: "ZailonAuto Demo",
+  name: "NILO Demo",
   description: "Sua concessionária de veículos de luxo. Especialistas em supercarros e veículos exclusivos desde 2010.",
   email: "contato@autoconnect.com.br",
   phone: "(11) 3456-7890",
@@ -30,7 +30,7 @@ export const defaultStore: Store = {
   website: "",
   workingHours: "Seg-Sex: 9h-19h | Sáb: 9h-14h",
   socialMedia: {
-    instagram: "@zailonsoft",
+    instagram: "@nilosistema",
     facebook: "autoconnectpremium"
   }
 };

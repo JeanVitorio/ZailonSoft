@@ -469,8 +469,8 @@ const HomePage = () => {
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link to="/demo" className="hover:text-cyan-400 transition-colors">Demo</Link>
               <Link to="/login" className="hover:text-cyan-400 transition-colors">Entrar</Link>
-              <a href="https://instagram.com/zailonsoft" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-400 transition-colors flex items-center gap-1">
-                <Instagram className="w-4 h-4" />@zailonsoft
+              <a href="https://instagram.com/nilosistema" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-400 transition-colors flex items-center gap-1">
+                <Instagram className="w-4 h-4" />@nilosistema
               </a>
               <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-400 transition-colors">WhatsApp</a>
             </div>

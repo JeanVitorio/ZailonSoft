@@ -304,7 +304,7 @@ export const LeadForm: React.FC<LeadFormProps> = ({ isOpen, onClose, vehicle }) 
             >
               <span className="text-3xl md:text-4xl">👋</span>
             </motion.div>
-            <h3 className="text-xl md:text-2xl font-bold text-white mb-3">Oi! Eu sou o Zailon</h3>
+            <h3 className="text-xl md:text-2xl font-bold text-white mb-3">Olá! Sou da equipe NILO</h3>
             <p className="text-sm md:text-base text-muted-foreground max-w-sm leading-relaxed">
               Assistente da loja. Vou te fazer algumas perguntas rápidas pra te ajudar com esse carro, tudo bem?
             </p>

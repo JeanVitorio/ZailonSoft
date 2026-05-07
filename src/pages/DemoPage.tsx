@@ -213,8 +213,8 @@ const DemoPage = () => {
               <span className="text-xs md:text-sm text-muted-foreground">AutoConnect Demo © {new Date().getFullYear()}</span>
             </div>
             <div className="flex items-center gap-4 md:gap-6">
-              <a href="https://instagram.com/zailonsoft" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors flex items-center gap-1">
-                <Instagram className="w-3 h-3 md:w-4 md:h-4" /> @zailonsoft
+              <a href="https://instagram.com/nilosistema" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors flex items-center gap-1">
+                <Instagram className="w-3 h-3 md:w-4 md:h-4" /> @nilosistema
               </a>
               <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors">WhatsApp</a>
             </div>
