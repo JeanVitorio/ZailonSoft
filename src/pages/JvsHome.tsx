@@ -242,15 +242,14 @@ const JvsHome: React.FC = () => {
               <span className="ml-3 text-xs text-white/40 font-mono">JVS@projeto:~ build.tsx</span>
             </div>
             <pre className="p-5 sm:p-6 text-left text-[12px] sm:text-sm font-mono leading-relaxed text-white/80 overflow-x-auto">
-{`// Construindo seu próximo ativo digital
-`}<span className="text-cyan-300">const</span>{` site = `}<span className="text-blue-300">new</span>{` `}<span className="text-cyan-200">JVS</span>{`({
-  objetivo: `}<span className="text-emerald-300">'vender mais'</span>{`,
-  performance: `}<span className="text-emerald-300">'<1s'</span>{`,
-  design: `}<span className="text-emerald-300">'sob medida'</span>{`,
-  conversao: `}<span className="text-emerald-300">'+312%'</span>{`,
-});
-
-`}<span className="text-emerald-400">✓</span>{` Deploy realizado com sucesso.`}
+              <span className="text-white/40">{'// Construindo seu próximo ativo digital'}</span>{'\n'}
+              <span className="text-cyan-300">const</span>{' site = '}<span className="text-blue-300">new</span>{' '}<span className="text-cyan-200">JVS</span>{'({\n'}
+              {"  objetivo: "}<span className="text-emerald-300">{"'vender mais'"}</span>{',\n'}
+              {"  performance: "}<span className="text-emerald-300">{"'menos de 1s'"}</span>{',\n'}
+              {"  design: "}<span className="text-emerald-300">{"'sob medida'"}</span>{',\n'}
+              {"  conversao: "}<span className="text-emerald-300">{"'+312%'"}</span>{',\n'}
+              {'});\n\n'}
+              <span className="text-emerald-400">✓</span>{' Deploy realizado com sucesso.'}
             </pre>
           </motion.div>
 
