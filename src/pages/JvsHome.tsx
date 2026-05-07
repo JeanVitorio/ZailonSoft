@@ -67,7 +67,7 @@ const NiloKanbanPreview = () => (
   <div className="grid grid-cols-3 gap-2 p-3 bg-black/40 rounded-xl border border-white/10 backdrop-blur-sm">
     {['Novos', 'Negociando', 'Fechados'].map((col, ci) => (
       <div key={col} className="space-y-1.5">
-        <p className="text-[9px] font-semibold text-amber-400/80 uppercase tracking-wider">{col}</p>
+        <p className="text-[9px] font-semibold text-cyan-400/80 uppercase tracking-wider">{col}</p>
         {[0, 1].map((i) => (
           <motion.div
             key={i}
@@ -77,7 +77,7 @@ const NiloKanbanPreview = () => (
             className="h-8 rounded-md bg-gradient-to-br from-white/10 to-white/5 border border-white/10 px-1.5 flex flex-col justify-center"
           >
             <div className="h-1 w-12 bg-white/30 rounded-full mb-0.5" />
-            <div className="h-0.5 w-8 bg-amber-400/60 rounded-full" />
+            <div className="h-0.5 w-8 bg-cyan-400/60 rounded-full" />
           </motion.div>
         ))}
       </div>
@@ -94,7 +94,7 @@ const NiloDashboardPreview = () => (
           initial={{ height: 0 }}
           animate={{ height: `${h}%` }}
           transition={{ delay: 0.3 + i * 0.08, duration: 0.6, ease: 'easeOut' }}
-          className="flex-1 rounded-t bg-gradient-to-t from-amber-500 to-amber-300"
+          className="flex-1 rounded-t bg-gradient-to-t from-cyan-500 to-cyan-300"
         />
       ))}
     </div>
@@ -113,10 +113,10 @@ const NiloCatalogPreview = () => (
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2 + i * 0.1 }}
-        className="aspect-video rounded-md bg-gradient-to-br from-amber-500/30 via-orange-500/10 to-transparent border border-white/10 relative overflow-hidden"
+        className="aspect-video rounded-md bg-gradient-to-br from-cyan-500/30 via-blue-500/10 to-transparent border border-white/10 relative overflow-hidden"
       >
         <div className="absolute bottom-1 left-1 right-1 h-1 bg-white/30 rounded-full" />
-        <Car className="absolute top-1.5 right-1.5 w-3 h-3 text-amber-400/70" />
+        <Car className="absolute top-1.5 right-1.5 w-3 h-3 text-cyan-400/70" />
       </motion.div>
     ))}
   </div>
@@ -239,7 +239,7 @@ const JvsHome: React.FC = () => {
             className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.05] tracking-tight mb-6"
           >
             Tecnologia que <br />
-            <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-cyan-300 bg-clip-text text-transparent">
               move negócios
             </span>
           </motion.h1>
@@ -291,7 +291,7 @@ const JvsHome: React.FC = () => {
             <p className="text-xs tracking-[0.3em] uppercase text-violet-300/80 mb-4">Quem somos</p>
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-6 leading-tight">
               Software de <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">verdade</span>,
-              feito para <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">durar</span>
+              feito para <span className="bg-gradient-to-r from-violet-400 to-cyan-300 bg-clip-text text-transparent">durar</span>
             </h2>
             <p className="text-base sm:text-lg text-white/60 max-w-3xl mx-auto leading-relaxed">
               A JVS Soluções nasceu para resolver o que software pronto não resolve.
@@ -353,24 +353,24 @@ const JvsHome: React.FC = () => {
       {/* NILO PRODUCT - the headliner */}
       <section ref={niloSectionRef} id="nilo" className="relative py-20 sm:py-32 z-10 overflow-hidden">
         {/* Glow background tied to scroll */}
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/[0.03] via-orange-500/[0.04] to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/[0.03] via-blue-500/[0.04] to-transparent" />
         <motion.div
           style={{ y: useTransform(niloProgress, [0, 1], ['-20%', '20%']) }}
-          className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[80vw] max-w-[1200px] h-[600px] bg-amber-500/10 blur-[120px] rounded-full"
+          className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[80vw] max-w-[1200px] h-[600px] bg-cyan-500/10 blur-[120px] rounded-full"
         />
 
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl relative">
           <AnimatedSection className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 mb-6">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-xs sm:text-sm font-medium text-amber-300">Nosso produto principal</span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 mb-6">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-xs sm:text-sm font-medium text-cyan-300">Nosso produto principal</span>
             </div>
 
-            <img src={niloLogo} alt="NILO" className="h-16 sm:h-20 object-contain mx-auto mb-6 drop-shadow-[0_0_30px_rgba(251,191,36,0.4)]" />
+            <img src={niloLogo} alt="NILO" className="h-16 sm:h-20 object-contain mx-auto mb-6 drop-shadow-[0_0_30px_rgba(7,171,216,0.4)]" />
 
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 leading-tight">
               O sistema que <br className="sm:hidden" />
-              <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-300 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 bg-clip-text text-transparent">
                 lojas de veículos
               </span> esperavam
             </h2>
@@ -387,11 +387,11 @@ const JvsHome: React.FC = () => {
                 style={{ y: carY, rotate: carRotate, scale: carScale }}
                 className="relative"
               >
-                <div className="absolute inset-0 bg-amber-500/20 blur-3xl rounded-full" />
+                <div className="absolute inset-0 bg-cyan-500/20 blur-3xl rounded-full" />
                 <img
                   src={niloHero}
                   alt="Veículo de luxo dourado"
-                  className="relative w-full rounded-3xl shadow-[0_30px_80px_rgba(251,191,36,0.25)]"
+                  className="relative w-full rounded-3xl shadow-[0_30px_80px_rgba(7,171,216,0.25)]"
                   loading="lazy"
                 />
                 {/* Floating UI badges */}
@@ -399,10 +399,10 @@ const JvsHome: React.FC = () => {
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
-                  className="absolute -left-4 top-1/4 px-3 py-2 rounded-xl bg-black/70 backdrop-blur-md border border-amber-500/30 hidden sm:block"
+                  className="absolute -left-4 top-1/4 px-3 py-2 rounded-xl bg-black/70 backdrop-blur-md border border-cyan-500/30 hidden sm:block"
                 >
                   <p className="text-[10px] text-white/50">Lead recebido</p>
-                  <p className="text-sm font-semibold text-amber-300">+1 cliente quente</p>
+                  <p className="text-sm font-semibold text-cyan-300">+1 cliente quente</p>
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
@@ -426,10 +426,10 @@ const JvsHome: React.FC = () => {
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1, duration: 0.6 }}
                     viewport={{ once: true }}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-amber-500/[0.06] to-transparent border border-amber-500/15 hover:border-amber-500/40 transition-all"
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-cyan-500/[0.06] to-transparent border border-cyan-500/15 hover:border-cyan-500/40 transition-all"
                   >
-                    <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center flex-shrink-0">
-                      <f.icon className="w-5 h-5 text-amber-400" />
+                    <div className="w-11 h-11 rounded-xl bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
+                      <f.icon className="w-5 h-5 text-cyan-400" />
                     </div>
                     <p className="font-medium text-white/90">{f.label}</p>
                     <Check className="w-5 h-5 text-emerald-400 ml-auto" />
@@ -445,7 +445,7 @@ const JvsHome: React.FC = () => {
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <Link to="/nilo" className="flex-1">
-                    <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold shadow-[0_0_30px_rgba(251,191,36,0.4)]">
+                    <Button size="lg" className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-bold shadow-[0_0_30px_rgba(7,171,216,0.4)]">
                       <Rocket className="w-5 h-5" /> Conhecer o NILO
                       <ArrowRight className="w-5 h-5" />
                     </Button>
@@ -466,7 +466,7 @@ const JvsHome: React.FC = () => {
       <section id="contato" className="relative py-20 sm:py-28 z-10">
         <div className="container mx-auto px-4 sm:px-6 max-w-4xl">
           <AnimatedSection>
-            <div className="relative p-8 sm:p-12 md:p-16 rounded-3xl bg-gradient-to-br from-blue-500/10 via-violet-500/10 to-fuchsia-500/10 border border-violet-500/20 text-center overflow-hidden backdrop-blur-sm">
+            <div className="relative p-8 sm:p-12 md:p-16 rounded-3xl bg-gradient-to-br from-blue-500/10 via-violet-500/10 to-cyan-400/10 border border-violet-500/20 text-center overflow-hidden backdrop-blur-sm">
               <motion.div
                 animate={{ rotate: [0, 360] }}
                 transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
@@ -475,7 +475,7 @@ const JvsHome: React.FC = () => {
               <div className="relative">
                 <div className="flex justify-center gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    <Star key={i} className="w-4 h-4 fill-cyan-400 text-cyan-400" />
                   ))}
                 </div>
                 <h2 className="text-3xl sm:text-5xl font-bold mb-4 leading-tight">

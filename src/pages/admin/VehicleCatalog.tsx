@@ -48,7 +48,7 @@ const VehicleCatalog = () => {
   const statusBadge = (status: string) => {
     const styles: Record<string, string> = {
       available: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-      reserved: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+      reserved: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
       sold: 'bg-red-500/20 text-red-400 border-red-500/30'
     };
     const labels: Record<string, string> = { available: 'Disponível', reserved: 'Reservado', sold: 'Vendido' };
@@ -126,7 +126,7 @@ const VehicleCatalog = () => {
           <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Buscar veículos..." className="pl-12 h-12" />
         </div>
         <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-          className="h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 text-sm">
+          className="h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 text-sm">
           <option value="name">Nome</option>
           <option value="price">Preço</option>
           <option value="year">Ano</option>
@@ -144,14 +144,14 @@ const VehicleCatalog = () => {
                 <div className="absolute top-3 left-3">{statusBadge(vehicle.status)}</div>
                 <div className="absolute top-3 right-3">
                   <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/50 backdrop-blur-sm">
-                    <Package className="w-3 h-3 text-amber-400" />
+                    <Package className="w-3 h-3 text-cyan-400" />
                     <span className="text-xs text-white font-medium">{vehicle.stock}</span>
                   </div>
                 </div>
               </div>
               <div className="p-3 md:p-4">
                 <div className="mb-2">
-                  <p className="text-xs text-amber-400 font-medium mb-1">{vehicle.brand} • {vehicle.year}</p>
+                  <p className="text-xs text-cyan-400 font-medium mb-1">{vehicle.brand} • {vehicle.year}</p>
                   <h3 className="font-semibold text-white text-sm md:text-base truncate">{vehicle.name}</h3>
                 </div>
                 <div className="flex items-center justify-between">
@@ -160,7 +160,7 @@ const VehicleCatalog = () => {
                     <button onClick={() => setViewVehicle(vehicle)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-white hover:bg-white/10 transition-all" title="Visualizar">
                       <Eye className="w-4 h-4" />
                     </button>
-                    <button onClick={() => openEditModal(vehicle)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-amber-400 hover:bg-amber-400/10 transition-all" title="Editar">
+                    <button onClick={() => openEditModal(vehicle)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-cyan-400 hover:bg-cyan-400/10 transition-all" title="Editar">
                       <Edit className="w-4 h-4" />
                     </button>
                     <button onClick={() => setDeleteTarget(vehicle)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-red-400 hover:bg-red-400/10 transition-all" title="Excluir">
@@ -174,8 +174,8 @@ const VehicleCatalog = () => {
         </div>
       ) : (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
-            <Package className="w-8 h-8 text-amber-400" />
+          <div className="w-16 h-16 rounded-full bg-cyan-500/10 flex items-center justify-center mb-4">
+            <Package className="w-8 h-8 text-cyan-400" />
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">Nenhum veículo encontrado</h3>
           <p className="text-muted-foreground mb-6 text-sm">Adicione seu primeiro veículo ao catálogo</p>
@@ -198,10 +198,10 @@ const VehicleCatalog = () => {
                 <img src={viewVehicle.images[0] || '/placeholder.svg'} alt={viewVehicle.name} className="w-full aspect-video object-cover rounded-xl mb-4" />
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-amber-400 font-medium">{viewVehicle.brand} • {viewVehicle.year}</p>
+                    <p className="text-sm text-cyan-400 font-medium">{viewVehicle.brand} • {viewVehicle.year}</p>
                     <h2 className="text-xl font-bold text-white">{viewVehicle.name}</h2>
                   </div>
-                  <p className="text-2xl font-bold text-amber-400">{formatPrice(viewVehicle.price)}</p>
+                  <p className="text-2xl font-bold text-cyan-400">{formatPrice(viewVehicle.price)}</p>
                   <div className="flex items-center gap-2">{statusBadge(viewVehicle.status)}<span className="text-sm text-muted-foreground">Estoque: {viewVehicle.stock}</span></div>
                   <p className="text-muted-foreground">{viewVehicle.description}</p>
                   <div className="grid grid-cols-2 gap-3">
@@ -261,7 +261,7 @@ const VehicleCatalog = () => {
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Status</label>
                     <select value={editStatus} onChange={(e) => setEditStatus(e.target.value as any)}
-                      className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500/50">
+                      className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50">
                       <option value="available">Disponível</option>
                       <option value="reserved">Reservado</option>
                       <option value="sold">Vendido</option>
@@ -295,7 +295,7 @@ const VehicleCatalog = () => {
                 </div>
                 <h3 className="text-lg font-bold text-white mb-1">Excluir veículo?</h3>
                 <p className="text-sm text-muted-foreground mb-1">{deleteTarget.name}</p>
-                <p className="text-sm text-amber-400 font-medium mb-4">{formatPrice(deleteTarget.price)}</p>
+                <p className="text-sm text-cyan-400 font-medium mb-4">{formatPrice(deleteTarget.price)}</p>
                 <p className="text-xs text-muted-foreground mb-6">Esta ação não pode ser desfeita.</p>
                 <div className="flex gap-3 w-full">
                   <Button variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1">Cancelar</Button>

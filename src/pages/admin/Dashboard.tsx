@@ -153,10 +153,10 @@ const Dashboard = () => {
           <motion.div key={index} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.08 }} className="kpi-card">
             <div className="flex items-start justify-between mb-3">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                stat.color === 'amber' ? 'bg-amber-500/10' : stat.color === 'blue' ? 'bg-blue-500/10' : stat.color === 'emerald' ? 'bg-emerald-500/10' : 'bg-purple-500/10'
+                stat.color === 'amber' ? 'bg-cyan-500/10' : stat.color === 'blue' ? 'bg-blue-500/10' : stat.color === 'emerald' ? 'bg-emerald-500/10' : 'bg-purple-500/10'
               }`}>
                 <stat.icon className={`w-5 h-5 ${
-                  stat.color === 'amber' ? 'text-amber-400' : stat.color === 'blue' ? 'text-blue-400' : stat.color === 'emerald' ? 'text-emerald-400' : 'text-purple-400'
+                  stat.color === 'amber' ? 'text-cyan-400' : stat.color === 'blue' ? 'text-blue-400' : stat.color === 'emerald' ? 'text-emerald-400' : 'text-purple-400'
                 }`} />
               </div>
             </div>
@@ -175,14 +175,14 @@ const Dashboard = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-2 glass-card rounded-2xl p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base md:text-lg font-semibold text-white">Leads Recentes</h2>
-            <Link to={`/${lojaSlug}/crm`} className="text-sm text-amber-400 hover:text-amber-300 transition-colors">Ver todos →</Link>
+            <Link to={`/${lojaSlug}/crm`} className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">Ver todos →</Link>
           </div>
           <div className="space-y-2">
             {recentLeads.length > 0 ? recentLeads.map((lead, index) => (
               <motion.div key={lead.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 + index * 0.05 }}
                 className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400/20 to-orange-400/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-amber-400 font-semibold text-sm">{lead.name.charAt(0)}</span>
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-400/20 to-blue-400/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-cyan-400 font-semibold text-sm">{lead.name.charAt(0)}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-white truncate text-sm">{lead.name}</p>
@@ -213,7 +213,7 @@ const Dashboard = () => {
           {/* Funnel Status */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="glass-card rounded-2xl p-4 md:p-6">
             <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-              <Target className="w-4 h-4 text-amber-400" /> Funil de Vendas
+              <Target className="w-4 h-4 text-cyan-400" /> Funil de Vendas
             </h2>
             <div className="space-y-3">
               {Object.entries(statusLabels).map(([status, label]) => {
@@ -228,7 +228,7 @@ const Dashboard = () => {
                     <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                       <motion.div initial={{ width: 0 }} animate={{ width: `${percentage}%` }} transition={{ delay: 0.6, duration: 0.5 }}
                         className={`h-full rounded-full ${
-                          status === 'new' ? 'bg-blue-500' : status === 'contacted' ? 'bg-amber-500' : status === 'negotiating' ? 'bg-orange-500' : status === 'proposal' ? 'bg-purple-500' : status === 'closed' ? 'bg-emerald-500' : 'bg-red-500'
+                          status === 'new' ? 'bg-blue-500' : status === 'contacted' ? 'bg-cyan-500' : status === 'negotiating' ? 'bg-blue-500' : status === 'proposal' ? 'bg-purple-500' : status === 'closed' ? 'bg-emerald-500' : 'bg-red-500'
                         }`} />
                     </div>
                   </div>
@@ -240,14 +240,14 @@ const Dashboard = () => {
           {/* Lead Sources */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="glass-card rounded-2xl p-4 md:p-6">
             <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-amber-400" /> Origem dos Leads
+              <BarChart3 className="w-4 h-4 text-cyan-400" /> Origem dos Leads
             </h2>
             {Object.keys(leadsBySource).length > 0 ? (
               <div className="space-y-2">
                 {Object.entries(leadsBySource).sort((a, b) => b[1] - a[1]).map(([source, count]) => (
                   <div key={source} className="flex items-center justify-between p-2 rounded-lg bg-white/[0.02]">
                     <span className="text-sm text-white">{sourceLabels[source] || source}</span>
-                    <span className="text-sm font-medium text-amber-400">{count}</span>
+                    <span className="text-sm font-medium text-cyan-400">{count}</span>
                   </div>
                 ))}
               </div>
@@ -259,14 +259,14 @@ const Dashboard = () => {
           {/* Scheduled Visits / Agenda */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="glass-card rounded-2xl p-4 md:p-6">
             <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-amber-400" /> Agenda de Visitas
+              <Calendar className="w-4 h-4 text-cyan-400" /> Agenda de Visitas
             </h2>
             {scheduledVisits.length > 0 ? (
               <div className="space-y-2">
                 {scheduledVisits.map((lead) => (
                   <div key={lead.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
                     <div className="flex items-center gap-2 mb-1">
-                      <User className="w-3.5 h-3.5 text-amber-400" />
+                      <User className="w-3.5 h-3.5 text-cyan-400" />
                       <span className="text-sm font-medium text-white truncate">{lead.name}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -303,7 +303,7 @@ const Dashboard = () => {
       <div className="grid md:grid-cols-2 gap-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="glass-card rounded-2xl p-4 md:p-6">
           <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-            <Tag className="w-4 h-4 text-amber-400" /> Tipos de Negociação
+            <Tag className="w-4 h-4 text-cyan-400" /> Tipos de Negociação
           </h2>
           {Object.keys(leadsByDealType).length > 0 ? (
             <div className="grid grid-cols-2 gap-2">
@@ -321,11 +321,11 @@ const Dashboard = () => {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }} className="glass-card rounded-2xl p-4 md:p-6">
           <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-amber-400" /> Resumo do Mês
+            <UserPlus className="w-4 h-4 text-cyan-400" /> Resumo do Mês
           </h2>
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3 rounded-xl bg-white/[0.02] text-center">
-              <p className="text-2xl font-bold text-amber-400"><AnimatedCounter value={thisMonthLeads} /></p>
+              <p className="text-2xl font-bold text-cyan-400"><AnimatedCounter value={thisMonthLeads} /></p>
               <p className="text-xs text-muted-foreground">Novos leads</p>
             </div>
             <div className="p-3 rounded-xl bg-white/[0.02] text-center">

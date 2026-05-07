@@ -10,21 +10,21 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 hover:from-amber-400 hover:to-amber-500 hover:scale-[1.02] hover:shadow-glow-lg active:scale-[0.98]",
+          "bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 hover:from-cyan-400 hover:to-cyan-500 hover:scale-[1.02] hover:shadow-glow-lg active:scale-[0.98]",
         destructive:
           "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-500 hover:to-red-600 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]",
         outline:
-          "border border-amber-500/30 bg-transparent text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50 hover:scale-[1.02] active:scale-[0.98]",
+          "border border-cyan-500/30 bg-transparent text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/50 hover:scale-[1.02] active:scale-[0.98]",
         secondary:
           "bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20 hover:scale-[1.02] active:scale-[0.98]",
         ghost:
           "text-muted-foreground hover:text-foreground hover:bg-white/5 active:scale-[0.98]",
         link:
-          "text-amber-400 underline-offset-4 hover:underline hover:text-amber-300",
+          "text-cyan-400 underline-offset-4 hover:underline hover:text-cyan-300",
         premium:
-          "relative overflow-hidden bg-gradient-to-r from-amber-400 via-orange-400 to-amber-300 text-slate-950 font-bold hover:scale-[1.05] hover:shadow-glow-xl active:scale-[0.98] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700",
+          "relative overflow-hidden bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-300 text-slate-950 font-bold hover:scale-[1.05] hover:shadow-glow-xl active:scale-[0.98] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700",
         glass:
-          "bg-white/5 backdrop-blur-xl border border-white/10 text-white hover:bg-white/10 hover:border-amber-500/30 hover:scale-[1.02] active:scale-[0.98]",
+          "bg-white/5 backdrop-blur-xl border border-white/10 text-white hover:bg-white/10 hover:border-cyan-500/30 hover:scale-[1.02] active:scale-[0.98]",
         success:
           "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-400 hover:to-emerald-500 hover:scale-[1.02] hover:shadow-glow-emerald active:scale-[0.98]",
       },

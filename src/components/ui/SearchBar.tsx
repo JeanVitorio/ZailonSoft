@@ -32,7 +32,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     >
       <div className={`relative flex-1 ${isFocused ? 'glow-amber' : ''} rounded-xl transition-all duration-300`}>
         <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-300 ${
-          isFocused ? 'text-amber-400' : 'text-muted-foreground'
+          isFocused ? 'text-cyan-400' : 'text-muted-foreground'
         }`} />
         <Input
           value={value}

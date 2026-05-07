@@ -24,13 +24,13 @@ const SubscribePage = () => {
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-md glass-card rounded-3xl p-6 md:p-8 text-center"
       >
-        <div className="w-20 h-20 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-6">
-          <AlertTriangle className="w-10 h-10 text-amber-400" />
+        <div className="w-20 h-20 rounded-2xl bg-cyan-500/10 flex items-center justify-center mx-auto mb-6">
+          <AlertTriangle className="w-10 h-10 text-cyan-400" />
         </div>
 
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-6">
-          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-          <span className="text-sm font-medium text-amber-400">Período de teste encerrado</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-6">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="text-sm font-medium text-cyan-400">Período de teste encerrado</span>
         </div>
 
         <h1 className="text-2xl font-bold text-foreground mb-3">

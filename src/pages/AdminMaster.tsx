@@ -86,8 +86,8 @@ const AdminMaster: React.FC = () => {
           className="w-full max-w-md glass-card rounded-3xl p-8"
         >
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center">
-              <ShieldCheck className="w-8 h-8 text-amber-400" />
+            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 flex items-center justify-center">
+              <ShieldCheck className="w-8 h-8 text-cyan-400" />
             </div>
           </div>
           <h1 className="text-2xl font-bold text-foreground text-center mb-2">Painel Master</h1>
@@ -136,7 +136,7 @@ const AdminMaster: React.FC = () => {
         <header className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
-              <ShieldCheck className="w-7 h-7 text-amber-400" /> Painel Master
+              <ShieldCheck className="w-7 h-7 text-cyan-400" /> Painel Master
             </h1>
             <p className="text-sm text-muted-foreground">Gestão de lojas e assinaturas</p>
           </div>
@@ -181,7 +181,7 @@ const AdminMaster: React.FC = () => {
               status === 'active'
                 ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
                 : status === 'pending_payment'
-                ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                ? 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30'
                 : 'bg-red-500/15 text-red-400 border-red-500/30';
             return (
               <motion.div

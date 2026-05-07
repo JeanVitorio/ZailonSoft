@@ -87,7 +87,7 @@ const PublicCatalog = () => {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="w-20 h-20 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
+          <div className="w-20 h-20 rounded-full bg-cyan-500/10 flex items-center justify-center mx-auto mb-4">
             <img src="/favicon.ico" alt="" className="w-10 h-10" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">Loja não encontrada</h2>
@@ -102,8 +102,8 @@ const PublicCatalog = () => {
     <div className="min-h-screen bg-[#050505]">
       {/* Header */}
       <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-transparent" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] md:w-[800px] h-[300px] md:h-[400px] bg-amber-500/10 rounded-full blur-[120px] opacity-50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] md:w-[800px] h-[300px] md:h-[400px] bg-cyan-500/10 rounded-full blur-[120px] opacity-50" />
 
         <div className="relative container mx-auto px-4 py-6 md:py-12">
           <div className="flex items-center justify-between mb-6 md:mb-8">
@@ -127,9 +127,9 @@ const PublicCatalog = () => {
 
           {/* Hero Content */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-center mb-6 md:mb-8">
-            <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-3 md:mb-4">
-              <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-amber-400" />
-              <span className="text-xs md:text-sm font-medium text-amber-400">Veículos Exclusivos</span>
+            <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-3 md:mb-4">
+              <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
+              <span className="text-xs md:text-sm font-medium text-cyan-400">Veículos Exclusivos</span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4 leading-tight">
               Encontre seu próximo
@@ -155,7 +155,7 @@ const PublicCatalog = () => {
               </div>
               <button onClick={() => setShowFilters(!showFilters)}
                 className={`h-12 md:h-14 w-12 md:w-14 rounded-xl flex items-center justify-center transition-all flex-shrink-0 ${
-                  showFilters || hasActiveFilters ? 'bg-amber-500 text-slate-950' : 'bg-white/5 border border-white/10 text-muted-foreground hover:text-white hover:bg-white/10'
+                  showFilters || hasActiveFilters ? 'bg-cyan-500 text-slate-950' : 'bg-white/5 border border-white/10 text-muted-foreground hover:text-white hover:bg-white/10'
                 }`}>
                 <SlidersHorizontal className="w-5 h-5" />
               </button>
@@ -169,12 +169,12 @@ const PublicCatalog = () => {
                     <label className="block text-xs font-medium text-muted-foreground mb-2">Marca</label>
                     <div className="flex flex-wrap gap-2">
                       <button onClick={() => setSelectedBrand('')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${!selectedBrand ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}>
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${!selectedBrand ? 'bg-cyan-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}>
                         Todas
                       </button>
                       {brands.map(b => (
                         <button key={b} onClick={() => setSelectedBrand(b)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${selectedBrand === b ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}>
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${selectedBrand === b ? 'bg-cyan-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}>
                           {b}
                         </button>
                       ))}
@@ -186,12 +186,12 @@ const PublicCatalog = () => {
                     <label className="block text-xs font-medium text-muted-foreground mb-2">Ano</label>
                     <div className="flex flex-wrap gap-2">
                       <button onClick={() => setSelectedYear('')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${!selectedYear ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}>
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${!selectedYear ? 'bg-cyan-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}>
                         Todos
                       </button>
                       {years.map(y => (
                         <button key={y} onClick={() => setSelectedYear(y.toString())}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${selectedYear === y.toString() ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}>
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${selectedYear === y.toString() ? 'bg-cyan-500 text-slate-950' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`}>
                           {y}
                         </button>
                       ))}
@@ -212,8 +212,8 @@ const PublicCatalog = () => {
                   </div>
                 </div>
                 <div className="flex items-center justify-between pt-1">
-                  <button onClick={handleResetFilters} className="text-xs text-muted-foreground hover:text-amber-400 transition-colors">Limpar filtros</button>
-                  <button onClick={() => setShowFilters(false)} className="text-xs text-amber-400 font-medium hover:text-amber-300 transition-colors">Aplicar</button>
+                  <button onClick={handleResetFilters} className="text-xs text-muted-foreground hover:text-cyan-400 transition-colors">Limpar filtros</button>
+                  <button onClick={() => setShowFilters(false)} className="text-xs text-cyan-400 font-medium hover:text-cyan-300 transition-colors">Aplicar</button>
                 </div>
               </div>
             </motion.div>
@@ -225,7 +225,7 @@ const PublicCatalog = () => {
                 {selectedBrand && <button onClick={() => setSelectedBrand('')} className="badge-premium flex items-center gap-1">{selectedBrand} <X className="w-3 h-3" /></button>}
                 {selectedYear && <button onClick={() => setSelectedYear('')} className="badge-premium flex items-center gap-1">{selectedYear} <X className="w-3 h-3" /></button>}
                 {(minPrice > 0 || maxPrice > 0) && <button onClick={() => { setMinPrice(0); setMaxPrice(0); }} className="badge-premium flex items-center gap-1">{minPrice > 0 ? formatPrice(minPrice) : 'R$ 0'} - {maxPrice > 0 ? formatPrice(maxPrice) : '∞'} <X className="w-3 h-3" /></button>}
-                <button onClick={handleResetFilters} className="text-xs text-amber-400 hover:text-amber-300 underline">Limpar</button>
+                <button onClick={handleResetFilters} className="text-xs text-cyan-400 hover:text-cyan-300 underline">Limpar</button>
               </motion.div>
             )}
           </motion.div>
@@ -262,7 +262,7 @@ const PublicCatalog = () => {
           </>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-16 md:py-20 text-center">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-cyan-500/10 flex items-center justify-center mb-4">
               <img src="/favicon.ico" alt="" className="w-8 h-8 md:w-10 md:h-10" />
             </div>
             <h3 className="text-lg md:text-xl font-semibold text-white mb-2">Nenhum veículo encontrado</h3>
@@ -283,7 +283,7 @@ const PublicCatalog = () => {
               <span className="text-xs md:text-sm text-muted-foreground">{storeName} © {new Date().getFullYear()}</span>
             </div>
             <div className="flex items-center gap-4 md:gap-6">
-              <a href={`https://wa.me/${storeWhatsapp}`} target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors">WhatsApp</a>
+              <a href={`https://wa.me/${storeWhatsapp}`} target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors">WhatsApp</a>
               <span className="text-xs text-muted-foreground/50">Powered by AutoConnect</span>
             </div>
           </div>

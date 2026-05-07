@@ -71,7 +71,7 @@ const DemoCard: React.FC<{ vehicle: Vehicle; index: number }> = ({ vehicle, inde
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         {vehicle.status !== 'available' && (
           <div className="absolute top-4 left-4">
-            <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">Reservado</span>
+            <span className="px-3 py-1 rounded-full text-xs font-medium bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">Reservado</span>
           </div>
         )}
         <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -81,10 +81,10 @@ const DemoCard: React.FC<{ vehicle: Vehicle; index: number }> = ({ vehicle, inde
               <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{vehicle.views}</span>
             </div>
           </div>
-          <h3 className="text-lg font-bold text-white mb-2 group-hover:text-amber-400 transition-colors">{vehicle.name}</h3>
+          <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{vehicle.name}</h3>
           <div className="flex items-center justify-between">
             <span className="price-tag text-sm">{formatPrice(vehicle.price)}</span>
-            <motion.div initial={{ x: -5, opacity: 0 }} whileHover={{ x: 0, opacity: 1 }} className="flex items-center text-amber-400 text-sm font-medium">
+            <motion.div initial={{ x: -5, opacity: 0 }} whileHover={{ x: 0, opacity: 1 }} className="flex items-center text-cyan-400 text-sm font-medium">
               Ver detalhes <ChevronRight className="w-4 h-4 ml-1" />
             </motion.div>
           </div>
@@ -115,8 +115,8 @@ const DemoPage = () => {
   return (
     <div className="min-h-screen bg-[#050505]">
       <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/5 via-transparent to-transparent" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] md:w-[800px] h-[300px] md:h-[400px] bg-amber-500/10 rounded-full blur-[120px] opacity-50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] md:w-[800px] h-[300px] md:h-[400px] bg-cyan-500/10 rounded-full blur-[120px] opacity-50" />
 
         <div className="relative container mx-auto px-4 py-6 md:py-12">
           <div className="flex items-center justify-between mb-6 md:mb-8">
@@ -138,19 +138,19 @@ const DemoPage = () => {
 
           {/* Demo banner */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="max-w-3xl mx-auto mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center">
-            <p className="text-sm text-amber-400 font-medium">
+            className="max-w-3xl mx-auto mb-6 p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-center">
+            <p className="text-sm text-cyan-400 font-medium">
               🎯 Este é um catálogo de demonstração. Tenha o seu por apenas <strong>R$ 99/mês</strong>!
             </p>
-            <Link to="/" className="text-xs text-amber-400/70 hover:text-amber-300 underline mt-1 inline-block">
+            <Link to="/" className="text-xs text-cyan-400/70 hover:text-cyan-300 underline mt-1 inline-block">
               Saiba mais →
             </Link>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-center mb-6 md:mb-8">
-            <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-3 md:mb-4">
-              <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-amber-400" />
-              <span className="text-xs md:text-sm font-medium text-amber-400">Veículos Exclusivos</span>
+            <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-3 md:mb-4">
+              <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
+              <span className="text-xs md:text-sm font-medium text-cyan-400">Veículos Exclusivos</span>
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4 leading-tight">
               Encontre seu próximo
@@ -168,7 +168,7 @@ const DemoPage = () => {
               </div>
               <button onClick={() => setShowFilters(!showFilters)}
                 className={`h-12 md:h-14 w-12 md:w-14 rounded-xl flex items-center justify-center transition-all flex-shrink-0 ${
-                  showFilters ? 'bg-amber-500 text-slate-950' : 'bg-white/5 border border-white/10 text-muted-foreground'
+                  showFilters ? 'bg-cyan-500 text-slate-950' : 'bg-white/5 border border-white/10 text-muted-foreground'
                 }`}>
                 <SlidersHorizontal className="w-5 h-5" />
               </button>
@@ -178,12 +178,12 @@ const DemoPage = () => {
                 <label className="block text-xs font-medium text-muted-foreground mb-2">Marca</label>
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => setSelectedBrand('')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${!selectedBrand ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white border border-white/10'}`}>
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${!selectedBrand ? 'bg-cyan-500 text-slate-950' : 'bg-white/5 text-white border border-white/10'}`}>
                     Todas
                   </button>
                   {brands.map(b => (
                     <button key={b} onClick={() => setSelectedBrand(b)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${selectedBrand === b ? 'bg-amber-500 text-slate-950' : 'bg-white/5 text-white border border-white/10'}`}>
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${selectedBrand === b ? 'bg-cyan-500 text-slate-950' : 'bg-white/5 text-white border border-white/10'}`}>
                       {b}
                     </button>
                   ))}
@@ -213,10 +213,10 @@ const DemoPage = () => {
               <span className="text-xs md:text-sm text-muted-foreground">AutoConnect Demo © {new Date().getFullYear()}</span>
             </div>
             <div className="flex items-center gap-4 md:gap-6">
-              <a href="https://instagram.com/zailonsoft" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors flex items-center gap-1">
+              <a href="https://instagram.com/zailonsoft" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors flex items-center gap-1">
                 <Instagram className="w-3 h-3 md:w-4 md:h-4" /> @zailonsoft
               </a>
-              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-amber-400 transition-colors">WhatsApp</a>
+              <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors">WhatsApp</a>
             </div>
           </div>
         </div>
