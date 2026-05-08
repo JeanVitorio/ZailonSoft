@@ -168,9 +168,9 @@ const PublicVehicleDetail = () => {
 
             <div className="hidden md:flex gap-3 pt-4">
               <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-                <Button variant="premium" size="xl" className="w-full">
+                {/* <Button variant="premium" size="xl" className="w-full">
                   <MessageCircle className="w-5 h-5" /> Tenho interesse
-                </Button>
+                </Button> */}
               </a>
               <Button variant="outline" size="lg" className="flex-1" onClick={() => setShowLeadForm(true)}>
                 <Send className="w-4 h-4" /> Enviar proposta
@@ -183,9 +183,9 @@ const PublicVehicleDetail = () => {
       {/* Mobile CTA */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#050505]/90 backdrop-blur-xl border-t border-white/5 z-30 md:hidden">
         <div className="flex gap-3 max-w-lg mx-auto">
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+          {/* <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
             <Button variant="premium" className="w-full h-12"><MessageCircle className="w-4 h-4" /> WhatsApp</Button>
-          </a>
+          </a> */}
           <Button variant="outline" className="flex-1 h-12" onClick={() => setShowLeadForm(true)}>
             <Send className="w-4 h-4" /> Proposta
           </Button>

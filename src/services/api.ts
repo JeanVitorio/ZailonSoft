@@ -123,17 +123,107 @@ export interface SubmitLeadInput {
 }
 
 export const submitLead = async (payload: SubmitLeadInput) => {
-  const { data, error } = await supabase.functions.invoke('submit-lead', {
-    body: payload,
-  });
-  if (error) {
-    console.error('Erro ao enviar lead via edge function:', error);
-    throw new Error(error.message || 'Falha ao enviar lead.');
+  try {
+    let lojaId = payload.loja_id;
+    if (!lojaId && payload.loja_slug) {
+      const { data: loja, error: lojaError } = await supabase
+        .from('lojas')
+        .select('id')
+        .eq('slug', payload.loja_slug)
+        .maybeSingle();
+      if (lojaError || !loja) {
+        throw new Error('Loja não encontrada.');
+      }
+      lojaId = loja.id;
+    }
+
+    if (!lojaId) {
+      throw new Error('É necessário informar loja_slug ou loja_id.');
+    }
+
+    const chat_id = `web_${uuidv4()}`;
+    const interestedVehicles = payload.vehicle
+      ? JSON.stringify([
+          {
+            id: payload.vehicle.id ?? '',
+            nome: payload.vehicle.name ?? '',
+            preco: payload.vehicle.price ?? 0,
+          },
+        ])
+      : '';
+
+    const tradeInCar = payload.trade_in
+      ? JSON.stringify({
+          brand: payload.trade_in.brand ?? '',
+          model: payload.trade_in.model ?? '',
+          year: payload.trade_in.year ?? '',
+          estimated_value: payload.trade_in.estimated_value ?? 0,
+          difference_payment: payload.trade_in.difference_payment ?? null,
+          photos: payload.trade_in.photos ?? [],
+        })
+      : '';
+
+    const financingDetails = payload.financing_details
+      ? JSON.stringify(payload.financing_details)
+      : '';
+
+    const bot_data = {
+      cash_details: payload.cash_details ?? null,
+      consortium_details: payload.consortium_details ?? null,
+      cnh_url: payload.cnh_url ?? null,
+      lgpd_consent: !!payload.lgpd_consent,
+      age: payload.age ?? null,
+      submitted_at: new Date().toISOString(),
+      source: payload.source ?? 'catalog',
+      history: [
+        {
+          timestamp: new Date().toLocaleString('pt-BR'),
+          updated_data: { state: 'Lead criado via formulário' },
+        },
+      ],
+    };
+
+    const insertPayload: Record<string, any> = {
+      id: uuidv4(),
+      chat_id,
+      loja_id: lojaId,
+      name: payload.name,
+      phone: payload.phone,
+      cpf: payload.cpf ?? '',
+      job: '',
+      state: 'novo',
+      deal_type: payload.deal_type,
+      payment_method: payload.cash_details ? 'a_vista' : '',
+      interested_vehicles: interestedVehicles,
+      trade_in_car: tradeInCar,
+      financing_details: financingDetails,
+      visit_details: payload.visit_details ?? null,
+      bot_data,
+      channel: payload.source ?? 'catalog',
+      notes: payload.notes ?? '',
+      priority: 'normal',
+      documents: [],
+      tags: [],
+      follow_up_count: 0,
+      unread_messages: 0,
+    };
+
+    const { data, error } = await supabase
+      .from('clients')
+      .insert(insertPayload)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao enviar lead diretamente:', error);
+      throw new Error(error.message || 'Falha ao enviar lead.');
+    }
+
+    return data;
+  } catch (err: any) {
+    console.error('Erro ao enviar lead diretamente:', err);
+    throw new Error(err?.message || 'Falha ao enviar lead.');
   }
-  if (data?.error) {
-    throw new Error(data.error);
-  }
-  return data?.lead;
 };
 
 // Upload de CNH para storage público (bucket cnh-uploads)
