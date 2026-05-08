@@ -93,11 +93,11 @@ const stack = ['React', 'Next.js', 'TypeScript', 'Tailwind', 'Node.js', 'Supabas
 
 const faqs = [
   { q: 'Quanto tempo leva para entregar um projeto?', a: 'Landing pages em 7 a 14 dias, sites institucionais em 3 a 5 semanas, e sistemas sob medida com cronograma combinado no escopo. Você acompanha cada entrega.' },
-  { q: 'Quanto custa um site da JVS?', a: 'Cada projeto é único. Após o diagnóstico gratuito enviamos uma proposta clara, com escopo, prazo e investimento — sem letra miúda.' },
-  { q: 'E se eu não gostar do resultado?', a: 'Trabalhamos por entregas validadas. Cada etapa só avança com seu OK — então o resultado final é exatamente o que combinamos.' },
+  { q: 'Quanto custa um site da JVS?', a: 'Cada projeto é único. Após o diagnóstico gratuito enviamos uma proposta clara, com escopo, prazo e investimento sem letra miúda.' },
+  { q: 'E se eu não gostar do resultado?', a: 'Trabalhamos por entregas validadas. Cada etapa só avança com seu OK então o resultado final é exatamente o que combinamos.' },
   { q: 'Vocês dão suporte depois da entrega?', a: 'Sim. Todo projeto inclui suporte pós-lançamento e oferecemos planos de evolução contínua para quem quer crescer mais rápido.' },
   { q: 'Vocês também fazem o tráfego pago e SEO?', a: 'Construímos sites otimizados para SEO desde o código. Para tráfego pago, conectamos você com parceiros que já validamos.' },
-  { q: 'Trabalham com empresas pequenas?', a: 'Trabalhamos com empresas de qualquer porte que levam a sério o crescimento — do empreendedor solo à indústria.' },
+  { q: 'Trabalham com empresas pequenas?', a: 'Trabalhamos com empresas de qualquer porte que levam a sério o crescimento do empreendedor solo à indústria.' },
 ];
 
 const JvsHome: React.FC = () => {
@@ -473,7 +473,7 @@ const JvsHome: React.FC = () => {
                 Mais de 8 anos construindo soluções <span className="bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-transparent">que geram receita</span>.
               </h2>
               <p className="text-white/60 leading-relaxed mb-6">
-                A JVS nasceu da experiência prática em projetos reais. Não entregamos sites —
+                A JVS nasceu da experiência prática em projetos reais. Não entregamos sites
                 construímos máquinas de conversão pensadas para um único objetivo: <strong className="text-white">aumentar suas vendas</strong>.
               </p>
               <ul className="space-y-2 mb-6">
@@ -488,9 +488,6 @@ const JvsHome: React.FC = () => {
                   </li>
                 ))}
               </ul>
-              <p className="text-sm text-white/50">
-                Experiência com <span className="text-cyan-200 font-semibold">Munters</span> · <span className="text-cyan-200 font-semibold">Bradesco Seguros</span>
-              </p>
 
               <div className="mt-8">
                 <p className="text-xs tracking-wider uppercase text-white/50 mb-3">Stack que dominamos</p>
