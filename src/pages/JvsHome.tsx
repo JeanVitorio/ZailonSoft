@@ -373,7 +373,7 @@ const JvsHome: React.FC = () => {
                 <img
                   src={niloHero}
                   alt="Veículo de luxo azul com neon ciano"
-                  className="relative w-full rounded-3xl shadow-[0_30px_80px_rgba(7,171,216,0.35)] border border-cyan-500/20"
+                  // className="relative w-full rounded-3xl shadow-[0_30px_80px_rgba(7,171,216,0.35)] border border-cyan-500/20"
                   loading="lazy"
                 />
               </motion.div>

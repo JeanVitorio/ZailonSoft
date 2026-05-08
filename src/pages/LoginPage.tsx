@@ -91,29 +91,10 @@ const LoginPage = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <div className="flex items-center justify-between mb-8">
             <Link to="/" className="inline-flex items-center gap-3">
-              <img src="/favicon.ico" alt="Logo" className="w-10 h-10 rounded-2xl shadow-glow-md" />
-              <span className="text-xl font-bold text-foreground">AutoConnect</span>
+              <img src="/favicon-nilo.ico" alt="Logo" className="w-10 h-10 rounded-2xl shadow-glow-md" />
+              <span className="text-xl font-bold text-foreground">NILO</span>
             </Link>
             <ThemeToggle />
-          </div>
-
-          <div className="flex bg-muted/40 rounded-xl p-1 mb-6">
-            <button
-              onClick={() => setMode('login')}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                mode === 'login' ? 'bg-cyan-500 text-slate-950' : 'text-muted-foreground'
-              }`}
-            >
-              Entrar
-            </button>
-            <button
-              onClick={() => setMode('signup')}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                mode === 'signup' ? 'bg-cyan-500 text-slate-950' : 'text-muted-foreground'
-              }`}
-            >
-              Criar conta
-            </button>
           </div>
 
           <AnimatePresence mode="wait">

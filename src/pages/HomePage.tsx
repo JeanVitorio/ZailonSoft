@@ -126,7 +126,7 @@ const HomePage = () => {
           <div className="flex items-center justify-between gap-2">
             <Link to="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
               <img src="/favicon.ico" alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex-shrink-0" />
-              <span className="text-base sm:text-lg font-bold text-foreground truncate">AutoConnect</span>
+              <span className="text-base sm:text-lg font-bold text-foreground truncate">NILO</span>
             </Link>
             <div className="flex items-center gap-1.5 sm:gap-3">
               <ThemeToggle />
@@ -136,7 +136,7 @@ const HomePage = () => {
               <Link to="/login">
                 <Button variant="outline" size="sm">Entrar</Button>
               </Link>
-              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o AutoConnect" target="_blank" rel="noopener noreferrer">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o NILO" target="_blank" rel="noopener noreferrer">
                 <Button variant="default" size="sm" className="btn-primary-glow">
                   <Rocket className="w-4 h-4" />
                   <span className="hidden sm:inline">Falar com a equipe</span>
@@ -189,7 +189,7 @@ const HomePage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 px-2">
-              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o AutoConnect" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o NILO" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
                   <MessageCircle className="w-5 h-5" />
                   Falar com a equipe
@@ -380,7 +380,7 @@ const HomePage = () => {
                 ))}
               </div>
 
-              <a href="https://wa.me/5546991163405?text=Olá! Quero contratar o AutoConnect" target="_blank" rel="noopener noreferrer" className="block">
+              <a href="https://wa.me/5546991163405?text=Olá! Quero contratar o NILO" target="_blank" rel="noopener noreferrer" className="block">
                 <Button variant="premium" size="lg" className="w-full animate-glow-pulse mb-3">
                   <MessageCircle className="w-5 h-5" />
                   Falar com a equipe
@@ -400,10 +400,10 @@ const HomePage = () => {
           </AnimatedSection>
 
           {[
-            { q: 'Preciso instalar algo?', a: 'Não! O AutoConnect é 100% online. Basta acessar pelo navegador do celular ou computador.' },
+            { q: 'Preciso instalar algo?', a: 'Não! O NILO é 100% online. Basta acessar pelo navegador do celular ou computador.' },
             { q: 'Posso cancelar quando quiser?', a: 'Sim, sem multas nem contratos. Cancele a qualquer momento pelo painel.' },
             { q: 'Quantos veículos posso cadastrar?', a: 'Ilimitado! Cadastre quantos veículos precisar sem custo adicional.' },
-            { q: 'Como meus clientes acessam o catálogo?', a: 'Você recebe um link exclusivo (ex: autoconnect.com/loja/sua-loja) para compartilhar por WhatsApp, Instagram ou onde quiser.' },
+            { q: 'Como meus clientes acessam o catálogo?', a: 'Você recebe um link exclusivo (ex: NILO.com/loja/sua-loja) para compartilhar por WhatsApp, Instagram ou onde quiser.' },
             { q: 'Os dados são seguros?', a: 'Sim! Cada loja tem isolamento total. Ninguém acessa os dados de outra loja. Usamos criptografia e políticas de segurança avançadas.' },
           ].map((faq, index) => (
             <AnimatedSection key={index} delay={index * 0.08}>

@@ -123,7 +123,7 @@ const DemoPage = () => {
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-2 md:gap-3">
               <img src="/favicon.ico" alt="Logo" className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-glow-md" />
               <div>
-                <h1 className="text-lg md:text-xl font-bold text-white">AutoConnect Demo</h1>
+                <h1 className="text-lg md:text-xl font-bold text-white">Nilo Demo</h1>
                 <p className="text-[10px] md:text-xs text-muted-foreground">Exemplo de Catálogo Premium</p>
               </div>
             </motion.div>
@@ -210,7 +210,7 @@ const DemoPage = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img src="/favicon.ico" alt="Logo" className="w-8 h-8 rounded-xl" />
-              <span className="text-xs md:text-sm text-muted-foreground">AutoConnect Demo © {new Date().getFullYear()}</span>
+              <span className="text-xs md:text-sm text-muted-foreground">Nilo Demo © {new Date().getFullYear()}</span>
             </div>
             <div className="flex items-center gap-4 md:gap-6">
               <a href="https://instagram.com/nilosistema" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors flex items-center gap-1">
