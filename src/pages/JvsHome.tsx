@@ -355,14 +355,16 @@ const JvsHome: React.FC = () => {
             </div>
             <img src={niloLogo} alt="NILO" className="h-16 sm:h-20 object-contain mx-auto mb-6 drop-shadow-[0_0_30px_rgba(7,171,216,0.55)]" />
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 leading-tight">
-              O sistema que <br className="sm:hidden" />
+              NILO o sistema que <br className="sm:hidden" />
               <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-cyan-300 bg-clip-text text-transparent">
                 lojas de veículos
               </span> esperavam
             </h2>
             <p className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto px-2">
-              Catálogo profissional, CRM inteligente e dashboards de vendas em uma plataforma só.
-              Desenvolvido pela JVS para acelerar concessionárias e revendas.
+              Uma plataforma completa que une catálogo online, CRM inteligente,
+              inteligência de dados e formulário de pré-atendimento para atrair,
+              qualificar e converter clientes com muito mais eficiência.
+              Criado pela JVS para revendas que querem crescer de forma consistente.
             </p>
           </AnimatedSection>
 
@@ -385,7 +387,7 @@ const JvsHome: React.FC = () => {
                   { icon: Layers, label: 'Catálogo público com link único' },
                   { icon: Zap, label: 'CRM Kanban com priorização inteligente' },
                   { icon: LineChart, label: 'Dashboard de vendas em tempo real' },
-                  { icon: ShieldCheck, label: 'Multi-tenant com isolamento total' },
+                  { icon: ShieldCheck, label: 'Formulário instantâneo de pré-atendimento automático' },
                 ].map((f, i) => (
                   <motion.div
                     key={i}
@@ -405,11 +407,6 @@ const JvsHome: React.FC = () => {
                     <Button size="lg" className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-[0_0_30px_rgba(7,171,216,0.4)]">
                       <Rocket className="w-5 h-5" /> Conhecer o NILO
                       <ArrowRight className="w-5 h-5" />
-                    </Button>
-                  </Link>
-                  <Link to="/demo" className="flex-1">
-                    <Button size="lg" variant="glass" className="w-full">
-                      <Eye className="w-5 h-5" /> Ver demonstração
                     </Button>
                   </Link>
                 </div>

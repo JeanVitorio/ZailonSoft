@@ -74,9 +74,9 @@ const HomePage = () => {
   ];
 
   const testimonials = [
-    { name: 'Roberto S.', role: 'Auto King Veículos', text: 'Triplicamos nossos leads em 2 meses. O catálogo online é um diferencial enorme.' },
-    { name: 'Marcela P.', role: 'MP Motors', text: 'Nunca mais perdi um cliente por falta de follow-up. O CRM é sensacional.' },
-    { name: 'Carlos D.', role: 'CD Premium Cars', text: 'Investimento que se paga no primeiro mês. Simples, bonito e funcional.' },
+    // { name: 'Roberto S.', role: 'Auto King Veículos', text: 'Triplicamos nossos leads em 2 meses. O catálogo online é um diferencial enorme.' },
+    // { name: 'Marcela P.', role: 'MP Motors', text: 'Nunca mais perdi um cliente por falta de follow-up. O CRM é sensacional.' },
+    // { name: 'Carlos D.', role: 'CD Premium Cars', text: 'Investimento que se paga no primeiro mês. Simples, bonito e funcional.' },
   ];
 
   const steps = [
@@ -125,14 +125,11 @@ const HomePage = () => {
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <Link to="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <img src="/favicon.ico" alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex-shrink-0" />
+              <img src="/favicon-nilo.ico" alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex-shrink-0" />
               <span className="text-base sm:text-lg font-bold text-foreground truncate">NILO</span>
             </Link>
             <div className="flex items-center gap-1.5 sm:gap-3">
               <ThemeToggle />
-              <Link to="/demo" className="hidden sm:block">
-                <Button variant="ghost" size="sm">Demo</Button>
-              </Link>
               <Link to="/login">
                 <Button variant="outline" size="sm">Entrar</Button>
               </Link>
@@ -196,12 +193,6 @@ const HomePage = () => {
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               </a>
-              <Link to="/demo" className="w-full sm:w-auto">
-                <Button variant="glass" size="lg" className="w-full sm:w-auto">
-                  <Eye className="w-5 h-5" />
-                  Ver Demonstração
-                </Button>
-              </Link>
             </div>
 
             <p className="text-[11px] sm:text-xs text-muted-foreground mt-4">✓ Atendimento humano · ✓ Suporte premium · ✓ Setup rápido</p>
@@ -319,11 +310,11 @@ const HomePage = () => {
       {/* Testimonials */}
       <section className="py-20 relative">
         <div className="container mx-auto px-4">
-          <AnimatedSection className="text-center mb-12">
+          {/* <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Quem usa, <span className="text-gradient">recomenda</span>
             </h2>
-          </AnimatedSection>
+          </AnimatedSection> */}
 
           <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map((t, index) => (
@@ -356,20 +347,25 @@ const HomePage = () => {
           <AnimatedSection>
             <div className="max-w-xl mx-auto glass-card p-6 sm:p-8 md:p-10 rounded-3xl text-center relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400" />
-              <p className="text-muted-foreground mb-2">Plano completo</p>
+              <p className="text-muted-foreground mb-2">Plano completo profissional</p>
               <h3 className="text-3xl md:text-4xl font-bold text-gradient mb-4">Tudo incluso</h3>
-              <p className="text-sm text-muted-foreground mb-6">Fale com nosso time para uma proposta personalizada para a sua loja.</p>
+              <p className="text-sm text-muted-foreground mb-6">Sistema completo para transformar sua loja de veículos em uma máquina de vendas automatizada. Do primeiro contato até a venda fechada, tudo integrado e funcionando 24/7.</p>
 
               <div className="space-y-3 text-left mb-8">
                 {[
-                  'Catálogo online com link exclusivo',
-                  'CRM Kanban ilimitado',
-                  'Dashboard com métricas avançadas',
-                  'Upload de fotos ilimitado',
-                  'Integração WhatsApp',
-                  'Suporte premium',
-                  'Atualizações gratuitas',
-                  'Sem limite de veículos',
+                  'Catálogo online profissional com link',
+                  'CRM Kanban completo para controle de atendimento',
+                  'Formulário instantâneo de pré-atendimento automático',
+                  'Dashboard com métricas avançadas e KPIs em tempo real',
+                  'Upload ilimitado de fotos HD para cada veículo',
+                  'Multi-tenancy seguro com isolamento total para sua loja',
+                  'Suporte premium via WhatsApp com resposta rápida',
+                  'Interface 100% responsiva (celular, tablet, desktop)',
+                  'Sistema de login seguro e controle de acesso',
+                  'Atualizações gratuitas e suporte técnico contínuo',
+                  'Sem limite de veículos ou leads cadastrados',
+                  'Análise de origens de leads e funil de vendas',
+                  'Relatórios de conversão e ticket médio automático',
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
@@ -378,6 +374,18 @@ const HomePage = () => {
                     <span className="text-foreground text-sm">{item}</span>
                   </div>
                 ))}
+              </div>
+
+              <div className="bg-cyan-500/5 rounded-xl p-4 mb-6 border border-cyan-500/20">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MessageCircle className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold mb-1">Pré-atendimento inteligente</h4>
+                    <p className="text-sm text-muted-foreground">Formulários automáticos capturam dados completos do cliente (financiamento, troca, visita) antes mesmo do primeiro contato humano, qualificando leads automaticamente.</p>
+                  </div>
+                </div>
               </div>
 
               <a href="https://wa.me/5546991163405?text=Olá! Quero contratar o NILO" target="_blank" rel="noopener noreferrer" className="block">
@@ -436,10 +444,10 @@ const HomePage = () => {
                   Pronto para acelerar suas vendas?
                 </h2>
                 <p className="text-muted-foreground max-w-lg mx-auto mb-6">
-                  Junte-se a dezenas de lojas que já estão vendendo mais com AutoConnect
+                  Junte-se a dezenas de lojas que já estão vendendo mais com NILO
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
-                  <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o AutoConnect" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                  <a href="https://wa.me/5546991163405?text=Olá! Quero conhecer o NILO" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                     <Button variant="premium" size="lg" className="animate-glow-pulse w-full sm:w-auto">
                       <MessageCircle className="w-5 h-5" />
                       Falar com a equipe
@@ -464,7 +472,7 @@ const HomePage = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img src="/favicon.ico" alt="Logo" className="w-8 h-8 rounded-lg" />
-              <span className="text-sm text-muted-foreground">AutoConnect © {new Date().getFullYear()}</span>
+              <span className="text-sm text-muted-foreground">NILO © {new Date().getFullYear()}</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link to="/demo" className="hover:text-cyan-400 transition-colors">Demo</Link>
