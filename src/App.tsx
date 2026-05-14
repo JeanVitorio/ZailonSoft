@@ -73,7 +73,6 @@ const App = () => (
                   <Route path="crm" element={<CRMKanban />} />
                   <Route path="adicionar" element={<AddVehicle />} />
                   <Route path="configuracoes" element={<StoreSettings />} />
-                  <Route path="ajuda" element={<Dashboard />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

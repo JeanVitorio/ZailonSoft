@@ -53,8 +53,7 @@ const MainLayout = () => {
     { icon: Package, label: 'Catálogo', path: `${basePath}/catalogo` },
     { icon: Users, label: 'Leads / CRM', path: `${basePath}/crm` },
     { icon: PlusCircle, label: 'Adicionar Veículo', path: `${basePath}/adicionar` },
-    { icon: Settings, label: 'Configurações', path: `${basePath}/configuracoes` },
-    { icon: HelpCircle, label: 'Ajuda', path: `${basePath}/ajuda` },
+    { icon: Settings, label: 'Configurações', path: `${basePath}/configuracoes` }
   ];
 
   const handleLogout = () => {
