@@ -123,7 +123,7 @@ const DemoPage = () => {
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-2 md:gap-3">
               <img src="/favicon.ico" alt="Logo" className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl shadow-glow-md" />
               <div>
-                <h1 className="text-lg md:text-xl font-bold text-white">Nilo Demo</h1>
+                <h1 className="text-lg md:text-xl font-bold text-white">Zailon Demo</h1>
                 <p className="text-[10px] md:text-xs text-muted-foreground">Exemplo de Catálogo Premium</p>
               </div>
             </motion.div>
@@ -210,11 +210,11 @@ const DemoPage = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img src="/favicon.ico" alt="Logo" className="w-8 h-8 rounded-xl" />
-              <span className="text-xs md:text-sm text-muted-foreground">Nilo Demo © {new Date().getFullYear()}</span>
+              <span className="text-xs md:text-sm text-muted-foreground">Zailon Demo © {new Date().getFullYear()}</span>
             </div>
             <div className="flex items-center gap-4 md:gap-6">
-              <a href="https://instagram.com/nilosistema" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors flex items-center gap-1">
-                <Instagram className="w-3 h-3 md:w-4 md:h-4" /> @nilosistema
+              <a href="https://www.instagram.com/_jvs_solucoes_/" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors flex items-center gap-1">
+                <Instagram className="w-3 h-3 md:w-4 md:h-4" /> @_jvs_solucoes_
               </a>
               <a href="https://wa.me/5546991163405" target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors">WhatsApp</a>
             </div>

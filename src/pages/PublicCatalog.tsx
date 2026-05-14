@@ -284,7 +284,7 @@ const PublicCatalog = () => {
             </div>
             <div className="flex items-center gap-4 md:gap-6">
               <a href={`https://wa.me/${storeWhatsapp}`} target="_blank" rel="noopener noreferrer" className="text-xs md:text-sm text-muted-foreground hover:text-cyan-400 transition-colors">WhatsApp</a>
-              <span className="text-xs text-muted-foreground/50">Powered by NILO</span>
+              <span className="text-xs text-muted-foreground/50">Powered by ZAILON</span>
             </div>
           </div>
         </div>

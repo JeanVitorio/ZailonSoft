@@ -11,7 +11,7 @@ const SUPPORT_DISPLAY = '(46) 99116-3405';
 const SubscribePage = () => {
   const { logout, user } = useAuth();
   const waUrl = `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(
-    `Olá! Preciso liberar meu acesso ao NILO (${user?.email || ''}).`,
+    `Olá! Preciso liberar meu acesso ao ZAILON (${user?.email || ''}).`,
   )}`;
 
   return (
@@ -37,7 +37,7 @@ const SubscribePage = () => {
           Seu período de acesso terminou
         </h1>
         <p className="text-muted-foreground mb-6 leading-relaxed">
-          Para continuar usando o NILO, entre em contato com a nossa equipe.
+          Para continuar usando o ZAILON, entre em contato com a nossa equipe.
           Vamos te orientar e liberar seu acesso novamente em poucos minutos.
         </p>
 

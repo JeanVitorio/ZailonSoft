@@ -1,15 +1,15 @@
 import { useEffect } from 'react';
 
-type FaviconBrand = 'jvs' | 'nilo';
+type FaviconBrand = 'jvs' | 'zailon';
 
 const TITLES: Record<FaviconBrand, string> = {
   jvs: 'JVS Soluções — Tecnologia que move negócios',
-  nilo: 'NILO — Sistema para lojas de veículos',
+  zailon: 'ZAILON — Sistema para lojas de veículos',
 };
 
 const HREFS: Record<FaviconBrand, string> = {
   jvs: '/jvs-favicon.png',
-  nilo: '/nilo-favicon.png',
+  zailon: '/zailon-favicon.png',
 };
 
 /**

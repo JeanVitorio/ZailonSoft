@@ -91,8 +91,8 @@ const LoginPage = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <div className="flex items-center justify-between mb-8">
             <Link to="/" className="inline-flex items-center gap-3">
-              <img src="/favicon-nilo.ico" alt="Logo" className="w-10 h-10 rounded-2xl shadow-glow-md" />
-              <span className="text-xl font-bold text-foreground">NILO</span>
+              <img src="/favicon-zailon.ico" alt="Logo" className="w-10 h-10 rounded-2xl shadow-glow-md" />
+              <span className="text-xl font-bold text-foreground">ZAILON</span>
             </Link>
             <ThemeToggle />
           </div>

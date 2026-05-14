@@ -8,7 +8,6 @@ import { DataProvider } from "@/contexts/DataContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
 // Public Pages
-import JvsHome from "./pages/JvsHome";
 import HomePage from "./pages/HomePage";
 import DemoPage from "./pages/DemoPage";
 import PublicCatalog from "./pages/PublicCatalog";
@@ -52,8 +51,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<JvsHome />} />
-                <Route path="/nilo" element={<HomePage />} />
+                <Route path="/" element={<HomePage />} />
                 <Route path="/demo" element={<DemoPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/assinar" element={<SubscribePage />} />
