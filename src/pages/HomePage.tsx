@@ -455,7 +455,7 @@ const HomePage = () => {
                   </a>
                   <Link to="/login" className="w-full sm:w-auto">
                     <Button variant="glass" size="lg" className="w-full sm:w-auto">
-                      Criar conta grátis
+                      Loguin
                     </Button>
                   </Link>
                 </div>
