@@ -1,0 +1,317 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Plus, Edit, Trash2, Eye, Package, Link2, X, Save, AlertTriangle } from 'lucide-react';
+import { useData } from '@/contexts/DataContext';
+import { formatPrice } from '@/lib/formatters';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Link } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
+import { Vehicle } from '@/data/vehicles';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAdminBasePath } from '@/hooks/useAdminBasePath';
+
+const VehicleCatalog = () => {
+  const { vehicles, deleteVehicle, updateVehicle } = useData();
+  const { lojaSlug, lojaInfo } = useAuth();
+  const adminBasePath = useAdminBasePath();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'price' | 'year'>('name');
+  const [viewVehicle, setViewVehicle] = useState<Vehicle | null>(null);
+  const [editVehicle, setEditVehicle] = useState<Vehicle | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Vehicle | null>(null);
+  
+  const [editName, setEditName] = useState('');
+  const [editBrand, setEditBrand] = useState('');
+  const [editModel, setEditModel] = useState('');
+  const [editPrice, setEditPrice] = useState('');
+  const [editYear, setEditYear] = useState('');
+  const [editMileage, setEditMileage] = useState('');
+  const [editFuel, setEditFuel] = useState('');
+  const [editTransmission, setEditTransmission] = useState('');
+  const [editColor, setEditColor] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editStock, setEditStock] = useState('');
+  const [editStatus, setEditStatus] = useState<'available' | 'reserved' | 'sold'>('available');
+
+  const filteredVehicles = vehicles
+    .filter(v => 
+      v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.model.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === 'price') return b.price - a.price;
+      if (sortBy === 'year') return b.year - a.year;
+      return a.name.localeCompare(b.name);
+    });
+
+  const statusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      available: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+      reserved: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+      sold: 'bg-red-500/20 text-red-400 border-red-500/30'
+    };
+    const labels: Record<string, string> = { available: 'Disponível', reserved: 'Reservado', sold: 'Vendido' };
+    return <span className={`px-2 py-1 rounded-lg text-xs font-medium border ${styles[status] || styles.available}`}>{labels[status] || 'Disponível'}</span>;
+  };
+
+  const handleExportUrl = () => {
+    // Export the store's public catalog URL using the slug
+    const url = lojaInfo?.dominio
+      ? `https://${lojaInfo.dominio}`
+      : `${window.location.origin}/loja/${lojaSlug}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: "URL Copiada!", description: `Link do catálogo: ${url}` });
+  };
+
+  const openEditModal = (vehicle: Vehicle) => {
+    setEditVehicle(vehicle);
+    setEditName(vehicle.name);
+    setEditBrand(vehicle.brand || '');
+    setEditModel(vehicle.model || '');
+    setEditPrice(vehicle.price.toString());
+    setEditYear(vehicle.year.toString());
+    setEditMileage((vehicle.mileage || 0).toString());
+    setEditFuel(vehicle.fuel || '');
+    setEditTransmission(vehicle.transmission || '');
+    setEditColor(vehicle.color || '');
+    setEditDescription(vehicle.description);
+    setEditStock(vehicle.stock.toString());
+    setEditStatus(vehicle.status);
+  };
+
+  const handleSaveEdit = () => {
+    if (editVehicle) {
+      updateVehicle(editVehicle.id, {
+        name: editName, brand: editBrand, model: editModel,
+        price: parseFloat(editPrice) || 0, year: parseInt(editYear) || new Date().getFullYear(),
+        mileage: parseInt(editMileage) || 0, fuel: editFuel, transmission: editTransmission,
+        color: editColor, description: editDescription, stock: parseInt(editStock) || 1, status: editStatus
+      });
+      setEditVehicle(null);
+      toast({ title: "Veículo atualizado!", description: "As informações foram salvas." });
+    }
+  };
+
+  const handleDelete = () => {
+    if (deleteTarget) {
+      deleteVehicle(deleteTarget.id);
+      toast({ title: "Veículo excluído", description: `${deleteTarget.name} foi removido do catálogo.` });
+      setDeleteTarget(null);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-2xl md:text-3xl font-bold text-white mb-2">
+            Catálogo de Veículos
+          </motion.h1>
+          <p className="text-muted-foreground text-sm md:text-base">{vehicles.length} veículos cadastrados</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={handleExportUrl} className="flex-1 sm:flex-none">
+            <Link2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Exportar URL</span>
+            <span className="sm:hidden">URL</span>
+          </Button>
+          <Link to={`${adminBasePath}/adicionar`} className="flex-1 sm:flex-none">
+            <Button className="w-full"><Plus className="w-4 h-4" /><span className="hidden sm:inline">Novo Veículo</span><span className="sm:hidden">Novo</span></Button>
+          </Link>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Buscar veículos..." className="pl-12 h-12" />
+        </div>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+          className="h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 text-sm">
+          <option value="name">Nome</option>
+          <option value="price">Preço</option>
+          <option value="year">Ano</option>
+        </select>
+      </div>
+
+      {filteredVehicles.length > 0 ? (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {filteredVehicles.map((vehicle, index) => (
+            <motion.div key={vehicle.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}
+              className="glass-card rounded-2xl overflow-hidden group">
+              <div className="relative aspect-video overflow-hidden">
+                <img src={vehicle.images[0] || '/placeholder.svg'} alt={vehicle.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute top-3 left-3">{statusBadge(vehicle.status)}</div>
+                <div className="absolute top-3 right-3">
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-black/50 backdrop-blur-sm">
+                    <Package className="w-3 h-3 text-cyan-400" />
+                    <span className="text-xs text-white font-medium">{vehicle.stock}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-3 md:p-4">
+                <div className="mb-2">
+                  <p className="text-xs text-cyan-400 font-medium mb-1">{vehicle.brand} • {vehicle.year}</p>
+                  <h3 className="font-semibold text-white text-sm md:text-base truncate">{vehicle.name}</h3>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="price-tag text-xs md:text-sm">{formatPrice(vehicle.price)}</span>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => setViewVehicle(vehicle)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-white hover:bg-white/10 transition-all" title="Visualizar">
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => openEditModal(vehicle)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-cyan-400 hover:bg-cyan-400/10 transition-all" title="Editar">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => setDeleteTarget(vehicle)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-red-400 hover:bg-red-400/10 transition-all" title="Excluir">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-16 h-16 rounded-full bg-cyan-500/10 flex items-center justify-center mb-4">
+            <Package className="w-8 h-8 text-cyan-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-white mb-2">Nenhum veículo encontrado</h3>
+          <p className="text-muted-foreground mb-6 text-sm">Adicione seu primeiro veículo ao catálogo</p>
+          <Link to={`${adminBasePath}/adicionar`}><Button><Plus className="w-4 h-4" /> Adicionar Veículo</Button></Link>
+        </motion.div>
+      )}
+
+      {/* View Modal */}
+      <AnimatePresence>
+        {viewVehicle && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setViewVehicle(null)} />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-2xl glass-card rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="flex items-center justify-between p-4 border-b border-white/5">
+                <h3 className="text-lg font-semibold text-white">Detalhes do Veículo</h3>
+                <button onClick={() => setViewVehicle(null)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-white"><X className="w-4 h-4" /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                <img src={viewVehicle.images[0] || '/placeholder.svg'} alt={viewVehicle.name} className="w-full aspect-video object-cover rounded-xl mb-4" />
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-cyan-400 font-medium">{viewVehicle.brand} • {viewVehicle.year}</p>
+                    <h2 className="text-xl font-bold text-white">{viewVehicle.name}</h2>
+                  </div>
+                  <p className="text-2xl font-bold text-cyan-400">{formatPrice(viewVehicle.price)}</p>
+                  <div className="flex items-center gap-2">{statusBadge(viewVehicle.status)}<span className="text-sm text-muted-foreground">Estoque: {viewVehicle.stock}</span></div>
+                  <p className="text-muted-foreground">{viewVehicle.description}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      ['Combustível', viewVehicle.fuel],
+                      ['Transmissão', viewVehicle.transmission],
+                      ['Km', viewVehicle.mileage?.toLocaleString()],
+                      ['Cor', viewVehicle.color],
+                    ].map(([label, val]) => (
+                      <div key={label} className="p-3 rounded-xl bg-white/[0.02]">
+                        <p className="text-xs text-muted-foreground">{label}</p>
+                        <p className="text-sm text-white font-medium">{val || 'N/A'}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2 p-4 border-t border-white/5">
+                <Button variant="outline" onClick={() => setViewVehicle(null)} className="flex-1">Fechar</Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Modal */}
+      <AnimatePresence>
+        {editVehicle && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditVehicle(null)} />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg glass-card rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              <div className="flex items-center justify-between p-4 border-b border-white/5">
+                <h3 className="text-lg font-semibold text-white">Editar Veículo</h3>
+                <button onClick={() => setEditVehicle(null)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-white"><X className="w-4 h-4" /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div><label className="block text-sm font-medium text-muted-foreground mb-2">Nome</label><Input value={editName} onChange={(e) => setEditName(e.target.value)} /></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div><label className="block text-sm font-medium text-muted-foreground mb-2">Marca</label><Input value={editBrand} onChange={(e) => setEditBrand(e.target.value)} /></div>
+                  <div><label className="block text-sm font-medium text-muted-foreground mb-2">Modelo</label><Input value={editModel} onChange={(e) => setEditModel(e.target.value)} /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div><label className="block text-sm font-medium text-muted-foreground mb-2">Preço</label><Input type="number" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} /></div>
+                  <div><label className="block text-sm font-medium text-muted-foreground mb-2">Ano</label><Input type="number" value={editYear} onChange={(e) => setEditYear(e.target.value)} /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div><label className="block text-sm font-medium text-muted-foreground mb-2">Km</label><Input type="number" value={editMileage} onChange={(e) => setEditMileage(e.target.value)} /></div>
+                  <div><label className="block text-sm font-medium text-muted-foreground mb-2">Cor</label><Input value={editColor} onChange={(e) => setEditColor(e.target.value)} /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div><label className="block text-sm font-medium text-muted-foreground mb-2">Combustível</label><Input value={editFuel} onChange={(e) => setEditFuel(e.target.value)} /></div>
+                  <div><label className="block text-sm font-medium text-muted-foreground mb-2">Câmbio</label><Input value={editTransmission} onChange={(e) => setEditTransmission(e.target.value)} /></div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div><label className="block text-sm font-medium text-muted-foreground mb-2">Estoque</label><Input type="number" value={editStock} onChange={(e) => setEditStock(e.target.value)} /></div>
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Status</label>
+                    <select value={editStatus} onChange={(e) => setEditStatus(e.target.value as any)}
+                      className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50">
+                      <option value="available">Disponível</option>
+                      <option value="reserved">Reservado</option>
+                      <option value="sold">Vendido</option>
+                    </select>
+                  </div>
+                </div>
+                <div><label className="block text-sm font-medium text-muted-foreground mb-2">Descrição</label><Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={3} className="resize-none" /></div>
+              </div>
+              <div className="flex gap-2 p-4 border-t border-white/5">
+                <Button variant="outline" onClick={() => setEditVehicle(null)} className="flex-1">Cancelar</Button>
+                <Button onClick={handleSaveEdit} className="flex-1"><Save className="w-4 h-4" /> Salvar</Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Modal */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeleteTarget(null)} />
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-sm glass-card rounded-2xl p-6">
+              <div className="flex flex-col items-center text-center">
+                {deleteTarget.images[0] && (
+                  <img src={deleteTarget.images[0]} alt={deleteTarget.name} className="w-full aspect-video object-cover rounded-xl mb-4" />
+                )}
+                <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+                  <AlertTriangle className="w-7 h-7 text-red-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-1">Excluir veículo?</h3>
+                <p className="text-sm text-muted-foreground mb-1">{deleteTarget.name}</p>
+                <p className="text-sm text-cyan-400 font-medium mb-4">{formatPrice(deleteTarget.price)}</p>
+                <p className="text-xs text-muted-foreground mb-6">Esta ação não pode ser desfeita.</p>
+                <div className="flex gap-3 w-full">
+                  <Button variant="outline" onClick={() => setDeleteTarget(null)} className="flex-1">Cancelar</Button>
+                  <Button variant="destructive" onClick={handleDelete} className="flex-1"><Trash2 className="w-4 h-4" /> Excluir</Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default VehicleCatalog;
