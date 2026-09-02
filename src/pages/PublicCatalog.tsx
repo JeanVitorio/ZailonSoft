@@ -112,7 +112,10 @@ const PublicCatalog = () => {
   const storeName = loja?.nome || 'Catálogo';
   const storeLogo = loja?.logo_url || '';
   const storeWhatsapp = loja?.whatsapp || loja?.telefone_principal || '';
-  const whatsappNumber = storeWhatsapp.replace(/\D/g, '');
+  const rawWhatsappNumber = storeWhatsapp.replace(/\D/g, '');
+  const whatsappNumber = rawWhatsappNumber.length >= 10 && rawWhatsappNumber.length <= 11
+    ? `55${rawWhatsappNumber}`
+    : rawWhatsappNumber;
   const whatsappUrl = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Olá! Visitei o catálogo da ${storeName} e gostaria de mais informações.`)}`
     : '#contato';
@@ -249,83 +252,6 @@ const PublicCatalog = () => {
         <div className="absolute top-0 left-1/2 h-[300px] w-[600px] -translate-x-1/2 rounded-full bg-cyan-500/10 opacity-50 blur-[120px] md:h-[400px] md:w-[800px]" />
 
         <div className="relative container mx-auto px-4 py-8 md:py-12">
-
-          {/* Store info bar */}
-          {(fullAddress || horarioText || loja?.telefone_principal || loja?.email || loja?.site || instagramHandle || facebookUrl) && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-              id="contato"
-              className="max-w-3xl mx-auto glass-card scroll-mt-32 rounded-2xl p-4 md:p-5 mb-5 md:mb-6">
-              <div className="grid sm:grid-cols-2 gap-3 md:gap-4 text-sm">
-                {fullAddress && (
-                  <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 text-white/85 hover:text-cyan-400 transition-colors group">
-                    <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-4 h-4 text-cyan-400" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Endereço</p>
-                      <p className="text-sm leading-tight">{fullAddress}</p>
-                    </div>
-                  </a>
-                )}
-                {horarioText && (
-                  <div className="flex items-start gap-3 text-white/85">
-                    <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                      <Clock className="w-4 h-4 text-cyan-400" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Horário</p>
-                      <p className="text-sm leading-tight whitespace-pre-line">{horarioText}</p>
-                    </div>
-                  </div>
-                )}
-                {loja?.telefone_principal && (
-                  <a href={phoneUrl} className="flex items-start gap-3 text-white/85 hover:text-cyan-400 transition-colors group">
-                    <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-4 h-4 text-cyan-400" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Telefone</p>
-                      <p className="text-sm leading-tight">{loja.telefone_principal}</p>
-                    </div>
-                  </a>
-                )}
-                {loja?.email && (
-                  <a href={`mailto:${loja.email}`} className="flex items-start gap-3 text-white/85 hover:text-cyan-400 transition-colors group">
-                    <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-4 h-4 text-cyan-400" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">E-mail</p>
-                      <p className="text-sm leading-tight break-all">{loja.email}</p>
-                    </div>
-                  </a>
-                )}
-              </div>
-              {(instagramHandle || facebookUrl || loja?.site) && (
-                <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-white/5">
-                  <span className="text-[11px] text-muted-foreground mr-1">Siga:</span>
-                  {instagramHandle && (
-                    <a href={`https://instagram.com/${instagramHandle}`} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-cyan-500/15 border border-white/10 hover:border-cyan-500/30 text-xs text-white/85 transition-all">
-                      <Instagram className="w-3.5 h-3.5" /> @{instagramHandle}
-                    </a>
-                  )}
-                  {facebookUrl && (
-                    <a href={facebookUrl} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-cyan-500/15 border border-white/10 hover:border-cyan-500/30 text-xs text-white/85 transition-all">
-                      <Facebook className="w-3.5 h-3.5" /> Facebook
-                    </a>
-                  )}
-                  {loja?.site && (
-                    <a href={loja.site.startsWith('http') ? loja.site : `https://${loja.site}`} target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-cyan-500/15 border border-white/10 hover:border-cyan-500/30 text-xs text-white/85 transition-all">
-                      <Globe className="w-3.5 h-3.5" /> Site
-                    </a>
-                  )}
-                </div>
-              )}
-            </motion.div>
-          )}
 
           {/* Search & Filter Bar */}
           <motion.div
@@ -482,9 +408,9 @@ const PublicCatalog = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 mt-8 md:mt-12">
-        <div className="container mx-auto px-4 py-6 md:py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer id="contato" className="scroll-mt-32 border-t border-white/5 mt-8 md:mt-12">
+        <div className="container mx-auto px-4 py-8 md:py-10">
+          <div className="grid gap-6 md:grid-cols-3 md:items-start">
             <div className="flex items-center gap-3">
               <img src={storeLogo || '/favicon.ico'} alt="Logo" className="w-8 h-8 md:w-10 md:h-10 rounded-xl object-cover" />
               <div>
@@ -492,7 +418,43 @@ const PublicCatalog = () => {
                 {cityLine && <p className="text-[10px] text-muted-foreground flex items-center gap-1"><MapPin className="w-2.5 h-2.5" /> {cityLine}</p>}
               </div>
             </div>
-            <span className="text-xs text-muted-foreground/60">Powered by Falcon</span>
+
+            <div className="space-y-2 text-xs text-muted-foreground">
+              {fullAddress && (
+                <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="flex items-start gap-2 transition-colors hover:text-cyan-400">
+                  <MapPin className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" /> {fullAddress}
+                </a>
+              )}
+              {loja?.telefone_principal && (
+                <a href={phoneUrl} className="flex items-center gap-2 transition-colors hover:text-cyan-400">
+                  <Phone className="h-3.5 w-3.5" /> {loja.telefone_principal}
+                </a>
+              )}
+              {loja?.email && (
+                <a href={`mailto:${loja.email}`} className="flex items-center gap-2 break-all transition-colors hover:text-cyan-400">
+                  <Mail className="h-3.5 w-3.5 flex-shrink-0" /> {loja.email}
+                </a>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground md:justify-end">
+              {instagramHandle && (
+                <a href={`https://instagram.com/${instagramHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 transition-colors hover:text-cyan-400">
+                  <Instagram className="h-4 w-4" /> Instagram
+                </a>
+              )}
+              {facebookUrl && (
+                <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 transition-colors hover:text-cyan-400">
+                  <Facebook className="h-4 w-4" /> Facebook
+                </a>
+              )}
+              {loja?.site && (
+                <a href={loja.site.startsWith('http') ? loja.site : `https://${loja.site}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 transition-colors hover:text-cyan-400">
+                  <Globe className="h-4 w-4" /> Site
+                </a>
+              )}
+              <span className="w-full text-muted-foreground/50 md:text-right">Powered by Falcon</span>
+            </div>
           </div>
         </div>
       </footer>

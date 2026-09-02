@@ -3,11 +3,10 @@ import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Share2, Calendar, Fuel, Gauge, Palette, Settings2, Play,
-  MessageCircle, Send, MapPin, Clock, Phone, ChevronLeft, ChevronRight, Check,
+  MessageCircle, MapPin, Clock, Phone, ChevronLeft, ChevronRight, Check,
 } from 'lucide-react';
 import { formatPrice, formatMileage } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
-import { LeadForm } from '@/components/ui/LeadForm';
 import { Vehicle } from '@/data/vehicles';
 import { fetchCarDetails, fetchLojaBySlug, type LojaDetails } from '@/services/api';
 import { useTenant } from '@/contexts/TenantContext';
@@ -21,7 +20,6 @@ const PublicVehicleDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
-  const [showLeadForm, setShowLeadForm] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -42,7 +40,7 @@ const PublicVehicleDetail = () => {
           year: car.ano || new Date().getFullYear(), price: Number(car.preco) || 0,
           mileage: car.quilometragem || 0, fuel: car.combustivel || '', transmission: car.cambio || '',
           color: car.cor || '', description: car.descricao || '', features: [], images: car.imagens || [],
-          stock: car.estoque || 1, status: (car.status as any) || 'available',
+          stock: car.estoque || 1, status: (car.status as Vehicle['status']) || 'available',
           createdAt: car.created_at, views: 0, likes: 0,
         });
         setLoja(lojaData);
@@ -78,18 +76,24 @@ const PublicVehicleDetail = () => {
     );
   }
 
-  const storeWhatsapp = loja?.whatsapp || '';
+  const storeWhatsapp = loja?.whatsapp || loja?.telefone_principal || '';
   const storeName = loja?.nome || '';
   const storeLogo = loja?.logo_url || '';
   const loc = (loja?.localizacao || {}) as { endereco?: string; cidade?: string; estado?: string };
   const cityLine = [loc.cidade, loc.estado].filter(Boolean).join(' / ');
   const fullAddress = [loc.endereco, cityLine].filter(Boolean).join(' • ');
   const mapsUrl = fullAddress ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}` : '';
-  const horario = loja?.horario_funcionamento as any;
+  const horario = loja?.horario_funcionamento as string | { descricao?: string; texto?: string } | null;
   const horarioText = typeof horario === 'string' ? horario : horario?.descricao || horario?.texto || '';
 
-  const whatsappMessage = encodeURIComponent(`Olá! Tenho interesse no ${vehicle.name} (${vehicle.year}) - ${formatPrice(vehicle.price)}`);
-  const whatsappUrl = storeWhatsapp ? `https://wa.me/${storeWhatsapp}?text=${whatsappMessage}` : '';
+  const rawWhatsappNumber = storeWhatsapp.replace(/\D/g, '');
+  const whatsappNumber = rawWhatsappNumber.length >= 10 && rawWhatsappNumber.length <= 11
+    ? `55${rawWhatsappNumber}`
+    : rawWhatsappNumber;
+  const whatsappMessage = encodeURIComponent(
+    `Olá! Tenho interesse no carro ${vehicle.name}, no valor de ${formatPrice(vehicle.price)}. Poderia me passar mais informações?`,
+  );
+  const whatsappUrl = whatsappNumber ? `https://wa.me/${whatsappNumber}?text=${whatsappMessage}` : '';
 
   const specs = [
     { icon: Calendar, label: 'Ano', value: vehicle.year },
@@ -108,7 +112,9 @@ const PublicVehicleDetail = () => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       }
-    } catch {}
+    } catch {
+      return;
+    }
   };
 
   const prevImage = () => setActiveImage((i) => (i - 1 + vehicle.images.length) % vehicle.images.length);
@@ -242,9 +248,17 @@ const PublicVehicleDetail = () => {
 
             {/* Desktop CTAs */}
             <div className="hidden md:flex flex-col gap-3 pt-2">
-              <Button variant="premium" size="lg" className="w-full text-base" onClick={() => setShowLeadForm(true)}>
-                <Send className="w-4 h-4" /> Enviar proposta
-              </Button>
+              {whatsappUrl ? (
+                <Button asChild variant="premium" size="lg" className="w-full text-base">
+                  <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="w-5 h-5" /> Tenho interesse
+                  </a>
+                </Button>
+              ) : (
+                <Button variant="premium" size="lg" className="w-full text-base" disabled>
+                  <Phone className="w-5 h-5" /> WhatsApp indisponível
+                </Button>
+              )}
             </div>
 
             {/* Store mini-card */}
@@ -280,13 +294,19 @@ const PublicVehicleDetail = () => {
       {/* Mobile sticky CTA */}
       <div className="fixed bottom-0 left-0 right-0 p-3 bg-[#050505]/95 backdrop-blur-xl border-t border-white/10 z-30 md:hidden">
         <div className="flex gap-2 max-w-lg mx-auto">
-          <Button variant="premium" className="w-full h-12" onClick={() => setShowLeadForm(true)}>
-            <Send className="w-4 h-4" /> Proposta
-          </Button>
+          {whatsappUrl ? (
+            <Button asChild variant="premium" className="w-full h-12">
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="w-5 h-5" /> Tenho interesse
+              </a>
+            </Button>
+          ) : (
+            <Button variant="premium" className="w-full h-12" disabled>
+              <Phone className="w-5 h-5" /> WhatsApp indisponível
+            </Button>
+          )}
         </div>
       </div>
-
-      <LeadForm isOpen={showLeadForm} onClose={() => setShowLeadForm(false)} vehicle={vehicle} />
     </div>
   );
 };
