@@ -111,62 +111,150 @@ const PublicCatalog = () => {
 
   const storeName = loja?.nome || 'Catálogo';
   const storeLogo = loja?.logo_url || '';
-  const storeWhatsapp = loja?.whatsapp || '';
+  const storeWhatsapp = loja?.whatsapp || loja?.telefone_principal || '';
+  const whatsappNumber = storeWhatsapp.replace(/\D/g, '');
+  const whatsappUrl = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Olá! Visitei o catálogo da ${storeName} e gostaria de mais informações.`)}`
+    : '#contato';
   const storeDescription = loja?.descricao || '';
   const loc = (loja?.localizacao || {}) as { endereco?: string; cidade?: string; estado?: string; cep?: string };
   const cityLine = [loc.cidade, loc.estado].filter(Boolean).join(' / ');
   const fullAddress = [loc.endereco, cityLine].filter(Boolean).join(' • ');
-  const horario = loja?.horario_funcionamento as any;
+  const horario = loja?.horario_funcionamento as string | { descricao?: string; texto?: string } | null;
   const horarioText = typeof horario === 'string' ? horario : horario?.descricao || horario?.texto || '';
   const redes = (loja?.redes_sociais || {}) as { instagram?: string; facebook?: string };
   const instagramHandle = redes.instagram?.replace('@', '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, '');
   const facebookUrl = redes.facebook?.startsWith('http') ? redes.facebook : redes.facebook ? `https://facebook.com/${redes.facebook}` : '';
   const mapsUrl = fullAddress ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}` : '';
+  const phoneUrl = loja?.telefone_principal ? `tel:${loja.telefone_principal.replace(/\D/g, '')}` : '';
 
   return (
     <div className="min-h-screen bg-[#050505]">
-      {/* Header */}
-      <header className="relative overflow-hidden">
+      {/* Faixa superior */}
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 items-center justify-between gap-3 md:h-20">
+            <a href="#empresa" className="flex min-w-0 items-center gap-3" aria-label={`Início - ${storeName}`}>
+              <img
+                src={storeLogo || '/favicon.ico'}
+                alt={storeName}
+                className="h-10 w-10 flex-shrink-0 rounded-xl border border-white/10 object-cover shadow-glow-md md:h-12 md:w-12"
+              />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-white sm:text-base md:text-lg">{storeName}</p>
+                {cityLine && (
+                  <p className="hidden items-center gap-1 text-[10px] text-white/55 sm:flex">
+                    <MapPin className="h-3 w-3" /> {cityLine}
+                  </p>
+                )}
+              </div>
+            </a>
+
+            <nav className="hidden items-center gap-7 text-sm font-medium text-white/75 md:flex" aria-label="Navegação principal">
+              <a href="#estoque" className="transition-colors hover:text-cyan-400">Estoque</a>
+              <a href="#empresa" className="transition-colors hover:text-cyan-400">Empresa</a>
+              <a href="#contato" className="transition-colors hover:text-cyan-400">Contato</a>
+            </nav>
+
+            <a
+              href={whatsappUrl}
+              target={whatsappNumber ? '_blank' : undefined}
+              rel={whatsappNumber ? 'noopener noreferrer' : undefined}
+              className="btn-primary-glow inline-flex h-10 flex-shrink-0 items-center gap-2 rounded-full px-3 text-xs font-bold text-slate-950 sm:px-5 sm:text-sm"
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Fale no WhatsApp</span>
+              <span className="sm:hidden">WhatsApp</span>
+            </a>
+          </div>
+
+          <nav className="flex h-10 items-center justify-center gap-8 border-t border-white/5 text-xs font-medium text-white/70 md:hidden" aria-label="Navegação principal mobile">
+            <a href="#estoque" className="transition-colors hover:text-cyan-400">Estoque</a>
+            <a href="#empresa" className="transition-colors hover:text-cyan-400">Empresa</a>
+            <a href="#contato" className="transition-colors hover:text-cyan-400">Contato</a>
+          </nav>
+        </div>
+      </header>
+
+      {/* Hero com vídeo */}
+      <section id="empresa" className="relative flex min-h-[88svh] items-end overflow-hidden pt-28 md:min-h-screen md:pt-20">
+        <div className="absolute inset-0">
+          <video
+            className="h-full w-full object-cover"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            aria-label="Veículo premium com os faróis acendendo"
+          >
+            <source src="/Carro_parado_faróis_acendem_loop_202609021731.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-black/35" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/15" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/30" />
+        </div>
+
+        <div className="relative z-10 container mx-auto px-4 pb-16 pt-24 md:pb-24 md:pt-32">
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-3xl"
+          >
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-black/35 px-4 py-2 backdrop-blur-md">
+              <Sparkles className="h-4 w-4 text-cyan-400" />
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Seleção premium</span>
+            </div>
+
+            <h1 className="max-w-3xl text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl md:text-7xl">
+              Seu próximo carro
+              <span className="text-gradient block">começa aqui.</span>
+            </h1>
+
+            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base md:text-lg">
+              {storeDescription || 'Veículos selecionados, atendimento de confiança e as melhores oportunidades para você acelerar seus planos.'}
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <a
+                href="#estoque"
+                className="btn-primary-glow inline-flex h-12 items-center justify-center gap-2 rounded-xl px-7 text-sm font-bold text-slate-950"
+              >
+                <Search className="h-5 w-5" />
+                Explorar estoque
+              </a>
+              <a
+                href={whatsappUrl}
+                target={whatsappNumber ? '_blank' : undefined}
+                rel={whatsappNumber ? 'noopener noreferrer' : undefined}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/25 bg-black/25 px-7 text-sm font-semibold text-white backdrop-blur-md transition-all hover:border-cyan-400/60 hover:bg-black/45"
+              >
+                <MessageCircle className="h-5 w-5 text-emerald-400" />
+                Falar com um consultor
+              </a>
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/65">
+              <span className="flex items-center gap-2"><Sparkles className="h-3.5 w-3.5 text-cyan-400" /> Veículos selecionados</span>
+              {cityLine && <span className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-cyan-400" /> {cityLine}</span>}
+              {horarioText && <span className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-cyan-400" /> Atendimento personalizado</span>}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-transparent" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] md:w-[800px] h-[300px] md:h-[400px] bg-cyan-500/10 rounded-full blur-[120px] opacity-50" />
+        <div className="absolute top-0 left-1/2 h-[300px] w-[600px] -translate-x-1/2 rounded-full bg-cyan-500/10 opacity-50 blur-[120px] md:h-[400px] md:w-[800px]" />
 
-        <div className="relative container mx-auto px-4 py-6 md:py-10">
-          {/* Store identity */}
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 mb-6 md:mb-8">
-            <img src={storeLogo || '/favicon.ico'} alt={storeName} className="w-12 h-12 md:w-14 md:h-14 rounded-2xl shadow-glow-md object-cover border border-white/10" />
-            <div className="min-w-0">
-              <h1 className="text-lg md:text-2xl font-bold text-white truncate">{storeName}</h1>
-              {cityLine && (
-                <p className="text-[11px] md:text-xs text-muted-foreground flex items-center gap-1">
-                  <MapPin className="w-3 h-3" /> {cityLine}
-                </p>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Hero Content */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-center mb-6 md:mb-8">
-            <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-3 md:mb-4">
-              <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-cyan-400" />
-              <span className="text-xs md:text-sm font-medium text-cyan-400">Veículos Exclusivos</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 md:mb-4 leading-tight">
-              Encontre seu próximo
-              <span className="text-gradient block mt-1">veículo dos sonhos</span>
-            </h2>
-            {storeDescription ? (
-              <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-4">{storeDescription}</p>
-            ) : (
-              <p className="text-sm md:text-base text-muted-foreground max-w-lg mx-auto px-4">
-                Navegue pelo nosso catálogo premium de veículos selecionados
-              </p>
-            )}
-          </motion.div>
+        <div className="relative container mx-auto px-4 py-8 md:py-12">
 
           {/* Store info bar */}
           {(fullAddress || horarioText || loja?.telefone_principal || loja?.email || loja?.site || instagramHandle || facebookUrl) && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-              className="max-w-3xl mx-auto glass-card rounded-2xl p-4 md:p-5 mb-5 md:mb-6">
+              id="contato"
+              className="max-w-3xl mx-auto glass-card scroll-mt-32 rounded-2xl p-4 md:p-5 mb-5 md:mb-6">
               <div className="grid sm:grid-cols-2 gap-3 md:gap-4 text-sm">
                 {fullAddress && (
                   <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 text-white/85 hover:text-cyan-400 transition-colors group">
@@ -190,9 +278,31 @@ const PublicCatalog = () => {
                     </div>
                   </div>
                 )}
+                {loja?.telefone_principal && (
+                  <a href={phoneUrl} className="flex items-start gap-3 text-white/85 hover:text-cyan-400 transition-colors group">
+                    <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                      <Phone className="w-4 h-4 text-cyan-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Telefone</p>
+                      <p className="text-sm leading-tight">{loja.telefone_principal}</p>
+                    </div>
+                  </a>
+                )}
+                {loja?.email && (
+                  <a href={`mailto:${loja.email}`} className="flex items-start gap-3 text-white/85 hover:text-cyan-400 transition-colors group">
+                    <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-4 h-4 text-cyan-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">E-mail</p>
+                      <p className="text-sm leading-tight break-all">{loja.email}</p>
+                    </div>
+                  </a>
+                )}
               </div>
               {(instagramHandle || facebookUrl || loja?.site) && (
-                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
+                <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-white/5">
                   <span className="text-[11px] text-muted-foreground mr-1">Siga:</span>
                   {instagramHandle && (
                     <a href={`https://instagram.com/${instagramHandle}`} target="_blank" rel="noopener noreferrer"
@@ -218,7 +328,13 @@ const PublicCatalog = () => {
           )}
 
           {/* Search & Filter Bar */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="max-w-3xl mx-auto">
+          <motion.div
+            id="estoque"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="max-w-3xl mx-auto scroll-mt-32"
+          >
             <div className="relative flex items-center gap-2 mb-4">
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -315,7 +431,7 @@ const PublicCatalog = () => {
             )}
           </motion.div>
         </div>
-      </header>
+      </div>
 
 
       {/* Feed */}

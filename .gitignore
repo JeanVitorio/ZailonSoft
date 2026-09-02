@@ -17,6 +17,11 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Documentos locais de operação (não sobem para o remoto)
+**/*.local.md
+**/*.local.txt
+docs/*.local.*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
