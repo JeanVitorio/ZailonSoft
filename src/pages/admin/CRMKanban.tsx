@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Phone, Car, DollarSign, Calendar, MessageCircle, Download, X, ChevronDown, ChevronLeft, ChevronRight, Search, Plus, UserPlus, Tag, Edit, Save, Loader2 } from 'lucide-react';
+import { Users, Phone, Car, DollarSign, Calendar, MessageCircle, Download, X, ChevronDown, ChevronLeft, ChevronRight, Search, Plus, UserPlus, Tag, Edit, Save, Loader2, Trash2, AlertTriangle } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatPrice, maskPhone } from '@/lib/formatters';
+import { formatPrice, maskCPF, maskPhone } from '@/lib/formatters';
 import { statusLabels, statusColors, priorityLabels, Lead } from '@/data/leads';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,17 +20,24 @@ const dealTypeLabels: Record<string, string> = {
 };
 
 const CRMKanban = () => {
-  const { leads, updateLead, vehicles, addLead, sellers, assignVendedorToLead } = useData();
+  const { leads, updateLead, deleteLead, vehicles, addLead, sellers, assignVendedorToLead } = useData();
   const { lojaSlug } = useAuth();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddLead, setShowAddLead] = useState(false);
   const [isAddingLead, setIsAddingLead] = useState(false);
+  const [isSavingLead, setIsSavingLead] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingLead, setIsDeletingLead] = useState(false);
   const [vendedorFilter, setVendedorFilter] = useState<string>('all'); // 'all' | 'none' | vendedorId
   const boardRef = useRef<HTMLDivElement>(null);
 
   // Edit fields
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editCpf, setEditCpf] = useState('');
+  const [editVehicleId, setEditVehicleId] = useState('');
   const [editNotes, setEditNotes] = useState('');
   const [editPriority, setEditPriority] = useState<Lead['priority']>('medium');
   const [editDealType, setEditDealType] = useState('');
@@ -40,6 +47,7 @@ const CRMKanban = () => {
   // New lead form
   const [newName, setNewName] = useState('');
   const [newPhone, setNewPhone] = useState('');
+  const [newCpf, setNewCpf] = useState('');
   const [newVehicle, setNewVehicle] = useState('');
   const [newPriority, setNewPriority] = useState<Lead['priority']>('medium');
   const [newVendedorId, setNewVendedorId] = useState<string>('');
@@ -94,6 +102,10 @@ const CRMKanban = () => {
   const openLeadDetail = (lead: Lead) => {
     setSelectedLead(lead);
     setIsEditing(false);
+    setEditName(lead.name);
+    setEditPhone(maskPhone(lead.phone));
+    setEditCpf(lead.cpf || '');
+    setEditVehicleId(lead.vehicleId || '');
     setEditNotes(lead.notes || '');
     setEditPriority(lead.priority);
     setEditDealType(lead.dealType || '');
@@ -102,17 +114,67 @@ const CRMKanban = () => {
   };
 
   const handleSaveEdit = async () => {
-    if (selectedLead) {
-      await updateLead(selectedLead.id, {
-        notes: editNotes,
-        priority: editPriority,
-        dealType: editDealType,
-        status: editStatus,
-        vendedorId: editVendedorId || null,
+    if (!selectedLead) return;
+    const cleanName = editName.trim();
+    const cleanPhone = editPhone.replace(/\D/g, '');
+    if (!cleanName || cleanPhone.length < 10) {
+      toast({
+        title: 'Dados inválidos',
+        description: 'Informe o nome e um telefone válido.',
+        variant: 'destructive',
       });
-      setSelectedLead(prev => prev ? { ...prev, notes: editNotes, priority: editPriority, dealType: editDealType, status: editStatus, vendedorId: editVendedorId || null } : null);
+      return;
+    }
+
+    const selectedVehicle = vehicles.find(vehicle => vehicle.id === editVehicleId);
+    const updates: Partial<Lead> = {
+      name: cleanName,
+      phone: cleanPhone,
+      cpf: editCpf.replace(/\D/g, ''),
+      vehicleId: editVehicleId,
+      vehicleName: selectedVehicle?.name || (editVehicleId ? selectedLead.vehicleName : 'Não especificado'),
+      value: selectedVehicle?.price || (editVehicleId ? selectedLead.value : 0),
+      notes: editNotes.trim(),
+      priority: editPriority,
+      dealType: editDealType,
+      status: editStatus,
+      vendedorId: editVendedorId || null,
+    };
+
+    setIsSavingLead(true);
+    try {
+      await updateLead(selectedLead.id, updates);
+      setSelectedLead(prev => prev ? { ...prev, ...updates } : null);
       setIsEditing(false);
-      toast({ title: "Lead atualizado", description: "As alterações foram salvas." });
+      toast({ title: "Lead atualizado", description: "Todas as alterações foram salvas." });
+    } catch (err: unknown) {
+      toast({
+        title: 'Não foi possível atualizar o lead',
+        description: err instanceof Error ? err.message : 'Tente novamente em instantes.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingLead(false);
+    }
+  };
+
+  const handleDeleteLead = async () => {
+    if (!selectedLead) return;
+    setIsDeletingLead(true);
+    try {
+      await deleteLead(selectedLead.id);
+      toast({ title: 'Lead excluído', description: `${selectedLead.name} foi removido do funil.` });
+      setShowDeleteConfirm(false);
+      setSelectedLead(null);
+      setIsEditing(false);
+    } catch (err: unknown) {
+      toast({
+        title: 'Não foi possível excluir o lead',
+        description: err instanceof Error ? err.message : 'Tente novamente em instantes.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeletingLead(false);
     }
   };
 
@@ -132,14 +194,14 @@ const CRMKanban = () => {
     try {
       const selectedVehicle = vehicles.find(v => v.id === newVehicle);
       await addLead({
-        name: cleanName, phone: cleanPhone, email: '',
+        name: cleanName, phone: cleanPhone, email: '', cpf: newCpf.replace(/\D/g, ''),
         vehicleId: newVehicle || '', vehicleName: selectedVehicle?.name || 'Não especificado',
         value: selectedVehicle?.price || 0, priority: newPriority,
         source: 'admin', status: newStatus, notes: newNotes.trim(), dealType: newDealType,
         vendedorId: newVendedorId || null,
       });
       toast({ title: "Lead adicionado!", description: `${cleanName} foi adicionado ao funil.` });
-      setNewName(''); setNewPhone(''); setNewVehicle(''); setNewPriority('medium'); setNewVendedorId('');
+      setNewName(''); setNewPhone(''); setNewCpf(''); setNewVehicle(''); setNewPriority('medium'); setNewVendedorId('');
       setNewStatus('new'); setNewDealType(''); setNewNotes('');
       setShowAddLead(false);
     } catch (err: unknown) {
@@ -395,6 +457,10 @@ const CRMKanban = () => {
                   <Input value={newPhone} onChange={e => setNewPhone(maskPhone(e.target.value))} placeholder="(00) 00000-0000" inputMode="tel" />
                 </div>
                 <div>
+                  <label className="block text-sm text-muted-foreground mb-1">CPF</label>
+                  <Input value={newCpf} onChange={e => setNewCpf(maskCPF(e.target.value))} placeholder="000.000.000-00" inputMode="numeric" />
+                </div>
+                <div>
                   <label className="block text-sm text-muted-foreground mb-1">Veículo de interesse</label>
                   <select value={newVehicle} onChange={e => setNewVehicle(e.target.value)}
                     className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50" style={{ colorScheme: 'dark' }}>
@@ -524,6 +590,36 @@ const CRMKanban = () => {
                 {isEditing ? (
                   /* Edit mode */
                   <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">Nome *</label>
+                      <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Nome do cliente" />
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-sm font-medium text-muted-foreground mb-2">Telefone *</label>
+                        <Input value={editPhone} onChange={(e) => setEditPhone(maskPhone(e.target.value))} placeholder="(00) 00000-0000" inputMode="tel" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-muted-foreground mb-2">CPF</label>
+                        <Input value={editCpf} onChange={(e) => setEditCpf(maskCPF(e.target.value))} placeholder="000.000.000-00" inputMode="numeric" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-2">Veículo de Interesse</label>
+                      <select value={editVehicleId} onChange={(e) => setEditVehicleId(e.target.value)}
+                        className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50" style={{ colorScheme: 'dark' }}>
+                        <option value="">Não especificado</option>
+                        {editVehicleId && !vehicles.some(vehicle => vehicle.id === editVehicleId) && (
+                          <option value={editVehicleId}>{selectedLead.vehicleName}</option>
+                        )}
+                        {vehicles.map(vehicle => (
+                          <option key={vehicle.id} value={vehicle.id}>{vehicle.name} - {formatPrice(vehicle.price)}</option>
+                        ))}
+                      </select>
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium text-muted-foreground mb-2">Status do Lead</label>
                       <select value={editStatus} onChange={(e) => setEditStatus(e.target.value as Lead['status'])}
@@ -814,8 +910,11 @@ const CRMKanban = () => {
               <div className="flex flex-wrap gap-2 p-4 border-t border-white/5">
                 {isEditing ? (
                   <>
-                    <Button variant="outline" onClick={() => setIsEditing(false)} className="flex-1">Cancelar</Button>
-                    <Button onClick={handleSaveEdit} className="flex-1"><Save className="w-4 h-4" /> Salvar</Button>
+                    <Button variant="outline" onClick={() => setIsEditing(false)} className="flex-1" disabled={isSavingLead}>Cancelar</Button>
+                    <Button onClick={handleSaveEdit} className="flex-1" disabled={isSavingLead}>
+                      {isSavingLead ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      {isSavingLead ? 'Salvando...' : 'Salvar'}
+                    </Button>
                   </>
                 ) : (
                   <>
@@ -825,9 +924,49 @@ const CRMKanban = () => {
                     <Button variant="outline" onClick={() => handleDownloadPDF(selectedLead)} className="flex-1 min-w-[100px]">
                       <Download className="w-4 h-4" /> PDF
                     </Button>
+                    <Button variant="destructive" onClick={() => setShowDeleteConfirm(true)} className="flex-1 min-w-[100px]">
+                      <Trash2 className="w-4 h-4" /> Excluir
+                    </Button>
                     <Button onClick={() => setSelectedLead(null)} className="flex-1 min-w-[100px]">Fechar</Button>
                   </>
                 )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Confirmação de exclusão */}
+      <AnimatePresence>
+        {showDeleteConfirm && selectedLead && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          >
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => !isDeletingLead && setShowDeleteConfirm(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              className="relative w-full max-w-sm rounded-2xl p-6 glass-card"
+            >
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/15">
+                <AlertTriangle className="h-6 w-6 text-red-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Excluir lead?</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                O lead <strong className="text-white">{selectedLead.name}</strong> será removido permanentemente. Esta ação não pode ser desfeita.
+              </p>
+              <div className="mt-6 flex gap-3">
+                <Button variant="outline" onClick={() => setShowDeleteConfirm(false)} className="flex-1" disabled={isDeletingLead}>
+                  Cancelar
+                </Button>
+                <Button variant="destructive" onClick={handleDeleteLead} className="flex-1" disabled={isDeletingLead}>
+                  {isDeletingLead ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  {isDeletingLead ? 'Excluindo...' : 'Excluir'}
+                </Button>
               </div>
             </motion.div>
           </motion.div>

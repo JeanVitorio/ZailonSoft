@@ -410,11 +410,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       // Build a single update payload for all other fields
       const detailUpdates: Record<string, any> = {};
+      if (updates.name !== undefined) detailUpdates.name = updates.name;
+      if (updates.phone !== undefined) detailUpdates.phone = updates.phone;
+      if (updates.cpf !== undefined) detailUpdates.cpf = updates.cpf;
       if (updates.notes !== undefined) detailUpdates.notes = updates.notes;
       if (updates.priority !== undefined) detailUpdates.priority = updates.priority;
       if (updates.dealType !== undefined) detailUpdates.deal_type = updates.dealType;
       if (updates.owner !== undefined) detailUpdates.owner = updates.owner;
       if (updates.vendedorId !== undefined) detailUpdates.vendedor_id = updates.vendedorId;
+      if (updates.vehicleId !== undefined || updates.vehicleName !== undefined || updates.value !== undefined) {
+        detailUpdates.interested_vehicles = updates.vehicleId
+          ? JSON.stringify([{
+              id: updates.vehicleId,
+              nome: updates.vehicleName || 'Veículo',
+              preco: updates.value || 0,
+            }])
+          : '';
+      }
 
       if (Object.keys(detailUpdates).length > 0) {
         await apiService.updateClientDetails({ chatId, updatedData: detailUpdates });
@@ -425,6 +437,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ));
     } catch (err) {
       console.error('Erro ao atualizar lead:', err);
+      throw err;
     }
   };
 
@@ -435,6 +448,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLeads(prev => prev.filter(l => l.id !== id));
     } catch (err) {
       console.error('Erro ao deletar lead:', err);
+      throw err;
     }
   };
 
