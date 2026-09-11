@@ -933,7 +933,7 @@ const CRMKanban = () => {
                       <Download className="w-4 h-4" /> PDF
                     </Button>
                     <Button onClick={() => setIsEditing(true)} className="flex-1 min-w-[150px]">
-                      <Edit className="w-4 h-4" /> Editar informações
+                      <Edit className="w-4 h-4" />
                     </Button>
                     <Button variant="destructive" onClick={() => setShowDeleteConfirm(true)} className="flex-1 min-w-[100px]">
                       <Trash2 className="w-4 h-4" /> Excluir
