@@ -43,6 +43,9 @@ const CRMKanban = () => {
   const [newVehicle, setNewVehicle] = useState('');
   const [newPriority, setNewPriority] = useState<Lead['priority']>('medium');
   const [newVendedorId, setNewVendedorId] = useState<string>('');
+  const [newStatus, setNewStatus] = useState<Lead['status']>('new');
+  const [newDealType, setNewDealType] = useState('');
+  const [newNotes, setNewNotes] = useState('');
 
   const columns = [
     { id: 'new', label: 'Novos', dotClass: 'bg-blue-500' },
@@ -132,11 +135,12 @@ const CRMKanban = () => {
         name: cleanName, phone: cleanPhone, email: '',
         vehicleId: newVehicle || '', vehicleName: selectedVehicle?.name || 'Não especificado',
         value: selectedVehicle?.price || 0, priority: newPriority,
-        source: 'admin', status: 'new', notes: '', dealType: '',
+        source: 'admin', status: newStatus, notes: newNotes.trim(), dealType: newDealType,
         vendedorId: newVendedorId || null,
       });
       toast({ title: "Lead adicionado!", description: `${cleanName} foi adicionado ao funil.` });
       setNewName(''); setNewPhone(''); setNewVehicle(''); setNewPriority('medium'); setNewVendedorId('');
+      setNewStatus('new'); setNewDealType(''); setNewNotes('');
       setShowAddLead(false);
     } catch (err: unknown) {
       toast({
@@ -374,14 +378,14 @@ const CRMKanban = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowAddLead(false)} />
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md glass-card rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between p-4 border-b border-white/5">
+              className="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl glass-card">
+              <div className="flex flex-shrink-0 items-center justify-between p-4 border-b border-white/5">
                 <h3 className="text-lg font-semibold text-white">Adicionar Lead</h3>
                 <button onClick={() => setShowAddLead(false)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-white">
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <div className="p-4 space-y-4">
+              <div className="flex-1 space-y-4 overflow-y-auto p-4">
                 <div>
                   <label className="block text-sm text-muted-foreground mb-1">Nome *</label>
                   <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Nome do cliente" />
@@ -396,6 +400,15 @@ const CRMKanban = () => {
                     className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50" style={{ colorScheme: 'dark' }}>
                     <option value="">Selecionar veículo</option>
                     {vehicles.map(v => (<option key={v.id} value={v.id}>{v.name} - {formatPrice(v.price)}</option>))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-muted-foreground mb-1">Status do Lead</label>
+                  <select value={newStatus} onChange={(e) => setNewStatus(e.target.value as Lead['status'])}
+                    className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50" style={{ colorScheme: 'dark' }}>
+                    {Object.entries(statusLabels).map(([key, label]) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -421,8 +434,30 @@ const CRMKanban = () => {
                     ))}
                   </div>
                 </div>
+                <div>
+                  <label className="block text-sm text-muted-foreground mb-1">Tipo de Negociação</label>
+                  <select value={newDealType} onChange={(e) => setNewDealType(e.target.value)}
+                    className="w-full h-12 px-4 rounded-xl bg-[#1a1a2e] border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50" style={{ colorScheme: 'dark' }}>
+                    <option value="">Não informado</option>
+                    <option value="financiamento">Financiamento</option>
+                    <option value="a_vista">À Vista</option>
+                    <option value="consorcio">Consórcio</option>
+                    <option value="troca">Troca</option>
+                    <option value="leasing">Leasing</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-muted-foreground mb-1">Observações</label>
+                  <Textarea
+                    value={newNotes}
+                    onChange={(e) => setNewNotes(e.target.value)}
+                    placeholder="Adicione informações importantes sobre o lead..."
+                    rows={3}
+                    className="resize-none"
+                  />
+                </div>
               </div>
-              <div className="flex gap-2 p-4 border-t border-white/5">
+              <div className="flex flex-shrink-0 gap-2 p-4 border-t border-white/5">
                 <Button variant="outline" onClick={() => setShowAddLead(false)} className="flex-1" disabled={isAddingLead}>Cancelar</Button>
                 <Button onClick={handleAddLead} className="flex-1" disabled={isAddingLead}>
                   {isAddingLead ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
