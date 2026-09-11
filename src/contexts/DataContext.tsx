@@ -389,6 +389,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         notes: lead.notes || '',
         priority: priorityMap[lead.priority],
         vendedor_id: lead.vendedorId || null,
+        state: lead.status,
       });
       // Recarrega lista para refletir
       await refreshData();

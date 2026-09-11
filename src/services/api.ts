@@ -125,6 +125,7 @@ export interface SubmitLeadInput {
   lgpd_consent?: boolean;
   priority?: 'baixa' | 'normal' | 'alta';
   vendedor_id?: string | null;
+  state?: 'new' | 'contacted' | 'negotiating' | 'proposal' | 'closed' | 'lost';
 }
 
 export const submitLead = async (payload: SubmitLeadInput) => {
@@ -196,7 +197,7 @@ export const submitLead = async (payload: SubmitLeadInput) => {
       phone: payload.phone,
       cpf: payload.cpf ?? '',
       job: '',
-      state: 'novo',
+      state: payload.state ?? 'new',
       deal_type: payload.deal_type,
       payment_method: payload.cash_details ? 'a_vista' : '',
       interested_vehicles: interestedVehicles,
