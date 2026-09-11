@@ -546,8 +546,12 @@ const CRMKanban = () => {
                 <h3 className="text-lg font-semibold text-white">{isEditing ? 'Editar Lead' : 'Detalhes do Lead'}</h3>
                 <div className="flex items-center gap-2">
                   {!isEditing && (
-                    <button onClick={() => setIsEditing(true)} className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400 hover:bg-cyan-500/20">
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="flex h-9 items-center gap-2 rounded-lg bg-cyan-500/10 px-3 text-xs font-semibold text-cyan-400 hover:bg-cyan-500/20"
+                    >
                       <Edit className="w-4 h-4" />
+                      Editar
                     </button>
                   )}
                   <button onClick={() => setSelectedLead(null)} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground hover:text-white">
@@ -557,35 +561,39 @@ const CRMKanban = () => {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {/* Lead header */}
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-400/20 to-blue-400/20 flex items-center justify-center">
-                    <span className="text-cyan-400 text-xl font-semibold">{selectedLead.name.charAt(0)}</span>
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-white">{selectedLead.name}</h2>
-                    <p className="text-muted-foreground">{selectedLead.phone}</p>
-                    {selectedLead.cpf && <p className="text-xs text-muted-foreground">CPF: {selectedLead.cpf}</p>}
-                  </div>
-                </div>
+                {!isEditing && (
+                  <>
+                    {/* Lead header */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-400/20 to-blue-400/20 flex items-center justify-center">
+                        <span className="text-cyan-400 text-xl font-semibold">{selectedLead.name.charAt(0)}</span>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-white">{selectedLead.name}</h2>
+                        <p className="text-muted-foreground">{selectedLead.phone}</p>
+                        {selectedLead.cpf && <p className="text-xs text-muted-foreground">CPF: {selectedLead.cpf}</p>}
+                      </div>
+                    </div>
 
-                {/* Info cards */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 rounded-xl bg-white/[0.02]">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Car className="w-4 h-4 text-cyan-400" />
-                      <span className="text-xs text-muted-foreground">Veículo de Interesse</span>
+                    {/* Info cards */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded-xl bg-white/[0.02]">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Car className="w-4 h-4 text-cyan-400" />
+                          <span className="text-xs text-muted-foreground">Veículo de Interesse</span>
+                        </div>
+                        <p className="text-sm font-medium text-white truncate">{selectedLead.vehicleName}</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-white/[0.02]">
+                        <div className="flex items-center gap-2 mb-1">
+                          <DollarSign className="w-4 h-4 text-cyan-400" />
+                          <span className="text-xs text-muted-foreground">Valor</span>
+                        </div>
+                        <p className="text-sm font-medium text-cyan-400">{formatPrice(getLeadValue(selectedLead))}</p>
+                      </div>
                     </div>
-                    <p className="text-sm font-medium text-white truncate">{selectedLead.vehicleName}</p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-white/[0.02]">
-                    <div className="flex items-center gap-2 mb-1">
-                      <DollarSign className="w-4 h-4 text-cyan-400" />
-                      <span className="text-xs text-muted-foreground">Valor</span>
-                    </div>
-                    <p className="text-sm font-medium text-cyan-400">{formatPrice(getLeadValue(selectedLead))}</p>
-                  </div>
-                </div>
+                  </>
+                )}
 
                 {isEditing ? (
                   /* Edit mode */
@@ -924,10 +932,12 @@ const CRMKanban = () => {
                     <Button variant="outline" onClick={() => handleDownloadPDF(selectedLead)} className="flex-1 min-w-[100px]">
                       <Download className="w-4 h-4" /> PDF
                     </Button>
+                    <Button onClick={() => setIsEditing(true)} className="flex-1 min-w-[150px]">
+                      <Edit className="w-4 h-4" /> Editar informações
+                    </Button>
                     <Button variant="destructive" onClick={() => setShowDeleteConfirm(true)} className="flex-1 min-w-[100px]">
                       <Trash2 className="w-4 h-4" /> Excluir
                     </Button>
-                    <Button onClick={() => setSelectedLead(null)} className="flex-1 min-w-[100px]">Fechar</Button>
                   </>
                 )}
               </div>
