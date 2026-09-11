@@ -74,6 +74,7 @@ export interface Client {
   follow_up_count: number;
   outcome: string | null;
   channel: string | null;
+  vendedor_id: string | null;
 }
 
 export interface ClientPayload {
@@ -122,6 +123,8 @@ export interface SubmitLeadInput {
   source?: string;
   notes?: string;
   lgpd_consent?: boolean;
+  priority?: 'baixa' | 'normal' | 'alta';
+  vendedor_id?: string | null;
 }
 
 export const submitLead = async (payload: SubmitLeadInput) => {
@@ -203,7 +206,8 @@ export const submitLead = async (payload: SubmitLeadInput) => {
       bot_data,
       channel: payload.source ?? 'catalog',
       notes: payload.notes ?? '',
-      priority: 'normal',
+      priority: payload.priority ?? 'normal',
+      vendedor_id: payload.vendedor_id ?? null,
       documents: [],
       tags: [],
       follow_up_count: 0,
@@ -709,7 +713,7 @@ export const updateClientStatus = async ({
     ...(newBotData.history || []),
     {
       timestamp: new Date().toLocaleString('pt-BR'),
-      updated_data: { state: `Movido para ${newState} via CRM` },
+      updated_data: { state: `Movido para ${newState} via Funil de vendas` },
     },
   ];
 

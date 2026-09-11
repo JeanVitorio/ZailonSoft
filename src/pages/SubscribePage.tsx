@@ -13,7 +13,7 @@ const SUPPORT_PHONE = '5546991163405';
 
 const features = [
   'Catálogo público com link exclusivo',
-  'CRM Kanban completo com leads e tarefas',
+  'Funil de vendas completo com leads e tarefas',
   'Dashboard de vendas em tempo real',
   'Gestão de vendedores e equipe',
   'Multi-loja com isolamento total',
@@ -66,8 +66,12 @@ const SubscribePage = () => {
       });
       if (error || data?.error) throw new Error(error?.message || data?.error);
       window.location.href = data.url;
-    } catch (e: any) {
-      toast({ title: 'Erro ao iniciar pagamento', description: e.message, variant: 'destructive' });
+    } catch (e: unknown) {
+      toast({
+        title: 'Erro ao iniciar pagamento',
+        description: e instanceof Error ? e.message : 'Não foi possível iniciar o pagamento.',
+        variant: 'destructive',
+      });
       setLoading(false);
     }
   };

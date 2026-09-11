@@ -76,7 +76,7 @@ const MainLayout = () => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: `${basePath}/dashboard` },
     { icon: Package, label: 'Catálogo', path: `${basePath}/catalogo` },
-    { icon: Users, label: 'Leads / CRM', path: `${basePath}/crm` },
+    { icon: Users, label: 'Funil de vendas', path: `${basePath}/crm` },
     { icon: Trophy, label: 'Vendedores', path: `${basePath}/vendedores` },
     { icon: PlusCircle, label: 'Adicionar Veículo', path: `${basePath}/adicionar` },
     { icon: Settings, label: 'Configurações', path: `${basePath}/configuracoes` }
@@ -245,7 +245,7 @@ const MainLayout = () => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 min-h-screen">
+      <main className="flex-1 min-w-0 lg:ml-64 pt-16 lg:pt-0 min-h-screen">
         <div className="p-4 md:p-6 lg:p-8">
           <Outlet />
         </div>

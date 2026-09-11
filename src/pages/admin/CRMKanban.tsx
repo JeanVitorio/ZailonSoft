@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Phone, Car, DollarSign, Calendar, MessageCircle, Download, X, ChevronDown, Search, Plus, UserPlus, Tag, Edit, Save } from 'lucide-react';
+import { Users, Phone, Car, DollarSign, Calendar, MessageCircle, Download, X, ChevronDown, ChevronLeft, ChevronRight, Search, Plus, UserPlus, Tag, Edit, Save, Loader2 } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatPrice } from '@/lib/formatters';
+import { formatPrice, maskPhone } from '@/lib/formatters';
 import { statusLabels, statusColors, priorityLabels, Lead } from '@/data/leads';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,11 +26,11 @@ const CRMKanban = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddLead, setShowAddLead] = useState(false);
+  const [isAddingLead, setIsAddingLead] = useState(false);
   const [vendedorFilter, setVendedorFilter] = useState<string>('all'); // 'all' | 'none' | vendedorId
+  const boardRef = useRef<HTMLDivElement>(null);
 
   // Edit fields
-  const [editName, setEditName] = useState('');
-  const [editPhone, setEditPhone] = useState('');
   const [editNotes, setEditNotes] = useState('');
   const [editPriority, setEditPriority] = useState<Lead['priority']>('medium');
   const [editDealType, setEditDealType] = useState('');
@@ -45,11 +45,11 @@ const CRMKanban = () => {
   const [newVendedorId, setNewVendedorId] = useState<string>('');
 
   const columns = [
-    { id: 'new', label: 'Novos', color: 'blue' },
-    { id: 'contacted', label: 'Contatados', color: 'amber' },
-    { id: 'negotiating', label: 'Em Negociação', color: 'orange' },
-    { id: 'proposal', label: 'Proposta Enviada', color: 'purple' },
-    { id: 'closed', label: 'Fechados', color: 'emerald' },
+    { id: 'new', label: 'Novos', dotClass: 'bg-blue-500' },
+    { id: 'contacted', label: 'Contatados', dotClass: 'bg-amber-500' },
+    { id: 'negotiating', label: 'Em Negociação', dotClass: 'bg-orange-500' },
+    { id: 'proposal', label: 'Proposta Enviada', dotClass: 'bg-purple-500' },
+    { id: 'closed', label: 'Fechados', dotClass: 'bg-emerald-500' },
   ];
 
   const filteredLeads = useMemo(() => {
@@ -91,8 +91,6 @@ const CRMKanban = () => {
   const openLeadDetail = (lead: Lead) => {
     setSelectedLead(lead);
     setIsEditing(false);
-    setEditName(lead.name);
-    setEditPhone(lead.phone);
     setEditNotes(lead.notes || '');
     setEditPriority(lead.priority);
     setEditDealType(lead.dealType || '');
@@ -121,30 +119,41 @@ const CRMKanban = () => {
   };
 
   const handleAddLead = async () => {
-    if (!newName || !newPhone) {
+    const cleanName = newName.trim();
+    const cleanPhone = newPhone.replace(/\D/g, '');
+    if (!cleanName || cleanPhone.length < 10) {
       toast({ title: "Campos obrigatórios", description: "Nome e telefone são obrigatórios", variant: 'destructive' });
       return;
     }
+    setIsAddingLead(true);
     try {
       const selectedVehicle = vehicles.find(v => v.id === newVehicle);
       await addLead({
-        name: newName, phone: newPhone, email: '',
+        name: cleanName, phone: cleanPhone, email: '',
         vehicleId: newVehicle || '', vehicleName: selectedVehicle?.name || 'Não especificado',
         value: selectedVehicle?.price || 0, priority: newPriority,
-        source: 'catalog', status: 'new', notes: '', dealType: '',
+        source: 'admin', status: 'new', notes: '', dealType: '',
         vendedorId: newVendedorId || null,
       });
-      // If vendedor selected, the submitLead doesn't set it; assign right after refresh
-      if (newVendedorId) {
-        // best-effort: find the newest lead by phone+name
-        // The refresh already happened in addLead
-      }
-      toast({ title: "Lead adicionado!", description: `${newName} foi adicionado ao funil.` });
+      toast({ title: "Lead adicionado!", description: `${cleanName} foi adicionado ao funil.` });
       setNewName(''); setNewPhone(''); setNewVehicle(''); setNewPriority('medium'); setNewVendedorId('');
       setShowAddLead(false);
-    } catch (err) {
-      toast({ title: "Erro", description: "Não foi possível adicionar o lead", variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({
+        title: "Não foi possível adicionar o lead",
+        description: err instanceof Error ? err.message : "Tente novamente em instantes.",
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAddingLead(false);
     }
+  };
+
+  const scrollBoard = (direction: 'left' | 'right') => {
+    boardRef.current?.scrollBy({
+      left: direction === 'right' ? 340 : -340,
+      behavior: 'smooth',
+    });
   };
 
   const handleDownloadPDF = (lead: Lead) => {
@@ -178,10 +187,10 @@ const CRMKanban = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-2xl md:text-3xl font-bold text-white mb-2">
-            Leads / CRM
+            Funil de vendas
           </motion.h1>
           <p className="text-muted-foreground text-sm md:text-base">
-            {leads.length} leads no total • {leads.filter(l => l.status === 'closed').length} vendas fechadas
+            Acompanhe cada oportunidade até o fechamento • {leads.length} lead{leads.length !== 1 ? 's' : ''} no total
           </p>
         </div>
         <div className="flex gap-2">
@@ -216,9 +225,34 @@ const CRMKanban = () => {
         </div>
       </div>
 
-      {/* Kanban Board */}
-      <div className="overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0">
-        <div className="flex gap-3 md:gap-4 min-w-max">
+      {/* Funil de vendas */}
+      <div className="w-full max-w-full overflow-hidden">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">
+            Arraste horizontalmente ou use as setas para ver todas as etapas
+          </p>
+          <div className="hidden flex-shrink-0 items-center gap-2 sm:flex">
+            <button
+              type="button"
+              onClick={() => scrollBoard('left')}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-muted-foreground transition-colors hover:border-cyan-500/30 hover:text-cyan-400"
+              aria-label="Ver etapas anteriores"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollBoard('right')}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-muted-foreground transition-colors hover:border-cyan-500/30 hover:text-cyan-400"
+              aria-label="Ver próximas etapas"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div ref={boardRef} className="max-w-full overflow-x-auto overscroll-x-contain pb-4">
+          <div className="flex min-w-max gap-3 md:gap-4">
           {columns.map((column, colIndex) => {
             const columnLeads = getLeadsByStatus(column.id);
             const totalValue = columnLeads.reduce((acc, l) => acc + getLeadValue(l), 0);
@@ -228,7 +262,7 @@ const CRMKanban = () => {
                 className="kanban-column w-72 md:w-80 flex-shrink-0">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className={`w-3 h-3 rounded-full bg-${column.color}-500`} />
+                    <span className={`w-3 h-3 rounded-full ${column.dotClass}`} />
                     <h3 className="font-semibold text-white text-sm">{column.label}</h3>
                     <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs text-muted-foreground">{columnLeads.length}</span>
                   </div>
@@ -330,6 +364,7 @@ const CRMKanban = () => {
               </motion.div>
             );
           })}
+          </div>
         </div>
       </div>
 
@@ -353,7 +388,7 @@ const CRMKanban = () => {
                 </div>
                 <div>
                   <label className="block text-sm text-muted-foreground mb-1">Telefone *</label>
-                  <Input value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder="(00) 00000-0000" />
+                  <Input value={newPhone} onChange={e => setNewPhone(maskPhone(e.target.value))} placeholder="(00) 00000-0000" inputMode="tel" />
                 </div>
                 <div>
                   <label className="block text-sm text-muted-foreground mb-1">Veículo de interesse</label>
@@ -388,8 +423,11 @@ const CRMKanban = () => {
                 </div>
               </div>
               <div className="flex gap-2 p-4 border-t border-white/5">
-                <Button variant="outline" onClick={() => setShowAddLead(false)} className="flex-1">Cancelar</Button>
-                <Button onClick={handleAddLead} className="flex-1"><Plus className="w-4 h-4" /> Adicionar</Button>
+                <Button variant="outline" onClick={() => setShowAddLead(false)} className="flex-1" disabled={isAddingLead}>Cancelar</Button>
+                <Button onClick={handleAddLead} className="flex-1" disabled={isAddingLead}>
+                  {isAddingLead ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  {isAddingLead ? 'Adicionando...' : 'Adicionar'}
+                </Button>
               </div>
             </motion.div>
           </motion.div>

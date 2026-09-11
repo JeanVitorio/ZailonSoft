@@ -162,7 +162,7 @@ const mapClientToLead = (client: apiService.Client): Lead => {
     outcome: client.outcome || '',
     lastContactAt: client.last_contact_at || undefined,
     followUpCount: client.follow_up_count || 0,
-    vendedorId: (client as any).vendedor_id || null,
+    vendedorId: client.vendedor_id || null,
     // Blocos condicionais
     financingDetails: financing,
     tradeIn: tradeIn,
@@ -371,6 +371,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const addLead = async (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       if (!lojaId) throw new Error('Loja não identificada.');
+      const priorityMap: Record<Lead['priority'], 'baixa' | 'normal' | 'alta'> = {
+        low: 'baixa',
+        medium: 'normal',
+        high: 'alta',
+      };
       await apiService.submitLead({
         loja_id: lojaId,
         name: lead.name,
@@ -382,6 +387,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         deal_type: lead.dealType || 'a_vista',
         source: 'admin',
         notes: lead.notes || '',
+        priority: priorityMap[lead.priority],
+        vendedor_id: lead.vendedorId || null,
       });
       // Recarrega lista para refletir
       await refreshData();

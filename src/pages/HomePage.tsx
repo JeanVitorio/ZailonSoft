@@ -49,7 +49,7 @@ const HomePage = () => {
 
   const gains = [
     'Catálogo online profissional com link único',
-    'CRM Kanban: cada lead na palma da mão',
+    'Funil de vendas: cada lead na palma da mão',
     'Dashboard com vendas, conversão e origem',
     'Veículos com fotos HD em segundos',
     'Pré-atendimento automático qualifica o lead',
@@ -58,7 +58,7 @@ const HomePage = () => {
 
   const features = [
     { icon: Package, title: 'Catálogo Premium', desc: 'Feed visual estilo Instagram com fotos HD, filtros e link exclusivo da sua loja.' },
-    { icon: Users, title: 'CRM Kanban', desc: 'Acompanhe cada lead do primeiro toque até a venda. Nunca mais perca um cliente.' },
+    { icon: Users, title: 'Funil de vendas', desc: 'Acompanhe cada lead do primeiro toque até a venda. Nunca mais perca um cliente.' },
     { icon: BarChart3, title: 'Dashboard 360°', desc: 'KPIs em tempo real: funil, conversão, origem dos leads e ticket médio.' },
     { icon: Zap, title: 'WhatsApp 1‑clique', desc: 'Botão direto em cada veículo, com mensagem pronta. Atendimento sem atrito.' },
     { icon: Shield, title: 'Isolamento por Loja', desc: 'Multi‑tenancy seguro. Seus dados são só seus, protegidos por RLS.' },
@@ -74,7 +74,7 @@ const HomePage = () => {
 
   const planFeatures = [
     'Catálogo online profissional com link exclusivo',
-    'CRM Kanban completo com histórico de atendimento',
+    'Funil de vendas completo com histórico de atendimento',
     'Dashboard com métricas e KPIs em tempo real',
     'Pré‑atendimento automático que qualifica leads',
     'Upload ilimitado de fotos HD por veículo',
@@ -156,7 +156,7 @@ const HomePage = () => {
             </h1>
 
             <p className="text-base sm:text-lg md:text-2xl text-white/85 max-w-3xl mx-auto mb-8 px-2 leading-relaxed" style={{ textShadow: '0 1px 12px rgba(0,0,0,0.6)' }}>
-              Catálogo profissional, CRM e dashboard num só sistema.
+              Catálogo profissional, funil de vendas e dashboard num só sistema.
               <strong className="text-white"> Mais leads, menos esforço, vendas no automático.</strong>
             </p>
 

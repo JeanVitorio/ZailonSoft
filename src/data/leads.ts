@@ -11,7 +11,7 @@ export interface Lead {
   priority: 'low' | 'medium' | 'high';
   value: number;
   notes: string;
-  source: 'catalog' | 'whatsapp' | 'instagram' | 'referral';
+  source: 'catalog' | 'whatsapp' | 'instagram' | 'referral' | 'admin';
   createdAt: string;
   updatedAt: string;
   followUpDate?: string;
